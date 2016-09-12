@@ -6,7 +6,7 @@ extern bool rawImgHasCopiedOut;
 extern Mat g_rawImage;
 VideoCapture capture;
 
-////OpencvÏà»ú²É¼¯Ïß³Ì
+////Opencvç›¸æœºé‡‡é›†çº¿ç¨‹
 void* CameraCapture(void*)
 {
     int rate = 15;
@@ -28,31 +28,31 @@ void* CameraCapture(void*)
 
 
         sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", captureImg).toImageMsg();
-        //ËµÃ÷Òª·¢²¼µÄÏûÏ¢¶ÔÏó
+        //è¯´æ˜è¦å‘å¸ƒçš„æ¶ˆæ¯å¯¹è±¡
          pub.publish(msg);
          loop_rate.sleep();
 
     }
 }
 
-////´´½¨OpencvÏà»ú²É¼¯Ïß³Ì
+////åˆ›å»ºOpencvç›¸æœºé‡‡é›†çº¿ç¨‹
 void CreateCameraCaptureThread()
 {
     pthread_t captureThread;
     int ret=pthread_create(&captureThread,NULL,CameraCapture,NULL);
     if(ret!=0)
     {
-        //Ïß³Ì´´½¨Ê§°Ü
+        //çº¿ç¨‹åˆ›å»ºå¤±è´¥
         printf ("Create camera capture thread error!..\n");
         exit (1);
     }
     return;
 }
 
-////Opencv·½Ê½´ò¿ªUVCÉãÏñÍ·
+////Opencvæ–¹å¼æ‰“å¼€UVCæ‘„åƒå¤´
 int OpenCameraByOpencv(int cameraNo)
 {
-    //opencv·½Ê½´ò¿ªÏà»ú
+    //opencvæ–¹å¼æ‰“å¼€ç›¸æœº
     capture.open(cameraNo);
     capture.set(CV_CAP_PROP_FRAME_WIDTH,640);
     capture.set(CV_CAP_PROP_FRAME_HEIGHT,480);
@@ -67,10 +67,10 @@ int OpenCameraByOpencv(int cameraNo)
     return 1;
 }
 
-////´ò¿ªÏà»ú
+////æ‰“å¼€ç›¸æœº
 void OpenCamera(int openCameraMode, int cameraNo)
 {
-    //´´½¨Ò»¸öĞÂÏß³ÌÓÃÓÚ²¶»ñ¼üÅÌÊäÈë
+    //åˆ›å»ºä¸€ä¸ªæ–°çº¿ç¨‹ç”¨äºæ•è·é”®ç›˜è¾“å…¥
     //OpenGetKeyThread();
 
     //if (MVMODE == openCameraMode)

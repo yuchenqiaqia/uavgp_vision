@@ -1,10 +1,8 @@
 /******************************************************************************
-
-°æÈ¨ËùÓĞ (C), 2016, ÖĞ¹ú¿ÆÑ§ÔºÉòÑô×Ô¶¯»¯ÑĞ¾¿Ëù£¬Ò»ÊÒ£¬ĞıÒí·ÉĞĞ»úÆ÷ÈË¿ÎÌâ×é
-
+ç‰ˆæƒæ‰€æœ‰ (C), 2016, ä¸­å›½ç§‘å­¦é™¢æ²ˆé˜³è‡ªåŠ¨åŒ–ç ”ç©¶æ‰€ï¼Œä¸€å®¤ï¼Œæ—‹ç¿¼é£è¡Œæœºå™¨äººè¯¾é¢˜ç»„
 ******************************************************************************
-°æ ±¾ ºÅ   : v1.0
-×÷	  Õß   : Ğ¤±ó
+ç‰ˆ æœ¬ å·   : v1.0
+ä½œ	  è€…   : è‚–æ–Œ
 ******************************************************************************/
 #include "KNN_OCR.h"
 #include <stdlib.h>
@@ -54,28 +52,28 @@ public:
 		maxSideLength = 0;	
 		area = 0;
         rectKind = -1;
-		//perspectiveImg.create(int(200*1.25),200,CV_8UC3);//create£¨ĞĞ£¬ÁĞ£¬ÀàĞÍ£©
+		//perspectiveImg.create(int(200*1.25),200,CV_8UC3);//createï¼ˆè¡Œï¼Œåˆ—ï¼Œç±»å‹ï¼‰
 		//possibleDigitBinaryImg.create(int(200*1.25),200,CV_8UC1);
 	}
     int frameNo;
-    int indexId;                    //Rect±àºÅ
-	bool validFlag;				//¸ÃRectÊÇ·ñÓĞĞ§
+    int indexId;                    //Rectç¼–å·
+	bool validFlag;					//è¯¥Rectæ˜¯å¦æœ‰æ•ˆ
 	bool blackFrameDetectedFlag;
-    //¾ØĞÎÀà±ğ£¬¾ØĞÎ¼ì²âµ½ºóµÄÕı³£È¡Öµ£º0£¬ 1£¬ 2
+    //çŸ©å½¢ç±»åˆ«ï¼ŒçŸ©å½¢æ£€æµ‹åˆ°åçš„æ­£å¸¸å–å€¼ï¼š0ï¼Œ 1ï¼Œ 2
     int rectKind;
 
-	//contourĞÅÏ¢
-    float minSideLength;            //×îĞ¡±ß³¤
-    float maxSideLength;            //×î´ó±ß³¤
-    float area;                     //Ãæ»ı
-	vector<Point2f> m_points;	//ËÄ¸ö¶¥µãÎ»ÖÃ
+	//contourä¿¡æ¯
+    float minSideLength;            //æœ€å°è¾¹é•¿
+    float maxSideLength;            //æœ€å¤§è¾¹é•¿
+    float area;                     //é¢ç§¯
+	vector<Point2f> m_points;		//å››ä¸ªé¡¶ç‚¹ä½ç½®
     Point3f position;
 
-	//Í¸ÊÓ±ä»»ºóµÄÍ¼Ïñ
+	//é€è§†å˜æ¢åçš„å›¾åƒ
 	Mat perspectiveImg;
-    //¶ÔÍ¸ÊÓ±ä»»ºóµÄ¶şÖµ»¯´¦ÀíºóÍ¼Ïñ
+    //å¯¹é€è§†å˜æ¢åçš„äºŒå€¼åŒ–å¤„ç†åå›¾åƒ
     Mat possibleRectBinaryImg;
-	//´ıÊı×ÖÊ¶±ğÍ¼Ïñ
+	//å¾…æ•°å­—è¯†åˆ«å›¾åƒ
 	Mat possibleDigitBinaryImg;
 };
 
@@ -93,7 +91,7 @@ public:
     float yaw;
 };
 
-//×îÖÕ½á¹ûµÄ×Ô¶¨ÒåÊı¾İÀàĞÍ
+//æœ€ç»ˆç»“æœçš„è‡ªå®šä¹‰æ•°æ®ç±»å‹
 class VisionResult
 {
 public:
@@ -127,56 +125,56 @@ public:
 
 //read offline data
 int ReadOfflineData(  );
-//´´½¨rosÏûÏ¢·¢²¼µÄ¸÷¸öÏß³Ì
+//åˆ›å»ºrosæ¶ˆæ¯å‘å¸ƒçš„å„ä¸ªçº¿ç¨‹
 void CreateRosPublishThread(const char* dir);
-//¿ªÆôros·¢²¼Í¼ÏñÏß³Ì
+//å¼€å¯roså‘å¸ƒå›¾åƒçº¿ç¨‹
 void*  RosImagePublishThread(void*);
-//´´½¨ÎÄ¼ş¼Ğ
+//åˆ›å»ºæ–‡ä»¶å¤¹
 int CreateDir(char* saveDir);
 //Save
 int CreatSaveDir (char* dir , bool saveImgFlag);
-//SDK·½Ê½³õÊ¼»¯Ïà»ú
+//SDKæ–¹å¼åˆå§‹åŒ–ç›¸æœº
 //int MindvisionCaptureInit(void);
 
 void ResizeImageByDistance( Mat& inputImg, Mat& outputImg, vector<VisionResult>& oldResult);
-//¾ØĞÎ£¨ËÄ±ßĞÎ£©¼ì²â
+//çŸ©å½¢ï¼ˆå››è¾¹å½¢ï¼‰æ£€æµ‹
 void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, int frameNo );
-//ÇóËÄ±ßĞÎÄÚ²à¼Ğ½Ç
+//æ±‚å››è¾¹å½¢å†…ä¾§å¤¹è§’
 double GetTwoSideAngle(Point2f p1,Point2f p2, Point2f p3);
-//ÌŞ³ıÖØºÏµÄËÄ±ßĞÎ
+//å‰”é™¤é‡åˆçš„å››è¾¹å½¢
 void RectErase( vector<RectMark>& rectPossible );
-//ËÄ±ßĞÎ·ÖÀà
+//å››è¾¹å½¢åˆ†ç±»
 void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& rectCategory);
-//ËÄ±ßĞÎ°´Ãæ»ıÅÅĞò
+//å››è¾¹å½¢æŒ‰é¢ç§¯æ’åº
 void RectSortByArea( vector< vector<RectMark> >& rectCategory );
-//²»Í¬ÀàµÄËÄ±ßĞÎ°´×ø±êÅÅĞò
+//ä¸åŒç±»çš„å››è¾¹å½¢æŒ‰åæ ‡æ’åº
 void RectSortByPositionX( vector< vector<RectMark> >& rectCategory );
-//»­³ö¸÷ËÄ±ßĞÎ
+//ç”»å‡ºå„å››è¾¹å½¢
 void DrawAllRect(Mat& resultImg, vector< vector<RectMark> >& rectCategory);
-//¶ÔÍ¸ÊÓ±ä»»ºóµÄÍ¼Ïñ×ö´¦Àí£¬ÅĞ¶Ï³ö¼ì²âµ½µÄ¾ØĞÎµÄÀà±ğ
+//å¯¹é€è§†å˜æ¢åçš„å›¾åƒåšå¤„ç†ï¼Œåˆ¤æ–­å‡ºæ£€æµ‹åˆ°çš„çŸ©å½¢çš„ç±»åˆ«
 void GetRectKinds( vector< vector<RectMark> >&  rectCategory );
-//ºÚ¿ò¼ì²â
+//é»‘æ¡†æ£€æµ‹
 void BlackFrameDetect(vector< vector<RectMark> >& rectCategory);
-//¼ÆËã°üÎ§ºÚ¿òµÄÏñËØÆ½¾ùÖµ
+//è®¡ç®—åŒ…å›´é»‘æ¡†çš„åƒç´ å¹³å‡å€¼
 int GetBoxFramePixelAverageValue(const Mat& img);
-//µ¥Ä¿Î»ÖÃ¹À¼Æ
+//å•ç›®ä½ç½®ä¼°è®¡
 void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory);
-//Í¸ÊÓ±ä»»
+//é€è§†å˜æ¢
 void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vector< vector<RectMark> >& rectCategory);
-//Êı×ÖÊ¶±ğ
+//æ•°å­—è¯†åˆ«
 void DigitDetector(Mat& rectResultImg, basicOCR* ocr, vector< vector<RectMark> >& rectCategory, bool saveDigitBinaryImg);
-//ÏÔÊ¾Ê±¼ä¡¢Ö¡ÂÊ
+//æ˜¾ç¤ºæ—¶é—´ã€å¸§ç‡
 void ShowTime(Mat& inputImg, int frameNo, float shrink);
-//ÅĞ¶Ï´ıÊ¶±ğÍ¼ÏñµÄÓĞĞ§ĞÔ
+//åˆ¤æ–­å¾…è¯†åˆ«å›¾åƒçš„æœ‰æ•ˆæ€§
 int FindValidContours(Mat& src);
 //
 double GetAllPixelAverageValue(Mat& img);
-//ÊÓ¾õ¼ì²â½á¹û±£´æÎªtxt
+//è§†è§‰æ£€æµ‹ç»“æœä¿å­˜ä¸ºtxt
 void SaveResultToTxt(char* baseDir,  float shrink, vector<VisionResult>& result);
 //Guidance
 void DepthTo3D( Mat& depth_img, Mat& xyz_img);
 void ConvertToPseudoColor( Mat& mat_xyz, Mat& img_pseudo_color );
 //
 double GetROI_AverageVal( Mat src, Point point, int channel, int radius);
-//¸ù¾İÀÛ»ıÎó²î¼ì²â¾ØĞÎ
+//æ ¹æ®ç´¯ç§¯è¯¯å·®æ£€æµ‹çŸ©å½¢
 int RectDectByStatisticsError(Mat& input_img);

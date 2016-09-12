@@ -1,24 +1,22 @@
 /******************************************************************************
  *
-
-°æÈ¨ËùÓĞ (C), 2016, ÖĞ¹ú¿ÆÑ§ÔºÉòÑô×Ô¶¯»¯ÑĞ¾¿Ëù£¬Ò»ÊÒ£¬ĞıÒí·ÉĞĞ»úÆ÷ÈË¿ÎÌâ×é
-
+ç‰ˆæƒæ‰€æœ‰ (C), 2016, ä¸­å›½ç§‘å­¦é™¢æ²ˆé˜³è‡ªåŠ¨åŒ–ç ”ç©¶æ‰€ï¼Œä¸€å®¤ï¼Œæ—‹ç¿¼é£è¡Œæœºå™¨äººè¯¾é¢˜ç»„
 ******************************************************************************
-°æ ±¾ ºÅ   : v1.0
-×÷	  Õß   : Ğ¤±ó
+ç‰ˆ æœ¬ å·   : v1.0
+ä½œ	  è€…   : è‚–æ–Œ
 ******************************************************************************/
 
 #include "declare.h"
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/TransformStamped.h>
 
-//Í¼ÏñËõĞ¡ÏµÊı
+//å›¾åƒç¼©å°ç³»æ•°
 //#define  SHRINK_LOWEST_VALUE  0.9248555
 //#define  SHRINK_LOWEST_VALUE  1.2
 #define  SHRINK_LOWEST_VALUE  0.46
 #define  SHRINK_HIGHEST_VALUE 1.0
 
-//Í¼ÏñËõĞ¡
+//å›¾åƒç¼©å°
 double shrink = 1;
 
 basicOCR* KNNocr;
@@ -37,7 +35,7 @@ bool rawImgHasSavedFlag = true;
 bool resultImgHasSavedFlag = true;
 bool g_rectResultImgUpdated = false;
 
-//Î¬ÊÓ¾µÍ·ÄÚ²Î£¬mv-ub130gcÏà»ú£¨130Íò£©
+//ç»´è§†é•œå¤´å†…å‚ï¼Œmv-ub130gcç›¸æœºï¼ˆ130ä¸‡ï¼‰
 //double c_fx=501.98355 *2/shrink,c_fy=504.37856 *2/shrink,c_cx=327.11066 *2/shrink,c_cy=223.05380 *2/shrink;
 //Mat c_distcoef=(Mat_<double>(1,5) << -0.41779, 0.28133, 0.00074, 0.00001,0);
 //Mat c_cameraMatrix=(Mat_<double>(3,3) << c_fx,0,c_cx,0,c_fy,c_cy,0,0,1);
@@ -45,10 +43,10 @@ bool g_rectResultImgUpdated = false;
 //Mat t_distcoef=(Mat_<double>(1,5) << 0.01135,-0.05718,0.00132,0.00277,0);
 //Mat t_cameraMatrix=(Mat_<double>(3,3) << t_fx,0,t_cx,0,t_fy,t_cy,0,0,1),rvec,tvec;
 
-//¾ØĞÎ³¤¿í±ÈÀıãĞÖµ
+//çŸ©å½¢é•¿å®½æ¯”ä¾‹é˜ˆå€¼
 float maxSideLengthRatioAllowed = 2.5f;
 float rectClassifyThres = 0.5f;
-//Ê¶±ğĞÅÏ¢
+//è¯†åˆ«ä¿¡æ¯
 extern float g_PrecisionRatio;
 extern int g_AccuracyAmount;
 
@@ -75,21 +73,21 @@ private:
 };
 
 extern vector<VisionResult>  g_visionResult;
-//ÊÓÆµ´æ´¢
+//è§†é¢‘å­˜å‚¨
 VideoWriter outputVideo;
 //globle image, sub function use
 vector<VisionResult>  visionResult;
 vector<VisionResult>  oldResult;
 Attitude3D attitude3d;
-//¿ÉÄÜµÄ¸÷¾ØĞÎĞÅÏ¢
+//å¯èƒ½çš„å„çŸ©å½¢ä¿¡æ¯
 vector<RectMark> rectPossible;
-//¾ØĞÎ·ÖÀà´æ´¢,Í¬Ò»Àà´ú±íÍ¬Ò»¸öÎïÀí±êÖ¾
+//çŸ©å½¢åˆ†ç±»å­˜å‚¨,åŒä¸€ç±»ä»£è¡¨åŒä¸€ä¸ªç‰©ç†æ ‡å¿—
 vector< vector<RectMark> > rectCategory;
-//Í¸ÊÓ±ä»»ºóµÄ¾ØĞÎÍ¼Ïñ
+//é€è§†å˜æ¢åçš„çŸ©å½¢å›¾åƒ
 vector<Mat> rectCandidateImg;
-//´æ´¢µÄÍ¸ÊÓ±ä»»ºóÍ¼Ïñ
+//å­˜å‚¨çš„é€è§†å˜æ¢åå›¾åƒ
 //vector<Mat> vecPerspectiveImg;
-//Í¸ÊÓ±ä»»ºóµÄ¶şÖµ»¯roiÍ¼Ïñ
+//é€è§†å˜æ¢åçš„äºŒå€¼åŒ–roiå›¾åƒ
 //vector<Mat> vecPossibleDigitBinaryImg;
 
 
@@ -101,7 +99,7 @@ void AttitudeSubCallBack(const geometry_msgs::TransformStamped::ConstPtr& att_ms
 void* AttitudeSubThread(void*);
 
 void ShowGuidanceImage(Mat& gray_image_left, Mat& gray_image_right, Mat& depth8, Mat& pseudo_color_img);
-//·¢²¼Êı×ÖÊ¶±ğ½á¹û
+//å‘å¸ƒæ•°å­—è¯†åˆ«ç»“æœ
 void DigitResultPublish( vector<VisionResult> & visionResult );
-//Ïà»ú×ø±êÏµµ½NEG×ø±êÏµ£»
+//ç›¸æœºåæ ‡ç³»åˆ°NEGåæ ‡ç³»ï¼›
 void CameraCoordinate2NegCoordinate( vector<VisionResult>& vision_results, const Attitude3D& attitude3d);

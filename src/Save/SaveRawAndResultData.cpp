@@ -22,7 +22,7 @@ void RawDataSubThreadCallback(const sensor_msgs::ImageConstPtr& msg)
         putText(subscribed_image,text,Point(0,25),CV_FONT_HERSHEY_COMPLEX_SMALL,1.5,Scalar(0,0,255),2);
         //imshow("raw_data_subscriber", subscribed_image);
         //int c = waitKey(1);
-        ////°´¼ü¡®q¡¯»ò¡®Q¡¯ÍË³ö
+        ////æŒ‰é”®â€˜qâ€™æˆ–â€˜Qâ€™é€€å‡º
         //if ( 113 == c )
         //    exit(1);
         printf("rawSubNo=%d\n", rawImageNo);
@@ -49,7 +49,7 @@ void ResultDataSubThreadCallback(const sensor_msgs::ImageConstPtr& msg)
         putText(subscribed_image,text,Point(0,25),CV_FONT_HERSHEY_COMPLEX_SMALL,1.5,Scalar(0,0,255),2);
         //imshow("result_data_subscriber", subscribed_image);
         //int c = waitKey(1);
-        ////°´¼ü¡®q¡¯»ò¡®Q¡¯ÍË³ö
+        ////æŒ‰é”®â€˜qâ€™æˆ–â€˜Qâ€™é€€å‡º
         //if ( 113 == c )
         //    exit(1);
         printf("resultSubNo=%d\n", resultImageNo);
@@ -98,26 +98,26 @@ void* ResultDtaSubThread(void*)
 
 
 
-//´´½¨rosÏûÏ¢·¢²¼µÄ¸÷¸öÏß³Ì
+//åˆ›å»ºrosæ¶ˆæ¯å‘å¸ƒçš„å„ä¸ªçº¿ç¨‹
 static void CreateSubAndSaveThread(void)
 {
-    //1. Îª±£´æÔ­Ê¼Í¼Ïñ´´½¨Ò»¸öĞÂµÄÏß³Ì
+    //1. ä¸ºä¿å­˜åŸå§‹å›¾åƒåˆ›å»ºä¸€ä¸ªæ–°çš„çº¿ç¨‹
     pthread_t thread_raw_data_sub;
     int ret;
     ret=pthread_create(&thread_raw_data_sub,NULL,RawDataSubThread,NULL);
     if(ret!=0)
     {
-        //Ïß³Ì´´½¨Ê§°Ü
+        //çº¿ç¨‹åˆ›å»ºå¤±è´¥
         printf ("Create save raw data thread error!..\n");
         exit (-1);
     }
 
-    //2. Îª±£´æ´¦Àí½á¹û´´½¨Ò»¸öĞÂµÄÏß³Ì
+    //2. ä¸ºä¿å­˜å¤„ç†ç»“æœåˆ›å»ºä¸€ä¸ªæ–°çš„çº¿ç¨‹
     pthread_t thread_result_data_sub;
     ret=pthread_create(&thread_result_data_sub,NULL,ResultDtaSubThread,NULL);
     if(ret!=0)
     {
-        //Ïß³Ì´´½¨Ê§°Ü
+        //çº¿ç¨‹åˆ›å»ºå¤±è´¥
         printf ("Create save result thread error!..\n");
         exit (-1);
     }
@@ -141,4 +141,3 @@ int main(int argc, char **argv)
        threadEnd1 = true;
   }
 }
-

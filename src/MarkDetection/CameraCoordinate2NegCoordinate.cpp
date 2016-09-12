@@ -4,7 +4,7 @@ static double distance_x = 0;
 static double distance_y = 0;
 static double distance_z = 0;
 
-void CameraCoordinate2NegCoordinate( vector<VisionResult>& vision_results, const Attitude3D& attitude3d) //´ÓÏà»ú×ø±êÏµµ½·É»ú×ø±êÏµ£¬ÔÙ´Ó·É»ú×ø±êÏµµ½NEG×ø±êÏµ£»
+void CameraCoordinate2NegCoordinate( vector<VisionResult>& vision_results, const Attitude3D& attitude3d) //ä»ç›¸æœºåæ ‡ç³»åˆ°é£æœºåæ ‡ç³»ï¼Œå†ä»é£æœºåæ ‡ç³»åˆ°NEGåæ ‡ç³»ï¼›
 {
     //double port_attitude_roll = 0;
     //double port_attitude_pitch = 0;
@@ -23,7 +23,7 @@ void CameraCoordinate2NegCoordinate( vector<VisionResult>& vision_results, const
         double uav_x = 0;
         double uav_y = 0;
         double uav_z = 0;
-        //ÓÉÏà»ú×ø±êÏµµ½·É»ú×ø±êÏµ,·É»úÇ°·½ÎªxÖáÕı·½Ïò
+        //ç”±ç›¸æœºåæ ‡ç³»åˆ°é£æœºåæ ‡ç³»,é£æœºå‰æ–¹ä¸ºxè½´æ­£æ–¹å‘
         //cam.z - pix.x; cam.x - pix.y; cam.y - pix.(-z)
         uav_x=cam_z + distance_x;
         uav_y=cam_x + distance_y;
@@ -36,18 +36,16 @@ void CameraCoordinate2NegCoordinate( vector<VisionResult>& vision_results, const
 
 /*
         double xt,yt,zt,_x,_y,_z;
-        //·É»ú×ø±êÏµµ½NEG×ø±êÏµ
+        //é£æœºåæ ‡ç³»åˆ°NEGåæ ‡ç³»
         xt=uav_x;
         yt=uav_y*cosx-uav_z*sinx;
         zt=uav_y*sinx+uav_z*cosx;
-
         _x=xt;
         _y=yt;
         _z=zt;
         xt=_x*cosy+_z*siny;
         yt=_y;
         zt=-_x*siny+_z*cosy;
-
         _x=xt;
         _y=yt;
         _z=zt;
@@ -68,11 +66,11 @@ void CameraCoordinate2NegCoordinate( vector<VisionResult>& vision_results, const
         //sprintf_s(transf_standard,"T_standard:[%0.3fm,%0.3fm,%0.3fm]",uav_standard_x,uav_standard_y,uav_standard_z);
         //Point T_stand_show_center;
         //T_stand_show_center=Point2d(2,45);
-        //putText(show_color, transf_standard, T_stand_show_center,CV_FONT_HERSHEY_PLAIN,0.8,Scalar(0,0,255),1);//ÔÚÍ¼ÏñÖĞÏÔÊ¾Æ½ÒÆÏòÁ¿£¨x,y,z£©
+        //putText(show_color, transf_standard, T_stand_show_center,CV_FONT_HERSHEY_PLAIN,0.8,Scalar(0,0,255),1);//åœ¨å›¾åƒä¸­æ˜¾ç¤ºå¹³ç§»å‘é‡ï¼ˆx,y,zï¼‰
 
         //fprintf(fp,"pitch=%0.3f,roll=%0.3f,yaw=%0.3f;",port_attitude_pitch*180/3.14159,port_attitude_roll*180/3.14159,port_attitude_yaw*180/3.14159);
         //fprintf(fp,"uav_standard_T:(%0.3fm,%0.3fm,%0.3fm)\n",uav_standard_x,uav_standard_y,uav_standard_z);
-        //fprintf(fp,"Ä¿±êÔ²ĞÄÎ»ÖÃ£¬¾­¶È:%f,Î³¶È:%f,¸ß¶È:%f\n",target_jingdu,target_weidu,target_haiba);
+        //fprintf(fp,"ç›®æ ‡åœ†å¿ƒä½ç½®ï¼Œç»åº¦:%f,çº¬åº¦:%f,é«˜åº¦:%f\n",target_jingdu,target_weidu,target_haiba);
     }
     return;
 }

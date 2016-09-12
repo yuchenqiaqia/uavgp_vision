@@ -61,7 +61,7 @@ void GetPossibleRectVertexes(vector< vector<Point> >& contours, ContoursInfo& co
         Point2f vertex[4];
         boxTemp.points(vertex);
 
-        //ËÄ¸ö¶¥µãÅÅĞò£¬Ë³Ê±Õë£º0£¬1£¬2£¬3£¬×óÉÏ½ÇÎª0£»
+        //å››ä¸ªé¡¶ç‚¹æ’åºï¼Œé¡ºæ—¶é’ˆï¼š0ï¼Œ1ï¼Œ2ï¼Œ3ï¼Œå·¦ä¸Šè§’ä¸º0ï¼›
         for(int m=0;m<4;m++)
         {
             for (int n=m+1;n<4;n++)
@@ -75,7 +75,7 @@ void GetPossibleRectVertexes(vector< vector<Point> >& contours, ContoursInfo& co
         if (vertex[3].x > vertex[2].x)
             std::swap(vertex[2], vertex[3]);
 
-        // ÕÒËÄ±ßĞÎµÄ×îĞ¡±ß¡¢×î´ó±ß
+        // æ‰¾å››è¾¹å½¢çš„æœ€å°è¾¹ã€æœ€å¤§è¾¹
         float minDist = float(1384);
         float maxDist = 0.0f;
         float sideLength[4] = {0};
@@ -131,21 +131,21 @@ void GetPossibleRectVertexes(vector< vector<Point> >& contours, ContoursInfo& co
         contour_vertexes.contour_vertex[2] = vertex[2];
         contour_vertexes.contour_vertex[3] = vertex[3];
 
-        //¸÷±ß¼Ğ½Ç²»¿ÉÌ«Ğ¡
+        //å„è¾¹å¤¹è§’ä¸å¯å¤ªå°
         double angle0 = GetTwoSideAngle(contour_vertexes.contour_vertex[3],contour_vertexes.contour_vertex[0], contour_vertexes.contour_vertex[1]);
         double angle1 = GetTwoSideAngle(contour_vertexes.contour_vertex[0],contour_vertexes.contour_vertex[1], contour_vertexes.contour_vertex[2]);
         double angle2 = GetTwoSideAngle(contour_vertexes.contour_vertex[1],contour_vertexes.contour_vertex[2], contour_vertexes.contour_vertex[3]);
         double angle3 = GetTwoSideAngle(contour_vertexes.contour_vertex[2],contour_vertexes.contour_vertex[3], contour_vertexes.contour_vertex[0]);
         double minAngleThres = 90 - 30;
         double maxAngleThres = 90 + 30;
-        //ÏàÁÚÁ½½Ç²»¿ÉÍ¬Ê±´óÓÚ90¶È
+        //ç›¸é‚»ä¸¤è§’ä¸å¯åŒæ—¶å¤§äº90åº¦
         if( (angle0>100 && angle1>100) || (angle1>100 && angle2>100) || (angle2>100 && angle3>100) || (angle3>100 && angle0>100) )
             continue;
         if ( (angle0<minAngleThres || angle0>maxAngleThres) || (angle1<minAngleThres || angle1>maxAngleThres)
                 || (angle2<minAngleThres || angle2>maxAngleThres) || (angle3<minAngleThres || angle3>maxAngleThres) )
             continue;
 
-        //»­³ö×îĞ¡Ãæ»ıµÄ°üÎ§¾ØĞÎ
+        //ç”»å‡ºæœ€å°é¢ç§¯çš„åŒ…å›´çŸ©å½¢
         for(int j=0; j<4;++j)
         {
             line(show_img, contour_vertexes.contour_vertex[j], contour_vertexes.contour_vertex[(j+1)%4], Scalar(255,255,0), 3, 8);
@@ -213,7 +213,7 @@ void ErrorStatisticsBetweenRectAndContour(ContoursInfo& contoursInfo, Mat& input
 
         vector<Point> contour;
         contour = contoursInfo.contours[k];
-        double thres = 0.1;  //±ØĞëĞ¡ÓÚ0.125
+        double thres = 0.1;  //å¿…é¡»å°äº0.125
         for (int i=0; i<(int)contour.size(); ++i)
         {
             double d0 = fabs(linear_equation[0].A*contour[i].x + linear_equation[0].B*contour[i].y + linear_equation[0].C)/(sqrt(pow(linear_equation[0].A,2) + pow(linear_equation[0].B,2)));
@@ -305,11 +305,11 @@ int RectDectByStatisticsError(Mat& input_img)
     vector< vector<Point> > all_contours;
     vector< vector<Point> > contours;
     vector<Vec4i> hierarchy;
-    //²éÕÒÂÖÀª
+    //æŸ¥æ‰¾è½®å»“
     findContours( cannyImg, all_contours, hierarchy , RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
     //printf("Contours number before filter: %d\n", int(all_contours.size()) );
 
-    //¹ıÂËµôÌ«Ğ¡µÄÂÖÀª
+    //è¿‡æ»¤æ‰å¤ªå°çš„è½®å»“
     for (int i = 0; i < (int)all_contours.size(); ++i)
     {
         if ((int)all_contours[i].size() > srcGray.rows*0.1*3 )
@@ -327,83 +327,5 @@ int RectDectByStatisticsError(Mat& input_img)
     //return 0;
 
     ErrorStatisticsBetweenRectAndContour(contoursInfo, show_img);
-    return 1;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-int b = (unsigned)theRNG() & 255;
-int g = (unsigned)theRNG() & 255;
-int r = (unsigned)theRNG() & 255;
-int HullQuadRangleDetect(vector<Point>& contour, vector<Point>& output_approxCurve, Mat& input_img)
-{
-    Mat show_img = input_img.clone();
-
-    //ÄâºÏÍ¹°ü£¨¿ÉÒÔÈ¥³ı±ßÔµÕÚµ²¸ÉÈÅ£©
-    vector<Point> hull( contour.size() );
-    convexHull( Mat(contour), hull, false );
-
-    //½üËÆ¶à±ßĞÎ±Æ½ü
-    vector<Point> approxCurve;
-    approxPolyDP(hull, approxCurve, double(contour.size())*0.01, true);	//double(contours[i].size())*0.05
-    //·Ç4±ßĞÎ²»¸ĞĞËÈ¤
-    if (approxCurve.size() != 4)
-        return 0;
-    //·ÇÍ¹4±ßĞÎ²»¸ĞĞËÈ¤
-    if (!isContourConvex(approxCurve))
-        return 0;
-    //ËÄ¸ö¶¥µãÅÅĞò£¬Ë³Ê±Õë£º0£¬1£¬2£¬3£¬×óÉÏ½ÇÎª0£»
-    for(int m=0;m<(int)approxCurve.size();m++)
-    {
-        for (int n=m+1;n<(int)approxCurve.size();n++)
-        {
-            if (approxCurve[m].y > approxCurve[n].y)
-                std::swap(approxCurve[m], approxCurve[n]);
-        }
-    }
-    if (approxCurve[0].x > approxCurve[1].x)
-        std::swap(approxCurve[0], approxCurve[1]);
-    if (approxCurve[3].x > approxCurve[2].x)
-        std::swap(approxCurve[2], approxCurve[3]);
-
-    //»­³öËÄ±ßĞÎ
-    line(show_img, approxCurve[0], approxCurve[1], Scalar(255,0,0), 3, 8);
-    line(show_img, approxCurve[1], approxCurve[2], Scalar(255,0,0), 3, 8);
-    line(show_img, approxCurve[2], approxCurve[3], Scalar(255,0,0), 3, 8);
-    line(show_img, approxCurve[3], approxCurve[0], Scalar(255,0,0), 3, 8);
-    //»­³öËÄ±ßĞÎµÄËÄ¸ö¶¥µã
-    for (int j=0;j<4;j++)
-    {
-        circle(show_img, approxCurve[j], 8, Scalar(255,0,0),-1);
-        char strNumber[8];
-        sprintf( strNumber,"%d",j);
-        putText(show_img,strNumber,approxCurve[j],CV_FONT_HERSHEY_COMPLEX_SMALL, 2.0, Scalar(0,255,0), 2);
-    }
-
-    resize(show_img, show_img, Size(640,480));
-    imshow("hull rect", show_img);
-    swap(output_approxCurve, approxCurve);
     return 1;
 }

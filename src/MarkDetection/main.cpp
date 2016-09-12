@@ -1,41 +1,39 @@
 /******************************************************************************
-
-°æÈ¨ËùÓĞ:  2016, ÖĞ¹ú¿ÆÑ§ÔºÉòÑô×Ô¶¯»¯ÑĞ¾¿Ëù£¬Ò»ÊÒ£¬ĞıÒí·ÉĞĞ»úÆ÷ÈË¿ÎÌâ×é
-
+ç‰ˆæƒæ‰€æœ‰:  2016, ä¸­å›½ç§‘å­¦é™¢æ²ˆé˜³è‡ªåŠ¨åŒ–ç ”ç©¶æ‰€ï¼Œä¸€å®¤ï¼Œæ—‹ç¿¼é£è¡Œæœºå™¨äººè¯¾é¢˜ç»„
 ******************************************************************************
-×÷	  Õß   : Ğ¤±ó
+ä½œ	  è€…   : è‚–æ–Œ
 ******************************************************************************/
 #include "define.h"
 
 int  openCameraMode = POINTGRAYCAMERA ;  //OPENCV_VIDEOCAPTURE,  POINTGRAYCAMERA, OFFLINEDATA
-//±£´æÊÓÆµ
+//ä¿å­˜è§†é¢‘
 bool imageSaveEnable = false;
 bool digitBinaryImgSaveEnable = true;
-//³ÌĞò¶ÁĞ´ÎÄ¼şÒÀÀµµÄ»ù±¾¸¸Â·¾¶
+//ç¨‹åºè¯»å†™æ–‡ä»¶ä¾èµ–çš„åŸºæœ¬çˆ¶è·¯å¾„
 char baseDir[200] = "/home/sia/uavgp_vision";
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "vision_result_publisher");
     time0=static_cast<double>(getTickCount());
-    //³õÊ¼»¯·ÖÀàÆ÷, ·ÖÀàÆ÷³õÊ¼»¯Òª·ÅÔÚÎÄ¼ş¼Ğ´´½¨Ö®Ç°
+    //åˆå§‹åŒ–åˆ†ç±»å™¨, åˆ†ç±»å™¨åˆå§‹åŒ–è¦æ”¾åœ¨æ–‡ä»¶å¤¹åˆ›å»ºä¹‹å‰
     basicOCR myKNNocr(baseDir);
     KNNocr = &myKNNocr;
-    //´´½¨Êı¾İ±£´æÏß³Ì
+    //åˆ›å»ºæ•°æ®ä¿å­˜çº¿ç¨‹
     CreatSaveDir(baseDir, imageSaveEnable);
-    //´´½¨rosÏûÏ¢·¢²¼µÄ¸÷¸öÏß³Ì
+    //åˆ›å»ºrosæ¶ˆæ¯å‘å¸ƒçš„å„ä¸ªçº¿ç¨‹
     CreateRosPublishThread(baseDir);
-    //³õÊ¼»¯¶©ÔÄÏà»úÔ­Ê¼Í¼ÏñµÄ½Úµã
+    //åˆå§‹åŒ–è®¢é˜…ç›¸æœºåŸå§‹å›¾åƒçš„èŠ‚ç‚¹
     InitRawImgSubscriber( );
     return 0;
 }
 
 ros::Publisher vision_digit_position_publisher;
 ros::Subscriber attSub;
-//³õÊ¼»¯¶©ÔÄÏà»úµÄ½Úµã
+//åˆå§‹åŒ–è®¢é˜…ç›¸æœºçš„èŠ‚ç‚¹
 void InitRawImgSubscriber( )
 {
-    //Í¼Ïñ´¦Àí ¶©ÔÄ ½Úµã³õÊ¼»¯
+    //å›¾åƒå¤„ç† è®¢é˜… èŠ‚ç‚¹åˆå§‹åŒ–
     ros::NodeHandle imageProcessNode;
     image_transport::Subscriber rawImgSub;
     image_transport::ImageTransport imageProcessNode_it(imageProcessNode);
@@ -66,37 +64,37 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         //printf("imgNo=%d\n", imageProcessedNo);
         g_rawSaveImage.copyTo( rawCameraImg );
 
-        //Îó²îÍ³¼Æ·¨¼ì²â¾ØĞÎ
+        //è¯¯å·®ç»Ÿè®¡æ³•æ£€æµ‹çŸ©å½¢
         RectDectByStatisticsError(rawCameraImg);
 
-        //ÖØÖÃÍ¼Ïñ·Ö±æÂÊ
+        //é‡ç½®å›¾åƒåˆ†è¾¨ç‡
         if (rawCameraImg.cols <= 800)
             resize(rawCameraImg, rawCameraImg, Size(1384,1032));
         ResizeImageByDistance(rawCameraImg, srcImg, oldResult);
         //printf("ResizeImageByDistance done!\n");
 
-        //Èç¹ûÊÇ»Ò¶ÈÏà»ú£¬ÏÈ×ª³ÉÈıÍ¨µÀ
+        //å¦‚æœæ˜¯ç°åº¦ç›¸æœºï¼Œå…ˆè½¬æˆä¸‰é€šé“
         if (1 == srcImg.channels())
             cvtColor(srcImg,srcImg,CV_GRAY2BGR);
-        //Áí´æÒ»·İ£¬ÓÃÓÚÏÔÊ¾
+        //å¦å­˜ä¸€ä»½ï¼Œç”¨äºæ˜¾ç¤º
         Mat rectResultImg = srcImg.clone();
 
         //rect detector
         RectangleDetect( rectResultImg, rectCategory, imageProcessedNo );
         //printf("RectangleDetect done!\n");
-        //Í¸ÊÓ±ä»»
+        //é€è§†å˜æ¢
         PerspectiveTransformation(srcImg, rectCandidateImg, rectCategory);
         //printf("PerspectiveTransformation done!\n");
         //Jugde rect kind
         GetRectKinds( rectCategory );
         //printf("GetRectKinds done!\n");
-        //Î»ÖÃ¹À¼Æ
+        //ä½ç½®ä¼°è®¡
         EstimatePosition(rectResultImg, rectCategory);
         //printf("EstimatePosition done!\n");
-        //Êı×ÖÊ¶±ğ
+        //æ•°å­—è¯†åˆ«
         DigitDetector(rectResultImg, KNNocr, rectCategory, digitBinaryImgSaveEnable);
         //printf("DigitDetector done!\n");
-        //ÊÓ¾õ¼ì²â½á¹û±£´æÎªtxt
+        //è§†è§‰æ£€æµ‹ç»“æœä¿å­˜ä¸ºtxt
         SaveResultToTxt( baseDir, shrink, visionResult );
         //printf("saveResultToTxt done!\n");
         //show time and fps
@@ -127,7 +125,7 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         for(int k=0;k<visionResult.size();++k)
             g_visionResult.push_back(visionResult[k]);
 
-        //ÇåÀíÄÚ´æ
+        //æ¸…ç†å†…å­˜
         if (false == rectCategory.empty())
             vector< vector<RectMark> >().swap(rectCategory);
         if (false == visionResult.empty())
@@ -144,7 +142,7 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         g_AccuracyAmount = -1;
 
         int c = waitKey(1);
-        //°´¼ü¡®q¡¯ÍË³ö
+        //æŒ‰é”®â€˜qâ€™é€€å‡º
         if ( 113 == c )  //113 == c || 131153 == c
             exit(0);
         //printf("image-%d all process done!\n", imageProcessedNo);
@@ -153,7 +151,7 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         return;
 }
 
-//ÊıÂëÏÔÊ¾ÆÁÊı×ÖÊ¶±ğ
+//æ•°ç æ˜¾ç¤ºå±æ•°å­—è¯†åˆ«
 void DisplayScreenDigitDetect(Mat& input_img)
 {
 
@@ -161,7 +159,7 @@ void DisplayScreenDigitDetect(Mat& input_img)
 }
 
 
-//¾ØĞÎ£¨ËÄ±ßĞÎ£©¼ì²â
+//çŸ©å½¢ï¼ˆå››è¾¹å½¢ï¼‰æ£€æµ‹
 void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, int frameNo)
 {
     //Mat gaussianImg;
@@ -201,16 +199,16 @@ void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, 
     imshow("adaptiveThresholdImg",imgBinaryShow);
     //printf("imshow imgBinaryShow done!\n");
 
-    //vector< Point > hull;	//Í¹°üµã
+    //vector< Point > hull;	//å‡¸åŒ…ç‚¹
     vector<Vec4i>hierarchy;
     vector< vector<Point> >all_contours;
     vector< vector<Point> >contours;
-    //²éÕÒÂÖÀª
+    //æŸ¥æ‰¾è½®å»“
     //findContours( imgBinary, all_contours, hierarchy ,RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
     findContours( imgBinary, all_contours, RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
     //printf("Contours number before filter: %d\n", int(all_contours.size()) );
 
-    //¹ıÂËµôÌ«Ğ¡µÄÂÖÀª
+    //è¿‡æ»¤æ‰å¤ªå°çš„è½®å»“
     for (int i = 0; i < (int)all_contours.size(); ++i)
     {
         if ((int)all_contours[i].size() > srcGray.cols/40*4 && (int)all_contours[i].size()<srcGray.rows*4)
@@ -222,22 +220,22 @@ void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, 
     }
     //cout<<"contours num=" << contours.size() <<endl;
 
-    //ËÄ±ßĞÎÉ¸Ñ¡
+    //å››è¾¹å½¢ç­›é€‰
     vector<Point> approxCurve;
     int id = 0;
     for (int i=0; i<(int)contours.size(); ++i)
     {
-        //ÄâºÏ¾«¶È
+        //æ‹Ÿåˆç²¾åº¦
         double fitting_accuracy = 0.015;    //0.005
-        //½üËÆ¶à±ßĞÎ±Æ½ü
+        //è¿‘ä¼¼å¤šè¾¹å½¢é€¼è¿‘
         approxPolyDP(contours[i], approxCurve, double(contours[i].size())*fitting_accuracy, true);	//double(contours[i].size())*0.05
-        //·Ç4±ßĞÎ²»¸ĞĞËÈ¤
+        //é4è¾¹å½¢ä¸æ„Ÿå…´è¶£
         if (approxCurve.size() != 4)
             continue;
-        //·ÇÍ¹4±ßĞÎ²»¸ĞĞËÈ¤
+        //éå‡¸4è¾¹å½¢ä¸æ„Ÿå…´è¶£
         if (!isContourConvex(approxCurve))
             continue;
-        //ËÄ¸ö¶¥µãÅÅĞò£¬Ë³Ê±Õë£º0£¬1£¬2£¬3£¬×óÉÏ½ÇÎª0£»
+        //å››ä¸ªé¡¶ç‚¹æ’åºï¼Œé¡ºæ—¶é’ˆï¼š0ï¼Œ1ï¼Œ2ï¼Œ3ï¼Œå·¦ä¸Šè§’ä¸º0ï¼›
         for(int m=0;m<(int)approxCurve.size();++m)
         {
             for (int n=m+1;n<(int)approxCurve.size();++n)
@@ -251,7 +249,7 @@ void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, 
         if (approxCurve[3].x > approxCurve[2].x)
             std::swap(approxCurve[2], approxCurve[3]);
 
-        // ÕÒËÄ±ßĞÎµÄ×îĞ¡±ß¡¢×î´ó±ß
+        // æ‰¾å››è¾¹å½¢çš„æœ€å°è¾¹ã€æœ€å¤§è¾¹
         float minDist = float(1384 * shrink);
         float maxDist = 0.0f;
         float sideLength[4] = {0};
@@ -267,7 +265,7 @@ void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, 
                 maxDist = sideLength[n];
             }
         }
-        //Êú³¤·½ĞÎ£¬0¡¢2ºÅ±ß³¤Ó¦Ğ¡ÓÚ1¡¢3ºÅ±ß³¤
+        //ç«–é•¿æ–¹å½¢ï¼Œ0ã€2å·è¾¹é•¿åº”å°äº1ã€3å·è¾¹é•¿
         float minLength = sideLength[0];
         if (minLength > sideLength[2])
         {
@@ -277,14 +275,14 @@ void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, 
         {
             continue;
         }
-        //¸÷±ß¼Ğ½Ç²»¿ÉÌ«Ğ¡
+        //å„è¾¹å¤¹è§’ä¸å¯å¤ªå°
         double angle0 = GetTwoSideAngle(approxCurve[3],approxCurve[0], approxCurve[1]);
         double angle1 = GetTwoSideAngle(approxCurve[0],approxCurve[1], approxCurve[2]);
         double angle2 = GetTwoSideAngle(approxCurve[1],approxCurve[2], approxCurve[3]);
         double angle3 = GetTwoSideAngle(approxCurve[2],approxCurve[3], approxCurve[0]);
         double minAngleThres = 90 - 30;
         double maxAngleThres = 90 + 30;
-        //ÏàÁÚÁ½½Ç²»¿ÉÍ¬Ê±´óÓÚ90¶È
+        //ç›¸é‚»ä¸¤è§’ä¸å¯åŒæ—¶å¤§äº90åº¦
         if( (angle0>100 && angle1>100) || (angle1>100 && angle2>100) || (angle2>100 && angle3>100) || (angle3>100 && angle0>100) )
         {
             continue;
@@ -294,18 +292,18 @@ void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, 
         {
             continue;
         }
-        ////²»ÄÜÊÇÊúÏòÆ½ĞĞËÄ±ßĞÎ
+        ////ä¸èƒ½æ˜¯ç«–å‘å¹³è¡Œå››è¾¹å½¢
         //double angle0_0 = GetTwoSideAngle(approxCurve[1],approxCurve[0],Point2f(approxCurve[1].x,approxCurve[0].y) );
         //double angle1_0 = GetTwoSideAngle(approxCurve[0],approxCurve[1],Point2f(approxCurve[1].x,approxCurve[0].y) );
         //if (angle0<80 && angle1>100 && angle0_0>20 && angle1_0>20)
         //{
         //	continue;
         //}
-        //ËÄ±ßĞÎ×î¶Ì±ß²»¿ÉÌ«Ğ¡
+        //å››è¾¹å½¢æœ€çŸ­è¾¹ä¸å¯å¤ªå°
         float m_minSideLengthAllowed = float(srcGray.rows/40);
-        //×î³¤±ßÓë×î¶Ì±ßÖ®±È²»¿É¹ıĞ¡
+        //æœ€é•¿è¾¹ä¸æœ€çŸ­è¾¹ä¹‹æ¯”ä¸å¯è¿‡å°
         float m_maxSideLengthRatio = maxDist/minDist;
-        //¹ıÂË²¢´æ´¢ÓĞĞ§µÄËÄ±ßĞÎĞÅÏ¢
+        //è¿‡æ»¤å¹¶å­˜å‚¨æœ‰æ•ˆçš„å››è¾¹å½¢ä¿¡æ¯
         if (minDist > m_minSideLengthAllowed && m_maxSideLengthRatio < maxSideLengthRatioAllowed)
         {
             RectMark markTemp;
@@ -324,21 +322,21 @@ void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, 
         }
      }
 
-    //ÌŞ³ıÖØºÏµÄËÄ±ßĞÎ
+    //å‰”é™¤é‡åˆçš„å››è¾¹å½¢
     RectErase( rectPossible );
-    //ËÄ±ßĞÎ·ÖÀà
+    //å››è¾¹å½¢åˆ†ç±»
     RectClassify(rectPossible, rectCategory);
-    //°´Ãæ»ıÅÅĞò
+    //æŒ‰é¢ç§¯æ’åº
     RectSortByArea( rectCategory );
-    //²»Í¬ÀàµÄËÄ±ßĞÎ°´×ø±êÅÅĞò
+    //ä¸åŒç±»çš„å››è¾¹å½¢æŒ‰åæ ‡æ’åº
     RectSortByPositionX( rectCategory );
-    //»­³ö¸÷ËÄ±ßĞÎ
+    //ç”»å‡ºå„å››è¾¹å½¢
     DrawAllRect(resultImg, rectCategory);
 
     return;
 }
 
-//ÇóËÄ±ßĞÎÄÚ²à¼Ğ½Ç
+//æ±‚å››è¾¹å½¢å†…ä¾§å¤¹è§’
 double GetTwoSideAngle(Point2f p1,Point2f p2, Point2f p3)
 {
     //vector1
@@ -354,7 +352,7 @@ double GetTwoSideAngle(Point2f p1,Point2f p2, Point2f p3)
 }
 
 
-//ÌŞ³ıÖØºÏµÄËÄ±ßĞÎ
+//å‰”é™¤é‡åˆçš„å››è¾¹å½¢
 void RectErase( vector<RectMark>& rectPossible )
 {
     float rectErr[4] = {0};
@@ -365,7 +363,7 @@ void RectErase( vector<RectMark>& rectPossible )
         {
             for (int k=0; k<4; ++k)
             {
-                //¼ÆËãÁ½¸ö¾ØĞÎ¶ÔÓ¦µÄµÚk¸ö¶¥µãµÄÏñËØ¾àÀë
+                //è®¡ç®—ä¸¤ä¸ªçŸ©å½¢å¯¹åº”çš„ç¬¬kä¸ªé¡¶ç‚¹çš„åƒç´ è·ç¦»
                 rectErr[k] = sqrt(pow((rectPossible[i].m_points[k].x - rectPossible[j].m_points[k].x),2)
                                 + pow((rectPossible[i].m_points[k].y - rectPossible[j].m_points[k].y),2));
                 if (rectErr[k] > maxErr)
@@ -373,13 +371,13 @@ void RectErase( vector<RectMark>& rectPossible )
             }
             if (rectErr[0] <= maxErr  &&  rectErr[1] <= maxErr  &&  rectErr[2] <= maxErr  &&  rectErr[3] <= maxErr)
             {
-                //È¡ÖØ¸´¾ØĞÎËÄ¸ö¶¥µãµÄÆ½¾ùÖµ×÷Îª±£Áô¶¥µã
+                //å–é‡å¤çŸ©å½¢å››ä¸ªé¡¶ç‚¹çš„å¹³å‡å€¼ä½œä¸ºä¿ç•™é¡¶ç‚¹
                 for (int k=0; k<4; k++)
                 {
                     rectPossible[j].m_points[k].x = (rectPossible[i].m_points[k].x + rectPossible[j].m_points[k].x)/2;
                     rectPossible[j].m_points[k].y = (rectPossible[i].m_points[k].y + rectPossible[j].m_points[k].y)/2;
                 }
-                //ÌŞ³ıÖØ¸´¾ØĞÎµÄ¶¥µã
+                //å‰”é™¤é‡å¤çŸ©å½¢çš„é¡¶ç‚¹
                 rectPossible.erase(rectPossible.begin() + j);
                 j--;
                 break;
@@ -389,7 +387,7 @@ void RectErase( vector<RectMark>& rectPossible )
     return;
 }
 
-//ËÄ±ßĞÎ·ÖÀà
+//å››è¾¹å½¢åˆ†ç±»
 void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& rectCategory)
 {
     for (int i=0;i<(int)rectPossible.size();++i)
@@ -404,7 +402,7 @@ void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& r
         {
             Point2f middlePoint_j = Point2f((rectPossible[j].m_points[0].x+rectPossible[j].m_points[2].x)/2,
                                             (rectPossible[j].m_points[0].y+rectPossible[j].m_points[2].y)/2);
-            //Á½¸öËÄ±ßĞÎ¶Ô½ÇÏßÖĞµãµÄ¾àÀë
+            //ä¸¤ä¸ªå››è¾¹å½¢å¯¹è§’çº¿ä¸­ç‚¹çš„è·ç¦»
             float twoPointDistance = sqrt(pow(middlePoint_i.x-middlePoint_j.x,2)+pow(middlePoint_i.y-middlePoint_j.y,2));
             float minSide = 0;
             if (rectPossible[i].minSideLength < rectPossible[j].minSideLength)
@@ -412,7 +410,7 @@ void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& r
             else
                 minSide = rectPossible[j].minSideLength;
 
-            //ÅĞ¶ÏÁ½ËÄ±ßĞÎÊÇ·ñÊôÓÚÎªÍ¬Ò»ÎïÀí±êÖ¾
+            //åˆ¤æ–­ä¸¤å››è¾¹å½¢æ˜¯å¦å±äºä¸ºåŒä¸€ç‰©ç†æ ‡å¿—
             if (twoPointDistance < (minSide * rectClassifyThres))
             {
                 rectArrayTemp.push_back(rectPossible[j]);
@@ -420,18 +418,18 @@ void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& r
                 j--;
             }
         }
-        //Í¬Ò»ÀàµÄ·ÅÔÚÒ»Æğ
+        //åŒä¸€ç±»çš„æ”¾åœ¨ä¸€èµ·
         rectCategory.push_back(rectArrayTemp);
     }
     return;
 }
 
-//Í¬Ò»ÀàÄÚµÄËÄ±ßĞÎ°´Ãæ»ıÅÅĞò
+//åŒä¸€ç±»å†…çš„å››è¾¹å½¢æŒ‰é¢ç§¯æ’åº
 void RectSortByArea( vector< vector<RectMark> >& rectCategory )
 {
     for (int k=0;k<(int)rectCategory.size();++k)
     {
-        //Í¬Ò»ÀàÄÚÅÅĞò
+        //åŒä¸€ç±»å†…æ’åº
         for (int i=0;i<(int)rectCategory[k].size();++i)
         {
             for (int j=i+1;j<(int)rectCategory[k].size();++j)
@@ -446,10 +444,10 @@ void RectSortByArea( vector< vector<RectMark> >& rectCategory )
     return;
 }
 
-//²»Í¬ÀàµÄËÄ±ßĞÎ°´×ø±êÅÅĞò
+//ä¸åŒç±»çš„å››è¾¹å½¢æŒ‰åæ ‡æ’åº
 void RectSortByPositionX( vector< vector<RectMark> >& rectCategory )
 {
-        //Í¬Ò»ÀàÄÚÅÅĞò
+        //åŒä¸€ç±»å†…æ’åº
         for (int i=0;i<(int)rectCategory.size();++i)
         {
             for (int j=i+1;j<(int)rectCategory.size();++j)
@@ -463,7 +461,7 @@ void RectSortByPositionX( vector< vector<RectMark> >& rectCategory )
     return;
 }
 
-//»­³ö¸÷ËÄ±ßĞÎ
+//ç”»å‡ºå„å››è¾¹å½¢
 void DrawAllRect(Mat& resultImg, vector< vector<RectMark> >& rectCategory)
 {
     //image = Mat::zeros(480, 640, CV_8UC3);
@@ -480,7 +478,7 @@ void DrawAllRect(Mat& resultImg, vector< vector<RectMark> >& rectCategory)
             line(resultImg, rectCategory[k][i].m_points[3], rectCategory[k][i].m_points[0], Scalar(255,255,0), 3, 8);
             if (0 == i)
             {
-                //Ö»ÔÚ×îÄÚ²àËÄ±ßĞÎÉÏ±ê³ö0¡¢1¡¢2¡¢3
+                //åªåœ¨æœ€å†…ä¾§å››è¾¹å½¢ä¸Šæ ‡å‡º0ã€1ã€2ã€3
                 for (int j=0;j<4;j++)
                 {
                     circle(resultImg,rectCategory[k][i].m_points[j],4,Scalar(0,255,0),-1);
@@ -492,12 +490,12 @@ void DrawAllRect(Mat& resultImg, vector< vector<RectMark> >& rectCategory)
         }
     }
     //cout<<"MarkNo="<<rectCategory.size()<<endl;
-    //imshow("¾ØĞÎ¼ì²â",resultImg);
+    //imshow("çŸ©å½¢æ£€æµ‹",resultImg);
     return;
 }
 
 
-//Í¸ÊÓ±ä»»
+//é€è§†å˜æ¢
 void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vector< vector<RectMark> >& rectCategory)
 {
     char windowName[50];
@@ -507,15 +505,15 @@ void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vecto
         int minLoopCount = ((int)rectCategory[i].size()>1) ? (1) : ((int)rectCategory[i].size());
         for (int j=0;j<minLoopCount;++j)
         {
-            //Ä¿±ê¾ØĞÎ¶ÔÓ¦Í¼Ïñ×ø±ê0~3
+            //ç›®æ ‡çŸ©å½¢å¯¹åº”å›¾åƒåæ ‡0~3
             imagePoints2d[0]=Point2d(rectCategory[i][j].m_points[0].x,rectCategory[i][j].m_points[0].y);
             imagePoints2d[1]=Point2d(rectCategory[i][j].m_points[1].x,rectCategory[i][j].m_points[1].y);
             imagePoints2d[2]=Point2d(rectCategory[i][j].m_points[2].x,rectCategory[i][j].m_points[2].y);
             imagePoints2d[3]=Point2d(rectCategory[i][j].m_points[3].x,rectCategory[i][j].m_points[3].y);
 
-            // ±ê×¼RectÔÚ2d¿Õ¼äÎª100*100µÄ¾ØĞÎ
+            // æ ‡å‡†Rectåœ¨2dç©ºé—´ä¸º100*100çš„çŸ©å½¢
             Size m_RectSize = Size(130, int(130*1.25));
-            // ¾ØĞÎ 4¸ö½ÇµãµÄÕı½»Í¶Ó°±ê×¼Öµ
+            // çŸ©å½¢ 4ä¸ªè§’ç‚¹çš„æ­£äº¤æŠ•å½±æ ‡å‡†å€¼
             vector<Point2f> m_RectCorners2d;
             //vector<Point3f> m_RectCorners3d;
             m_RectCorners2d.push_back(Point2f(0, 0));
@@ -523,15 +521,15 @@ void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vecto
             m_RectCorners2d.push_back(Point2f(float(m_RectSize.width-1), float(m_RectSize.height-1)));
             m_RectCorners2d.push_back(Point2f(0, float(m_RectSize.height-1) ) );
 
-            // Í¶Ó°±ä»»,»Ö¸´2Î¬±ê×¼ÊÓÍ¼
+            // æŠ•å½±å˜æ¢,æ¢å¤2ç»´æ ‡å‡†è§†å›¾
             Mat canonicalImg;
-            // µÃµ½µ±Ç°markerµÄÍ¸ÊÓ±ä»»¾ØÕóM
+            // å¾—åˆ°å½“å‰markerçš„é€è§†å˜æ¢çŸ©é˜µM
             Mat M = getPerspectiveTransform(rectCategory[i][j].m_points, m_RectCorners2d);
-            // ½«µ±Ç°µÄmarker±ä»»ÎªÕı½»Í¶Ó°
+            // å°†å½“å‰çš„markerå˜æ¢ä¸ºæ­£äº¤æŠ•å½±
             warpPerspective(srcImg, canonicalImg, M, m_RectSize);
-            //´æ´¢¾ØĞÎÇøÓòÍ¼Ïñ
+            //å­˜å‚¨çŸ©å½¢åŒºåŸŸå›¾åƒ
             canonicalImg.copyTo(rectCategory[i][j].perspectiveImg);
-            //·Ö´°¿ÚÏÔÊ¾¸÷±ê×¼¾ØĞÎÇøÓò
+            //åˆ†çª—å£æ˜¾ç¤ºå„æ ‡å‡†çŸ©å½¢åŒºåŸŸ
             sprintf(windowName,"perspectiveImg-[%d][%d]",i,j);
             //imshow(windowName, rectCategory[i][j].perspectiveImg);
         }
@@ -540,7 +538,7 @@ void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vecto
 }
 
 
-//µ¥Ä¿Î»ÖÃ¹À¼Æ
+//å•ç›®ä½ç½®ä¼°è®¡
 void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
 {
     vector<Point2f> imagePoints2d(4);
@@ -576,13 +574,13 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
             realRectHalfHeight = kind_2_height/2;
         }
 
-        //Ä¿±ê¾ØĞÎÉÏËÄ¸öµãÊÀ½ç×ø±ê
+        //ç›®æ ‡çŸ©å½¢ä¸Šå››ä¸ªç‚¹ä¸–ç•Œåæ ‡
         objectPoints3d[0]=Point3d(-realRectHalfWidth, -realRectHalfHeight, 0);
         objectPoints3d[1]=Point3d(realRectHalfWidth,  -realRectHalfHeight, 0);
         objectPoints3d[2]=Point3d(realRectHalfWidth,   realRectHalfHeight, 0);
         objectPoints3d[3]=Point3d(-realRectHalfWidth,  realRectHalfHeight, 0);
 
-        //Ä¿±ê¾ØĞÎ¶ÔÓ¦Í¼Ïñ×ø±ê0~3
+        //ç›®æ ‡çŸ©å½¢å¯¹åº”å›¾åƒåæ ‡0~3
         imagePoints2d[0]=Point2d(rectCategory[i][0].m_points[0].x,rectCategory[i][0].m_points[0].y);
         imagePoints2d[1]=Point2d(rectCategory[i][0].m_points[1].x,rectCategory[i][0].m_points[1].y);
         imagePoints2d[2]=Point2d(rectCategory[i][0].m_points[2].x,rectCategory[i][0].m_points[2].y);
@@ -599,7 +597,7 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         Mat t_distcoef=(Mat_<double>(1,5) << -0.05173, 0.07077, -0.00047, 0.00061,0);
         Mat t_cameraMatrix=(Mat_<double>(3,3) << t_fx,0,t_cx,0,t_fy,t_cy,0,0,1);
 
-        //¼ÆËãĞı×ª¾ØÕó¡¢Æ½ÒÆ¾ØÕó
+        //è®¡ç®—æ—‹è½¬çŸ©é˜µã€å¹³ç§»çŸ©é˜µ
         Mat rvec,tvec;
         solvePnP(objectPoints3d,imagePoints2d,t_cameraMatrix,t_distcoef,rvec,tvec);
 
@@ -608,7 +606,7 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         tvec_y=tvec.at<double>(1,0);
         tvec_z=tvec.at<double>(2,0);
         rectCategory[i][0].position = Point3d( tvec_x,tvec_y,tvec_z );
-        //ÌŞ³ı¹ıÔ¶»ò¹ı½üµÄ
+        //å‰”é™¤è¿‡è¿œæˆ–è¿‡è¿‘çš„
         if(tvec_z>10 || tvec_z<0.2)
         {
             rectCategory.erase(rectCategory.begin()+i);
@@ -622,7 +620,7 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         T_showCenter=Point2d(rectCategory[i][0].m_points[1].x,(rectCategory[i][0].m_points[1].y + rectCategory[i][0].m_points[2].y)/2);
         putText(srcColor, transf, T_showCenter,CV_FONT_HERSHEY_PLAIN,2.2*shrink,Scalar(0,0,255),int(4.5*shrink));
     }
-    //ÔÚÍ¼ÏñÖĞÏÔÊ¾Æ½ÒÆÏòÁ¿£¨x,y,z£©
+    //åœ¨å›¾åƒä¸­æ˜¾ç¤ºå¹³ç§»å‘é‡ï¼ˆx,y,zï¼‰
     Mat imgColor;
     //resize(srcColor,imgColor,Size(640,480));
     //imshow("rect distance",imgColor);
@@ -630,7 +628,7 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
 }
 
 
-//Êı×ÖÊ¶±ğ
+//æ•°å­—è¯†åˆ«
 void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& rectCategory, bool saveDigitBinaryImg)
 {
     for (int i=0;i<(int)rectCategory.size();++i)
@@ -643,7 +641,7 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         if (!possibleDigitBinaryImg.data)
             continue;
 
-        //Êı×ÖÊ¶±ğ
+        //æ•°å­—è¯†åˆ«
         //printf("wait classify ...\n");
         IplImage ipl_img(possibleDigitBinaryImg);
         float classResult = ocr->classify(&ipl_img,1);
@@ -651,21 +649,21 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         //printf("classify done!\n");
 
         char digit[100];
-        //´æ´¢ÓÃÓÚÊ¶±ğµÄÊı×ÖÍ¼Ïñ
+        //å­˜å‚¨ç”¨äºè¯†åˆ«çš„æ•°å­—å›¾åƒ
         if (true == saveDigitBinaryImg)
         {
             sprintf(digit, "%s/digit_image/digit_%d_%06d__%d.pbm", baseDir, int(classResult), rectCategory[i][0].frameNo, int(precisionRatio));
             imwrite(digit,  rectCategory[i][0].possibleDigitBinaryImg );
         }
 
-        //Ê¶±ğÔÙ¹ıÂË, Ô¤²âÂÊĞ¡ÓÚ80%¶¼ËãÎóÊ¶±ğ
+        //è¯†åˆ«å†è¿‡æ»¤, é¢„æµ‹ç‡å°äº80%éƒ½ç®—è¯¯è¯†åˆ«
         if (precisionRatio < 90)
             continue;
 
-        //´òÓ¡Ê¶±ğ½á¹û
+        //æ‰“å°è¯†åˆ«ç»“æœ
         //printf("Digit=%d;Precision=%0.1f%%\n",(int)classResult,precisionRatio);
 
-        //×îÖÕ¼ì²â½á¹û´æÈëvector
+        //æœ€ç»ˆæ£€æµ‹ç»“æœå­˜å…¥vector
         VisionResult result;
         result.frameNo = rectCategory[i][0].frameNo;
         result.digitNo = (int)classResult;
@@ -673,7 +671,7 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         result.cameraPos3D = rectCategory[i][0].position;
         visionResult.push_back(result);
 
-        //½«ÓÃÓÚÊ¶±ğµÄÍ¼Ïñ½øĞĞ·Ö´°¿ÚÏÔÊ¾
+        //å°†ç”¨äºè¯†åˆ«çš„å›¾åƒè¿›è¡Œåˆ†çª—å£æ˜¾ç¤º
         sprintf(digit,"%d",int(classResult));
         imshow(digit, rectCategory[i][0].possibleDigitBinaryImg);
 
@@ -700,7 +698,7 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         //    waitKey(0);
     }
 
-    //Çå¿ÕÉÏÒ»Ö¡µÄ¼ì²â½á¹û
+    //æ¸…ç©ºä¸Šä¸€å¸§çš„æ£€æµ‹ç»“æœ
     if (false == oldResult.empty())
         vector<VisionResult>().swap(oldResult);
     for(int i=0; i<(int)visionResult.size(); ++i)

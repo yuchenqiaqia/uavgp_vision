@@ -1,13 +1,11 @@
 /******************************************************************************
-
-°æÈ¨ËùÓĞ:  2016, ÖĞ¹ú¿ÆÑ§ÔºÉòÑô×Ô¶¯»¯ÑĞ¾¿Ëù£¬Ò»ÊÒ£¬ĞıÒí·ÉĞĞ»úÆ÷ÈË¿ÎÌâ×é
-
+ç‰ˆæƒæ‰€æœ‰:  2016, ä¸­å›½ç§‘å­¦é™¢æ²ˆé˜³è‡ªåŠ¨åŒ–ç ”ç©¶æ‰€ï¼Œä¸€å®¤ï¼Œæ—‹ç¿¼é£è¡Œæœºå™¨äººè¯¾é¢˜ç»„
 ******************************************************************************
-×÷	  Õß   : Ğ¤±ó
+ä½œ	  è€…   : è‚–æ–Œ
 ******************************************************************************/
 #include "declare.h"
 
-//´´½¨Êı¾İ´æ´¢Â·¾¶
+//åˆ›å»ºæ•°æ®å­˜å‚¨è·¯å¾„
 int CreateDir(char* baseDir)
 {
     int status = 0;
@@ -106,10 +104,10 @@ int CreateDir(char* baseDir)
 
 
 extern double time0,time1,time2;
-//ÏÔÊ¾Ê±¼ä¡¢Ö¡ÂÊ
+//æ˜¾ç¤ºæ—¶é—´ã€å¸§ç‡
 void ShowTime(Mat& img, int k, float shrink)
 {
-    //Ã¿nÖ¡¸üĞÂÒ»´ÎÊ±¼äÏÔÊ¾
+    //æ¯nå¸§æ›´æ–°ä¸€æ¬¡æ—¶é—´æ˜¾ç¤º
     int n = 2;
     static int imgFps = 0;
     if(0 == (k%n))
@@ -118,7 +116,7 @@ void ShowTime(Mat& img, int k, float shrink)
         imgFps = int( n/(time2-time1) );
     }
     char frameN[50];
-    sprintf(frameN,"F:%d,fps:%d", k, imgFps);  //½«Ö¡Êı£¬Ö¡ÂÊÊäÈëµ½frameNÖĞ
+    sprintf(frameN,"F:%d,fps:%d", k, imgFps);  //å°†å¸§æ•°ï¼Œå¸§ç‡è¾“å…¥åˆ°frameNä¸­
     Point2i k_center;
     k_center=Point2i(2,img.rows-3);
     putText( img, frameN, k_center,CV_FONT_HERSHEY_PLAIN,2.5*shrink,Scalar(0,0,255),4.5*shrink);
@@ -129,16 +127,16 @@ void ShowTime(Mat& img, int k, float shrink)
     }
 
     char tim[50];
-    sprintf(tim,"Tim:%d%1d:%1d%1d:%1d", int (time1/60/10),int (int(time1/60)%10),             //Ê®·ÖÎ»£¬¸ö·ÖÎ»
-                                          int ((int(time1)%60)/10),int ((int(time1)%100)%10),  //Ê®ÃëÎ»£¬¸öÃëÎ»
-                                          int (int(time1*10)%10) );                            //ÃëĞ¡ÊıÎ»
+    sprintf(tim,"Tim:%d%1d:%1d%1d:%1d", int (time1/60/10),int (int(time1/60)%10),             //ååˆ†ä½ï¼Œä¸ªåˆ†ä½
+                                          int ((int(time1)%60)/10),int ((int(time1)%100)%10),  //åç§’ä½ï¼Œä¸ªç§’ä½
+                                          int (int(time1*10)%10) );                            //ç§’å°æ•°ä½
     Point2i tim_center;
     tim_center=Point2i( img.cols-int(250*shrink),int(img.rows-3*shrink) );
-    putText(img, tim, tim_center,CV_FONT_HERSHEY_PLAIN,2.5*shrink,Scalar(0,0,255),4.5*shrink);//ÏÔÊ¾Ê±¼ä
+    putText(img, tim, tim_center,CV_FONT_HERSHEY_PLAIN,2.5*shrink,Scalar(0,0,255),4.5*shrink);//æ˜¾ç¤ºæ—¶é—´
 }
 
 
-//Í¼ÏñÏñËØÆ½¾ùÖµ
+//å›¾åƒåƒç´ å¹³å‡å€¼
 double GetAllPixelAverageValue(Mat& img)
 {
     double totalValue = 0;
@@ -155,12 +153,12 @@ double GetAllPixelAverageValue(Mat& img)
     return totalValue/nCount;
 }
 
-//ÅĞ¶ÏÊÇ·ñÊÇÓĞĞ§Í¼Ïñ
+//åˆ¤æ–­æ˜¯å¦æ˜¯æœ‰æ•ˆå›¾åƒ
 int FindValidContours(Mat& src)
 {
     vector< vector<Point> >contours;
     vector<Vec4i>hierarchy;
-    //²éÕÒÂÖÀª
+    //æŸ¥æ‰¾è½®å»“
     findContours( src, contours, hierarchy ,CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
     if (0 == contours.size())
     {
@@ -187,7 +185,7 @@ int FindValidContours(Mat& src)
 
 
 
-//ÊÓ¾õ¼ì²â½á¹û±£´æÎªtxt
+//è§†è§‰æ£€æµ‹ç»“æœä¿å­˜ä¸ºtxt
 void SaveResultToTxt(char* baseDir,  float shrink, vector<VisionResult>& result )
 {
     static int num[10] = {0};
@@ -208,4 +206,3 @@ void SaveResultToTxt(char* baseDir,  float shrink, vector<VisionResult>& result 
     }
     return;
 }
-

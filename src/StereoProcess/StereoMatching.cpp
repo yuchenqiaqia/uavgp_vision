@@ -9,7 +9,7 @@ StereoMatchingType::StereoMatchingType()
     bm = StereoBM::create(16,9);
     sgbm = StereoSGBM::create(0,16,3);
 
-     //leftÏà»úÄÚ²Î
+     //leftç›¸æœºå†…å‚
     fx_l=238.22462;
     fy_l=237.37011;
     cx_l=158.84752;
@@ -17,7 +17,7 @@ StereoMatchingType::StereoMatchingType()
     M_CamLeft=(Mat_<double>(3,3) << fx_l,0,cx_l,0,fy_l,cy_l,0,0,1);
     D_CamLeft=(Mat_<double>(5,1) << 0.01035, -0.00777, 0.00180, -0.00009,0.000);
 
-     //rightÏà»úÄÚ²Î
+     //rightç›¸æœºå†…å‚
     fx_r=239.68003;
     fy_r=238.72529;
     cx_r=158.77224;
@@ -26,7 +26,7 @@ StereoMatchingType::StereoMatchingType()
     D_CamRight=(Mat_<double>(5,1) << 0.02186, -0.01878, -0.00017, 0.00113,0.000);
 
     //stereo_RV=(Mat_<double>(3,1) << -0.00489, 0.00366,  0.00041 );
-    stereo_RV=(Mat_<double>(3,1) << -0.00489, -0.0009,  0.00041 );      //¸Ã²ÎÊı¸ü×¼
+    stereo_RV=(Mat_<double>(3,1) << -0.00489, -0.0009,  0.00041 );      //è¯¥å‚æ•°æ›´å‡†
     stereo_T=(Mat_<double>(3,1) << -150.12139, -0.12009, 1.97403 );
 
     alg = STEREO_BM;
@@ -46,7 +46,7 @@ void StereoMatchingType::StereoMatchingConfigration( )
 {
     float scale = 1.f;
 
-    Rodrigues( stereo_RV, stereo_RM );			//Ğı×ªÏòÁ¿µ½Ğı×ª¾ØÕó
+    Rodrigues( stereo_RV, stereo_RM );			//æ—‹è½¬å‘é‡åˆ°æ—‹è½¬çŸ©é˜µ
     Mat M1, D1, M2, D2;
     M1=M_CamLeft;
     D1=D_CamLeft;
@@ -97,7 +97,7 @@ void StereoMatchingType::StereoMatching(  )
 
         //bm.state->roi1 = roi1;
         //bm.state->roi2 = roi2;
-        //bm.state->preFilterCap = 31;  //Ô­²ÎÊı
+        //bm.state->preFilterCap = 31;  //åŸå‚æ•°
         //bm.state->SADWindowSize = SADWindowSize > 0 ? SADWindowSize : 9;
         //bm.state->minDisparity = 0;
         //bm.state->numberOfDisparities = numberOfDisparities;
@@ -130,7 +130,7 @@ void StereoMatchingType::StereoMatching(  )
             sgbm->setMode(StereoSGBM::MODE_SGBM_3WAY);
 
         Mat img1p, img2p, dispp;
-        copyMakeBorder(img1r, img1p, 0, 0, numberOfDisparities, 0, IPL_BORDER_REPLICATE);  //ÍØÕ¹ËÑË÷Æ¥Åä
+        copyMakeBorder(img1r, img1p, 0, 0, numberOfDisparities, 0, IPL_BORDER_REPLICATE);  //æ‹“å±•æœç´¢åŒ¹é…
         copyMakeBorder(img2r, img2p, 0, 0, numberOfDisparities, 0, IPL_BORDER_REPLICATE);
 
         Mat disp;
@@ -144,7 +144,7 @@ void StereoMatchingType::StereoMatching(  )
             //sgbm(img1p, img2p, dispp);
             sgbm->compute(img1p, img2p, dispp);
 
-        //ÍØÕ¹ËÑË÷Æ¥Åä
+        //æ‹“å±•æœç´¢åŒ¹é…
         //disp = dispp.colRange(numberOfDisparities, img1p.cols);
         if( alg != STEREO_VAR )
             disp.convertTo(disp8, CV_8U, 255/(numberOfDisparities*16.));
@@ -160,7 +160,7 @@ void StereoMatchingType::StereoMatching(  )
         return;
 }
 
-//Éî¶ÈÍ¼×ªÎªÉî¶ÈÎ±²ÊÍ¼
+//æ·±åº¦å›¾è½¬ä¸ºæ·±åº¦ä¼ªå½©å›¾
 void StereoMatchingType::ConvertXYZToPseudoColor( )
 {
     Mat pseudo_color = Mat::zeros(mat_xyz.rows, mat_xyz.cols, CV_8UC3);
