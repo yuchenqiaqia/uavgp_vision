@@ -4,13 +4,14 @@
 作	  者   : 肖斌
 ******************************************************************************/
 #include "define.h"
+#include "project_path_config.h"
 
 int  openCameraMode = POINTGRAYCAMERA ;  //OPENCV_VIDEOCAPTURE,  POINTGRAYCAMERA, OFFLINEDATA
 //保存视频
 bool imageSaveEnable = false;
 bool digitBinaryImgSaveEnable = true;
 //程序读写文件依赖的基本父路径
-char baseDir[200] = "/home/sia/uavgp_vision";
+char baseDir[200] = OCR_DIR_PATH;
 
 int main(int argc, char **argv)
 {

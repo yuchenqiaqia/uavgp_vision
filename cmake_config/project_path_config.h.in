@@ -1,0 +1,8 @@
+/*
+ * @file	: project_path_config.h.in
+ * @auhtor	: huang li long <huanglilongwk@outlook.com>
+ * @time	: 2016/09/12
+ */
+
+#define OCR_DIR_PATH 		"@OCR_DIR_PATH@"
+#define TXT_FILE_PATH 		"@TXT_FILE_PATH@"
