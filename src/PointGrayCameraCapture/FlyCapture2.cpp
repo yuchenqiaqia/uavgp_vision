@@ -4,12 +4,14 @@
 #include <iomanip>
 #include "DetectRectToGetImageLightness.h"
 #include "../include/FlyCapture2.h"
+#include "project_path_config.h"
+
 using namespace FlyCapture2;
 using namespace std;
 using namespace cv;
 //相机帧率，单位：HZ
 #define CameraFrameRate  19.0
-static char baseDir[100] = "/home/sia/uavgp_vision";
+static char baseDir[100] = TXT_FILE_PATH;
 
 //是否为室外环境
 bool isOutdoor = false;

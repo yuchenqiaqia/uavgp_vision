@@ -38,11 +38,22 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 #set include files;
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
+include_directories(
+	${CMAKE_CURRENT_SOURCE_DIR}/include
+	${PROJECT_BINARY_DIR}
+)
 
 #set include files: *.h, *.hpp, *.hh;
 #FILE(GLOB_RECURSE PROJECT_HEADERS )
 
+# set OCR and output txt directory path
+set(OCR_DIR_PATH  ${PROJECT_SOURCE_DIR})
+set(TXT_FILE_PATH ${PROJECT_SOURCE_DIR})
+
+configure_file(
+	${PROJECT_SOURCE_DIR}/cmake_config/project_path_config.h.in
+	${PROJECT_BINARY_DIR}/project_path_config.h
+)
 #--------------------------------------------------------------------
 # 标识物识别
 add_executable( vision_result_publisher
