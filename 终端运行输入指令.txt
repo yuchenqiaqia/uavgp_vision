@@ -1,0 +1,27 @@
+ros消息录制：
+mkdir ~/bagfiles
+cd ~/bagfiles
+rosbag record -a
+
+包检查：
+rosbag info <your bagfile>
+
+回放：
+rosbag play <your bagfile>
+2倍的速度进行回放：
+rosbag play -r 2 <your bagfile>
+
+
+
+PG相机与imu原始数据：
+rosbag record vision/camera_image imu/attitude
+处理结果：
+rosbag record vision/result_image
+
+主机ip配置：
+sudo gedit ~/.bashrc
+
+在末尾添加：
+export ROS_MASTER_URI=http://192.168.1.102:11311
+
+

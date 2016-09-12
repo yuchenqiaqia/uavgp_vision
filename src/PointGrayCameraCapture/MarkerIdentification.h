@@ -1,0 +1,11 @@
+#ifndef MARKERIDENTIFICATIONFORAUTOSETEXPOSURE_H
+#define MARKERIDENTIFICATIONFORAUTOSETEXPOSURE_H
+
+
+class MarkerIdentificationForAutoSetExposure
+{
+public:
+    MarkerIdentificationForAutoSetExposure();
+};
+
+#endif // MARKERIDENTIFICATIONFORAUTOSETEXPOSURE_H
