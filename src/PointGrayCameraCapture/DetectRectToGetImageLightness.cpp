@@ -1,5 +1,5 @@
 #include "DetectRectToGetImageLightness.h"
-//¾ØĞÎ³¤¿í±ÈÀıãĞÖµ
+//çŸ©å½¢é•¿å®½æ¯”ä¾‹é˜ˆå€¼
 static float maxSideLengthRatioAllowed = 2.5f;
 static float rectClassifyThres = 1.0f;
 
@@ -14,7 +14,7 @@ DetectRectToGetImageLightness::DetectRectToGetImageLightness()
 }
 
 
-//¾ØĞÎ£¨ËÄ±ßĞÎ£©¼ì²â
+//çŸ©å½¢ï¼ˆå››è¾¹å½¢ï¼‰æ£€æµ‹
 void DetectRectToGetImageLightness::RectangleDetect( )
 {
     //Mat gaussianImg;
@@ -55,16 +55,16 @@ void DetectRectToGetImageLightness::RectangleDetect( )
     imshow("captureAdaptiveThresholdImg",imgBinary);
     //printf("imshow imgBinaryShow done!\n");
 
-    //vector< Point > hull;	//Í¹°üµã
+    //vector< Point > hull;	//å‡¸åŒ…ç‚¹
     vector<Vec4i>hierarchy;
     vector< vector<Point> >all_contours;
     vector< vector<Point> >contours;
-    //²éÕÒÂÖÀª
+    //æŸ¥æ‰¾è½®å»“
     //findContours( imgBinary, all_contours, hierarchy ,RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
     findContours( imgBinary, all_contours, RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
     //printf("Contours number before filter: %d\n", int(all_contours.size()) );
 
-    //¹ıÂËµôÌ«Ğ¡µÄÂÖÀª
+    //è¿‡æ»¤æ‰å¤ªå°çš„è½®å»“
     for (int i = 0; i < (int)all_contours.size(); ++i)
     {
         if ((int)all_contours[i].size() > srcGray.cols/40*4 && (int)all_contours[i].size()<srcGray.rows*4)
@@ -76,22 +76,22 @@ void DetectRectToGetImageLightness::RectangleDetect( )
     }
     //cout<<"contours num=" << contours.size() <<endl;
 
-    //ËÄ±ßĞÎÉ¸Ñ¡
+    //å››è¾¹å½¢ç­›é€‰
     vector<Point> approxCurve;
     int id = 0;
     for (int i=0; i<(int)contours.size(); ++i)
     {
-        //ÄâºÏ¾«¶È
+        //æ‹Ÿåˆç²¾åº¦
         double fitting_accuracy = 0.015;    //0.005
-        //½üËÆ¶à±ßĞÎ±Æ½ü
+        //è¿‘ä¼¼å¤šè¾¹å½¢é€¼è¿‘
         approxPolyDP(contours[i], approxCurve, double(contours[i].size())*fitting_accuracy, true);	//double(contours[i].size())*0.05
-        //·Ç4±ßĞÎ²»¸ĞĞËÈ¤
+        //é4è¾¹å½¢ä¸æ„Ÿå…´è¶£
         if (approxCurve.size() != 4)
             continue;
-        //·ÇÍ¹4±ßĞÎ²»¸ĞĞËÈ¤
+        //éå‡¸4è¾¹å½¢ä¸æ„Ÿå…´è¶£
         if (!isContourConvex(approxCurve))
             continue;
-        //ËÄ¸ö¶¥µãÅÅĞò£¬Ë³Ê±Õë£º0£¬1£¬2£¬3£¬×óÉÏ½ÇÎª0£»
+        //å››ä¸ªé¡¶ç‚¹æ’åºï¼Œé¡ºæ—¶é’ˆï¼š0ï¼Œ1ï¼Œ2ï¼Œ3ï¼Œå·¦ä¸Šè§’ä¸º0ï¼›
         for(int m=0;m<(int)approxCurve.size();++m)
         {
             for (int n=m+1;n<(int)approxCurve.size();++n)
@@ -105,7 +105,7 @@ void DetectRectToGetImageLightness::RectangleDetect( )
         if (approxCurve[3].x > approxCurve[2].x)
             std::swap(approxCurve[2], approxCurve[3]);
 
-        // ÕÒËÄ±ßĞÎµÄ×îĞ¡±ß¡¢×î´ó±ß
+        // æ‰¾å››è¾¹å½¢çš„æœ€å°è¾¹ã€æœ€å¤§è¾¹
         float minDist = float(1384 * shrink);
         float maxDist = 0.0f;
         float sideLength[4] = {0};
@@ -121,7 +121,7 @@ void DetectRectToGetImageLightness::RectangleDetect( )
                 maxDist = sideLength[n];
             }
         }
-        //Êú³¤·½ĞÎ£¬0¡¢2ºÅ±ß³¤Ó¦Ğ¡ÓÚ1¡¢3ºÅ±ß³¤
+        //ç«–é•¿æ–¹å½¢ï¼Œ0ã€2å·è¾¹é•¿åº”å°äº1ã€3å·è¾¹é•¿
         float minLength = sideLength[0];
         if (minLength > sideLength[2])
         {
@@ -131,14 +131,14 @@ void DetectRectToGetImageLightness::RectangleDetect( )
         {
             continue;
         }
-        //¸÷±ß¼Ğ½Ç²»¿ÉÌ«Ğ¡
+        //å„è¾¹å¤¹è§’ä¸å¯å¤ªå°
         double angle0 = GetTwoSideAngle(approxCurve[3],approxCurve[0], approxCurve[1]);
         double angle1 = GetTwoSideAngle(approxCurve[0],approxCurve[1], approxCurve[2]);
         double angle2 = GetTwoSideAngle(approxCurve[1],approxCurve[2], approxCurve[3]);
         double angle3 = GetTwoSideAngle(approxCurve[2],approxCurve[3], approxCurve[0]);
         double minAngleThres = 90 - 30;
         double maxAngleThres = 90 + 30;
-        //ÏàÁÚÁ½½Ç²»¿ÉÍ¬Ê±´óÓÚ90¶È
+        //ç›¸é‚»ä¸¤è§’ä¸å¯åŒæ—¶å¤§äº90åº¦
         if( (angle0>100 && angle1>100) || (angle1>100 && angle2>100) || (angle2>100 && angle3>100) || (angle3>100 && angle0>100) )
         {
             continue;
@@ -148,18 +148,18 @@ void DetectRectToGetImageLightness::RectangleDetect( )
         {
             continue;
         }
-        ////²»ÄÜÊÇÊúÏòÆ½ĞĞËÄ±ßĞÎ
+        ////ä¸èƒ½æ˜¯ç«–å‘å¹³è¡Œå››è¾¹å½¢
         //double angle0_0 = GetTwoSideAngle(approxCurve[1],approxCurve[0],Point2f(approxCurve[1].x,approxCurve[0].y) );
         //double angle1_0 = GetTwoSideAngle(approxCurve[0],approxCurve[1],Point2f(approxCurve[1].x,approxCurve[0].y) );
         //if (angle0<80 && angle1>100 && angle0_0>20 && angle1_0>20)
         //{
         //	continue;
         //}
-        //ËÄ±ßĞÎ×î¶Ì±ß²»¿ÉÌ«Ğ¡
+        //å››è¾¹å½¢æœ€çŸ­è¾¹ä¸å¯å¤ªå°
         float m_minSideLengthAllowed = float(srcGray.rows/40);
-        //×î³¤±ßÓë×î¶Ì±ßÖ®±È²»¿É¹ıĞ¡
+        //æœ€é•¿è¾¹ä¸æœ€çŸ­è¾¹ä¹‹æ¯”ä¸å¯è¿‡å°
         float m_maxSideLengthRatio = maxDist/minDist;
-        //¹ıÂË²¢´æ´¢ÓĞĞ§µÄËÄ±ßĞÎĞÅÏ¢
+        //è¿‡æ»¤å¹¶å­˜å‚¨æœ‰æ•ˆçš„å››è¾¹å½¢ä¿¡æ¯
         if (minDist > m_minSideLengthAllowed && m_maxSideLengthRatio < maxSideLengthRatioAllowed)
         {
             RectMark markTemp;
@@ -178,15 +178,15 @@ void DetectRectToGetImageLightness::RectangleDetect( )
         }
      }
 
-    //ÌŞ³ıÖØºÏµÄËÄ±ßĞÎ
+    //å‰”é™¤é‡åˆçš„å››è¾¹å½¢
     RectErase( );
-    //ËÄ±ßĞÎ·ÖÀà
+    //å››è¾¹å½¢åˆ†ç±»
     RectClassify();
-    //°´Ãæ»ıÅÅĞò,larger one in front
+    //æŒ‰é¢ç§¯æ’åº,larger one in front
     RectSortByArea( );
-    //²»Í¬ÀàµÄËÄ±ßĞÎ°´×ø±êÅÅĞò
+    //ä¸åŒç±»çš„å››è¾¹å½¢æŒ‰åæ ‡æ’åº
     RectSortByPositionX( );
-    //»­³ö¸÷ËÄ±ßĞÎ
+    //ç”»å‡ºå„å››è¾¹å½¢
     DrawAllRect( );
 
 
@@ -195,7 +195,7 @@ void DetectRectToGetImageLightness::RectangleDetect( )
 
 
 
-//ÇóËÄ±ßĞÎÄÚ²à¼Ğ½Ç
+//æ±‚å››è¾¹å½¢å†…ä¾§å¤¹è§’
 double DetectRectToGetImageLightness::GetTwoSideAngle(Point2f p1,Point2f p2, Point2f p3)
 {
     //vector1
@@ -211,7 +211,7 @@ double DetectRectToGetImageLightness::GetTwoSideAngle(Point2f p1,Point2f p2, Poi
 }
 
 
-//ÌŞ³ıÖØºÏµÄËÄ±ßĞÎ
+//å‰”é™¤é‡åˆçš„å››è¾¹å½¢
 void DetectRectToGetImageLightness::RectErase( )
 {
     float rectErr[4] = {0};
@@ -222,7 +222,7 @@ void DetectRectToGetImageLightness::RectErase( )
         {
             for (int k=0; k<4; ++k)
             {
-                //¼ÆËãÁ½¸ö¾ØĞÎ¶ÔÓ¦µÄµÚk¸ö¶¥µãµÄÏñËØ¾àÀë
+                //è®¡ç®—ä¸¤ä¸ªçŸ©å½¢å¯¹åº”çš„ç¬¬kä¸ªé¡¶ç‚¹çš„åƒç´ è·ç¦»
                 rectErr[k] = sqrt(pow((rectPossible[i].m_points[k].x - rectPossible[j].m_points[k].x),2)
                                 + pow((rectPossible[i].m_points[k].y - rectPossible[j].m_points[k].y),2));
                 if (rectErr[k] > maxErr)
@@ -230,13 +230,13 @@ void DetectRectToGetImageLightness::RectErase( )
             }
             if (rectErr[0] <= maxErr  &&  rectErr[1] <= maxErr  &&  rectErr[2] <= maxErr  &&  rectErr[3] <= maxErr)
             {
-                //È¡ÖØ¸´¾ØĞÎËÄ¸ö¶¥µãµÄÆ½¾ùÖµ×÷Îª±£Áô¶¥µã
+                //å–é‡å¤çŸ©å½¢å››ä¸ªé¡¶ç‚¹çš„å¹³å‡å€¼ä½œä¸ºä¿ç•™é¡¶ç‚¹
                 for (int k=0; k<4; k++)
                 {
                     rectPossible[j].m_points[k].x = (rectPossible[i].m_points[k].x + rectPossible[j].m_points[k].x)/2;
                     rectPossible[j].m_points[k].y = (rectPossible[i].m_points[k].y + rectPossible[j].m_points[k].y)/2;
                 }
-                //ÌŞ³ıÖØ¸´¾ØĞÎµÄ¶¥µã
+                //å‰”é™¤é‡å¤çŸ©å½¢çš„é¡¶ç‚¹
                 rectPossible.erase(rectPossible.begin() + j);
                 j--;
                 break;
@@ -247,7 +247,7 @@ void DetectRectToGetImageLightness::RectErase( )
 }
 
 
-//ËÄ±ßĞÎ·ÖÀà
+//å››è¾¹å½¢åˆ†ç±»
 void DetectRectToGetImageLightness::RectClassify()
 {
     vector<RectMark> rectArrayTemp;
@@ -261,7 +261,7 @@ void DetectRectToGetImageLightness::RectClassify()
         {
             Point2f middlePoint_j = Point2f((rectPossible[j].m_points[0].x+rectPossible[j].m_points[2].x)/2,
                                             (rectPossible[j].m_points[0].y+rectPossible[j].m_points[2].y)/2);
-            //Á½¸öËÄ±ßĞÎ¶Ô½ÇÏßÖĞµãµÄ¾àÀë
+            //ä¸¤ä¸ªå››è¾¹å½¢å¯¹è§’çº¿ä¸­ç‚¹çš„è·ç¦»
             float twoPointDistance = sqrt(pow(middlePoint_i.x-middlePoint_j.x,2)+pow(middlePoint_i.y-middlePoint_j.y,2));
             float minSide = 0;
             if (rectPossible[i].minSideLength < rectPossible[j].minSideLength)
@@ -269,7 +269,7 @@ void DetectRectToGetImageLightness::RectClassify()
             else
                 minSide = rectPossible[j].minSideLength;
 
-            //ÅĞ¶ÏÁ½ËÄ±ßĞÎÊÇ·ñÊôÓÚÎªÍ¬Ò»ÎïÀí±êÖ¾
+            //åˆ¤æ–­ä¸¤å››è¾¹å½¢æ˜¯å¦å±äºä¸ºåŒä¸€ç‰©ç†æ ‡å¿—
             if (twoPointDistance < (minSide * rectClassifyThres))
             {
                 rectArrayTemp.push_back(rectPossible[j]);
@@ -277,18 +277,18 @@ void DetectRectToGetImageLightness::RectClassify()
                 j--;
             }
         }
-        //Í¬Ò»ÀàµÄ·ÅÔÚÒ»Æğ
+        //åŒä¸€ç±»çš„æ”¾åœ¨ä¸€èµ·
         rectCategory.push_back(rectArrayTemp);
     }
     return;
 }
 
-//Í¬Ò»ÀàÄÚµÄËÄ±ßĞÎ°´Ãæ»ıÅÅĞò
+//åŒä¸€ç±»å†…çš„å››è¾¹å½¢æŒ‰é¢ç§¯æ’åº
 void DetectRectToGetImageLightness::RectSortByArea( )
 {
     for (int k=0;k<(int)rectCategory.size();++k)
     {
-        //Í¬Ò»ÀàÄÚÅÅĞò
+        //åŒä¸€ç±»å†…æ’åº
         for (int i=0;i<(int)rectCategory[k].size();++i)
         {
             for (int j=i+1;j<(int)rectCategory[k].size();++j)
@@ -304,10 +304,10 @@ void DetectRectToGetImageLightness::RectSortByArea( )
     return;
 }
 
-//²»Í¬ÀàµÄËÄ±ßĞÎ°´×ø±êÅÅĞò
+//ä¸åŒç±»çš„å››è¾¹å½¢æŒ‰åæ ‡æ’åº
 void DetectRectToGetImageLightness::RectSortByPositionX( )
 {
-        //Í¬Ò»ÀàÄÚÅÅĞò
+        //åŒä¸€ç±»å†…æ’åº
         for (int i=0;i<(int)rectCategory.size();++i)
         {
             for (int j=i+1;j<(int)rectCategory.size();++j)
@@ -321,7 +321,7 @@ void DetectRectToGetImageLightness::RectSortByPositionX( )
     return;
 }
 
-//»­³ö¸÷ËÄ±ßĞÎ
+//ç”»å‡ºå„å››è¾¹å½¢
 void DetectRectToGetImageLightness::DrawAllRect( )
 {
     //image = Mat::zeros(480, 640, CV_8UC3);
@@ -338,7 +338,7 @@ void DetectRectToGetImageLightness::DrawAllRect( )
             line(resultImg, rectCategory[k][i].m_points[3], rectCategory[k][i].m_points[0], Scalar(255,255,0), 2, 8);
             if (0 == i)
             {
-                //Ö»ÔÚ×îÄÚ²àËÄ±ßĞÎÉÏ±ê³ö0¡¢1¡¢2¡¢3
+                //åªåœ¨æœ€å†…ä¾§å››è¾¹å½¢ä¸Šæ ‡å‡º0ã€1ã€2ã€3
                 for (int j=0;j<4;j++)
                 {
                     circle(resultImg,rectCategory[k][i].m_points[j],4,Scalar(0,255,0),-1);
@@ -355,10 +355,10 @@ void DetectRectToGetImageLightness::DrawAllRect( )
 }
 
 
-//µ¥Ä¿Î»ÖÃ¹À¼Æ
+//å•ç›®ä½ç½®ä¼°è®¡
 void DetectRectToGetImageLightness::EstimatePosition()
 {
-    //ÔÚÍ¼ÏñÖĞÏÔÊ¾Æ½ÒÆÏòÁ¿£¨x,y,z£©
+    //åœ¨å›¾åƒä¸­æ˜¾ç¤ºå¹³ç§»å‘é‡ï¼ˆx,y,zï¼‰
     Mat imgColor;
     imgColor = resultImg;
 
@@ -378,13 +378,13 @@ void DetectRectToGetImageLightness::EstimatePosition()
         realRectHalfWidth  = kind_1_width/2;
         realRectHalfHeight = kind_1_height/2;
 
-        //Ä¿±ê¾ØĞÎÉÏËÄ¸öµãÊÀ½ç×ø±ê
+        //ç›®æ ‡çŸ©å½¢ä¸Šå››ä¸ªç‚¹ä¸–ç•Œåæ ‡
         objectPoints3d[0]=Point3d(-realRectHalfWidth, -realRectHalfHeight, 0);
         objectPoints3d[1]=Point3d(realRectHalfWidth,  -realRectHalfHeight, 0);
         objectPoints3d[2]=Point3d(realRectHalfWidth,   realRectHalfHeight, 0);
         objectPoints3d[3]=Point3d(-realRectHalfWidth,  realRectHalfHeight, 0);
 
-        //Ä¿±ê¾ØĞÎ¶ÔÓ¦Í¼Ïñ×ø±ê0~3
+        //ç›®æ ‡çŸ©å½¢å¯¹åº”å›¾åƒåæ ‡0~3
         imagePoints2d[0]=Point2d(rectCategory[i][0].m_points[0].x,rectCategory[i][0].m_points[0].y);
         imagePoints2d[1]=Point2d(rectCategory[i][0].m_points[1].x,rectCategory[i][0].m_points[1].y);
         imagePoints2d[2]=Point2d(rectCategory[i][0].m_points[2].x,rectCategory[i][0].m_points[2].y);
@@ -401,7 +401,7 @@ void DetectRectToGetImageLightness::EstimatePosition()
         Mat t_distcoef=(Mat_<double>(1,5) << -0.05173, 0.07077, -0.00047, 0.00061,0);
         Mat t_cameraMatrix=(Mat_<double>(3,3) << t_fx,0,t_cx,0,t_fy,t_cy,0,0,1);
 
-        //¼ÆËãĞı×ª¾ØÕó¡¢Æ½ÒÆ¾ØÕó
+        //è®¡ç®—æ—‹è½¬çŸ©é˜µã€å¹³ç§»çŸ©é˜µ
         Mat rvec,tvec;
         solvePnP(objectPoints3d,imagePoints2d,t_cameraMatrix,t_distcoef,rvec,tvec);
 
@@ -410,7 +410,7 @@ void DetectRectToGetImageLightness::EstimatePosition()
         tvec_y=tvec.at<double>(1,0);
         tvec_z=tvec.at<double>(2,0);
         rectCategory[i][0].position = Point3d( tvec_x,tvec_y,tvec_z );
-        //ÌŞ³ı¹ıÔ¶»ò¹ı½üµÄ
+        //å‰”é™¤è¿‡è¿œæˆ–è¿‡è¿‘çš„
         if(tvec_z>maxDistance || tvec_z<minDistance)
         {
             rectCategory.erase(rectCategory.begin()+i);
@@ -423,7 +423,7 @@ void DetectRectToGetImageLightness::EstimatePosition()
         line(resultImg, rectCategory[i][0].m_points[1], rectCategory[i][0].m_points[2], Scalar(0,255,255), 3, 8);
         line(resultImg, rectCategory[i][0].m_points[2], rectCategory[i][0].m_points[3], Scalar(0,255,255), 3, 8);
         line(resultImg, rectCategory[i][0].m_points[3], rectCategory[i][0].m_points[0], Scalar(0,255,255), 3, 8);
-        //Ö»ÔÚ×îÄÚ²àËÄ±ßĞÎÉÏ±ê³ö0¡¢1¡¢2¡¢3
+        //åªåœ¨æœ€å†…ä¾§å››è¾¹å½¢ä¸Šæ ‡å‡º0ã€1ã€2ã€3
         for (int j=0;j<4;j++)
         {
              circle(resultImg,rectCategory[i][0].m_points[j],4,Scalar(0,0,255),-1);
@@ -459,7 +459,7 @@ void DetectRectToGetImageLightness::GetTheLargestRect()
     return;
 }
 
-//Í¸ÊÓ±ä»»
+//é€è§†å˜æ¢
 void DetectRectToGetImageLightness::PerspectiveTransformation( )
 {
     char windowName[50];
@@ -469,15 +469,15 @@ void DetectRectToGetImageLightness::PerspectiveTransformation( )
         int minLoopCount = ((int)rectCategory[i].size()>2) ? (2) : ((int)rectCategory[i].size());
         for (int j=0;j<1;++j)
         {
-            //Ä¿±ê¾ØĞÎ¶ÔÓ¦Í¼Ïñ×ø±ê0~3
+            //ç›®æ ‡çŸ©å½¢å¯¹åº”å›¾åƒåæ ‡0~3
             imagePoints2d[0]=Point2d(rectCategory[i][j].m_points[0].x,rectCategory[i][j].m_points[0].y);
             imagePoints2d[1]=Point2d(rectCategory[i][j].m_points[1].x,rectCategory[i][j].m_points[1].y);
             imagePoints2d[2]=Point2d(rectCategory[i][j].m_points[2].x,rectCategory[i][j].m_points[2].y);
             imagePoints2d[3]=Point2d(rectCategory[i][j].m_points[3].x,rectCategory[i][j].m_points[3].y);
 
-            // ±ê×¼RectÔÚ2d¿Õ¼äÎª100*100µÄ¾ØĞÎ
+            // æ ‡å‡†Rectåœ¨2dç©ºé—´ä¸º100*100çš„çŸ©å½¢
             Size m_RectSize = Size(130, int(130*1.25));
-            // ¾ØĞÎ 4¸ö½ÇµãµÄÕı½»Í¶Ó°±ê×¼Öµ
+            // çŸ©å½¢ 4ä¸ªè§’ç‚¹çš„æ­£äº¤æŠ•å½±æ ‡å‡†å€¼
             vector<Point2f> m_RectCorners2d;
             //vector<Point3f> m_RectCorners3d;
             m_RectCorners2d.push_back(Point2f(0, 0));
@@ -485,15 +485,15 @@ void DetectRectToGetImageLightness::PerspectiveTransformation( )
             m_RectCorners2d.push_back(Point2f(float(m_RectSize.width-1), float(m_RectSize.height-1)));
             m_RectCorners2d.push_back(Point2f(0, float(m_RectSize.height-1) ) );
 
-            // Í¶Ó°±ä»»,»Ö¸´2Î¬±ê×¼ÊÓÍ¼
+            // æŠ•å½±å˜æ¢,æ¢å¤2ç»´æ ‡å‡†è§†å›¾
             Mat canonicalImg;
-            // µÃµ½µ±Ç°markerµÄÍ¸ÊÓ±ä»»¾ØÕóM
+            // å¾—åˆ°å½“å‰markerçš„é€è§†å˜æ¢çŸ©é˜µM
             Mat M = getPerspectiveTransform(rectCategory[i][j].m_points, m_RectCorners2d);
-            // ½«µ±Ç°µÄmarker±ä»»ÎªÕı½»Í¶Ó°
+            // å°†å½“å‰çš„markerå˜æ¢ä¸ºæ­£äº¤æŠ•å½±
             warpPerspective(srcImg, canonicalImg, M, m_RectSize);
-            //´æ´¢¾ØĞÎÇøÓòÍ¼Ïñ
+            //å­˜å‚¨çŸ©å½¢åŒºåŸŸå›¾åƒ
             canonicalImg.copyTo(rectCategory[i][j].perspectiveImg);
-            //·Ö´°¿ÚÏÔÊ¾¸÷±ê×¼¾ØĞÎÇøÓò
+            //åˆ†çª—å£æ˜¾ç¤ºå„æ ‡å‡†çŸ©å½¢åŒºåŸŸ
             sprintf(windowName,"capturePerspectiveImg-%d",j);
             imshow(windowName, rectCategory[i][j].perspectiveImg);
         }

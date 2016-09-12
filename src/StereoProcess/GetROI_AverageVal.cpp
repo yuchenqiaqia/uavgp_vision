@@ -1,7 +1,7 @@
 #include <opencv2/opencv.hpp>
 using namespace cv;
 
-//»ñÈ¡Í¼ÏñroiÇøÓòµÄÆ½¾ùÖµ
+//è·å–å›¾åƒroiåŒºåŸŸçš„å¹³å‡å€¼
 double GetROI_AverageVal( Mat src, Point point, int channel, int radius)
 {
     Mat src_roi;
@@ -14,7 +14,7 @@ double GetROI_AverageVal( Mat src, Point point, int channel, int radius)
     rect_x2 = point.x+radius;
     rect_y2 = point.y+radius;
 
-    //·ÀÖ¹Ô½½ç
+    //é˜²æ­¢è¶Šç•Œ
     if(rect_x1<0)
     {
         rect_x1 = 0;
@@ -32,10 +32,10 @@ double GetROI_AverageVal( Mat src, Point point, int channel, int radius)
         rect_y2 = src.rows-1;
     }
 
-    //Ñ¡È¡roiÇøÓò
+    //é€‰å–roiåŒºåŸŸ
     src_roi = src(Rect(rect_x1,rect_y1, rect_x2 - rect_x1,rect_y2 - rect_y1));
 
-    //Í³¼ÆroiÇøÓòÏñËØÖµµÄÆ½¾ùÖµ
+    //ç»Ÿè®¡roiåŒºåŸŸåƒç´ å€¼çš„å¹³å‡å€¼
     double sum = 0.0;
     int count = 0;
     for(int i=0; i<src_roi.rows; i++)
@@ -45,29 +45,29 @@ double GetROI_AverageVal( Mat src, Point point, int channel, int radius)
             double temp;
             if( CV_8UC1 == src.type() )
             {
-                //8Î»µ¥Í¨µÀucharÍ¼Ïñ
+                //8ä½å•é€šé“ucharå›¾åƒ
                 temp = double( src_roi.at<uchar>(i,j) );
             }
             else if( CV_16SC1 == src.type() )
             {
-                //8Î»µ¥Í¨µÀushortÍ¼Ïñ
+                //8ä½å•é€šé“ushortå›¾åƒ
                 temp = double( src_roi.at<ushort>(i,j) );
             }
             else if( CV_8UC3 == src.type() )
             {
-                //8Î»3Í¨µÀucharĞÍÍ¼Ïñ
+                //8ä½3é€šé“ucharå‹å›¾åƒ
                 Vec3b temp3b = src_roi.at<Vec3b>(i,j);
                 temp = double(temp3b[channel]);
             }
             else if( CV_32FC3 == src.type() )
             {
-                //32Î»3Í¨µÀfloatĞÍÍ¼Ïñ
+                //32ä½3é€šé“floatå‹å›¾åƒ
                 Vec3f temp3f = src_roi.at<Vec3f>(i,j);
                 temp = double(temp3f[channel]);
             }
             if( fabs(temp) > 0.0001)
             {
-                //Ö»Í³¼Æ²»ÎªÁãÏñËØµã
+                //åªç»Ÿè®¡ä¸ä¸ºé›¶åƒç´ ç‚¹
                 sum += temp;
                 count++;
             }

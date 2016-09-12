@@ -1,7 +1,7 @@
 #include "declare.h"
 int FindObstacleArea( Mat& img_input );
 
-//µÃµ½¾ùÔÈµÄÖÖ×Óµã
+//å¾—åˆ°å‡åŒ€çš„ç§å­ç‚¹
 int GetSeeds(Mat input_img, vector<Point3f>& seeds)
 {
     //printf("GetSeeds: rows=%d\n", input_img.rows);
@@ -11,7 +11,7 @@ int GetSeeds(Mat input_img, vector<Point3f>& seeds)
     {
        for(unsigned int p=0;p<input_img.cols;++p)
        {
-           //ÌáÈ¡ÖÖ×ÓµãµÄ¾àÀëãĞÖµ
+           //æå–ç§å­ç‚¹çš„è·ç¦»é˜ˆå€¼
            if ( input_img.at<Vec3f>(j,p)[2] > 0.75 && input_img.at<Vec3f>(j,p)[2] < 10)
            {
                Point3f temp = Point3f(p, j, input_img.at<Vec3f>(j,p)[2]);
@@ -35,7 +35,7 @@ int GetSeeds(Mat input_img, vector<Point3f>& seeds)
     return 1;
 }
 
-//¶ÔÈıÎ¬Í¼Ïñ½øĞĞ·Ö¸î
+//å¯¹ä¸‰ç»´å›¾åƒè¿›è¡Œåˆ†å‰²
 int MyImageSegmentation( Mat& input_xyz_img, Mat& input_gray_img )
 {
     if (!input_xyz_img.data)
@@ -100,7 +100,7 @@ int MyImageSegmentation( Mat& input_xyz_img, Mat& input_gray_img )
             continue;
         Point2f vertex[4];
         boxTemp.points(vertex);
-        //»­³ö¸÷¸ö×îĞ¡Ãæ»ıµÄ°üÎ§¾ØĞÎ
+        //ç”»å‡ºå„ä¸ªæœ€å°é¢ç§¯çš„åŒ…å›´çŸ©å½¢
         for(int j=0; j<4;++j)
         {
             line(gray_img, vertex[j], vertex[(j+1)%4], Scalar(0,0,255), 2, 8);
@@ -154,7 +154,7 @@ int FindObstacleArea( Mat& img_input )
             continue;
         Point2f vertex[4];
         boxTemp.points(vertex);
-        //»­³ö¸÷¸ö×îĞ¡Ãæ»ıµÄ°üÎ§¾ØĞÎ
+        //ç”»å‡ºå„ä¸ªæœ€å°é¢ç§¯çš„åŒ…å›´çŸ©å½¢
         for(int j=0; j<4;++j)
         {
             line(show_img, vertex[j], vertex[(j+1)%4], Scalar(0,255,0), 2, 8);

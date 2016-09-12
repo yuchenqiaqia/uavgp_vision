@@ -19,7 +19,7 @@ Mat depth8;
 Mat pseudo_color_img;
 Mat xyz_img;
 
-//ÏÔÊ¾Ô­Ê¼Í¼Ïñ¡¢Éî¶È»Ò¶ÈÍ¼¡¢Éî¶ÈÎ±²ÊÍ¼
+//æ˜¾ç¤ºåŸå§‹å›¾åƒã€æ·±åº¦ç°åº¦å›¾ã€æ·±åº¦ä¼ªå½©å›¾
 int ShowImages(Mat& gray_image_left, Mat& gray_image_right, Mat& depth8, Mat& pseudo_color_img)
 {
     if ( !gray_image_left.data || !gray_image_right.data)
@@ -29,7 +29,7 @@ int ShowImages(Mat& gray_image_left, Mat& gray_image_right, Mat& depth8, Mat& ps
     Mat gray_image_show;
     cvtColor(gray_image_left, gray_image_show, CV_GRAY2BGR);
 
-    //ÏÔÊ¾ÖĞĞÄµãµÄÈıÎ¬×ø±ê
+    //æ˜¾ç¤ºä¸­å¿ƒç‚¹çš„ä¸‰ç»´åæ ‡
     Point3f dis;
     dis.x = xyz_img.at<Vec3f>(xyz_img.rows/2, xyz_img.cols/2)[0];
     dis.y = xyz_img.at<Vec3f>(xyz_img.rows/2, xyz_img.cols/2)[1];
@@ -61,10 +61,10 @@ int ShowImages(Mat& gray_image_left, Mat& gray_image_right, Mat& depth8, Mat& ps
     return 1;
 }
 
-////////»Øµ÷º¯Êı£º¶©ÔÄÉî¶ÈÍ¼Ïñ, ²¢×ªÎªÈıÎ¬µãÔÆÍ¼Ïñ
+////////å›è°ƒå‡½æ•°ï¼šè®¢é˜…æ·±åº¦å›¾åƒ, å¹¶è½¬ä¸ºä¸‰ç»´ç‚¹äº‘å›¾åƒ
 static void GuidanceDepthImageSubCallback( const sensor_msgs::ImageConstPtr& msg )
 {
-    //rosÍ¼Ïñ×ªÎªopencvÍ¼Ïñ
+    //roså›¾åƒè½¬ä¸ºopencvå›¾åƒ
     try
     {
         guidance_depth_image = cv_bridge::toCvCopy(msg, "mono16")->image;
@@ -75,11 +75,11 @@ static void GuidanceDepthImageSubCallback( const sensor_msgs::ImageConstPtr& msg
     }
     static unsigned int depthImgNo = 0;
 
-    // 16Î»shortĞÍÉî¶ÈÍ¼Ïñ ×ª»»Îª 8Î»»Ò¶ÈÍ¼Ïñ
+    // 16ä½shortå‹æ·±åº¦å›¾åƒ è½¬æ¢ä¸º 8ä½ç°åº¦å›¾åƒ
     guidance_depth_image.convertTo(depth8, CV_8UC1);
     //cvtColor(depth8,depth8,CV_GRAY2BGR);
 
-    // 16Î»shortĞÍÉî¶ÈÍ¼Ïñ ×ª»»Îª 32Î»¸¡µãĞÍÉî¶ÈÍ¼Ïñ
+    // 16ä½shortå‹æ·±åº¦å›¾åƒ è½¬æ¢ä¸º 32ä½æµ®ç‚¹å‹æ·±åº¦å›¾åƒ
     Mat realDisImg = Mat::zeros(guidance_depth_image.rows, guidance_depth_image.cols, CV_32F);
     for (int i=0;i<realDisImg.rows;++i)
     {
@@ -90,9 +90,9 @@ static void GuidanceDepthImageSubCallback( const sensor_msgs::ImageConstPtr& msg
         }
     }
 
-    // Éî¶ÈÍ¼Ïñ×ª»»ÎªÈıÎ¬µãÔÆÍ¼Ïñ
+    // æ·±åº¦å›¾åƒè½¬æ¢ä¸ºä¸‰ç»´ç‚¹äº‘å›¾åƒ
     DepthTo3D(realDisImg, xyz_img);
-    //Î±²ÊÍ¼
+    //ä¼ªå½©å›¾
     ConvertToPseudoColor( xyz_img, pseudo_color_img );
     //PCL process
     //PoinCloudProcess(depth8, xyz_img, guidance_gray_image_left);
@@ -150,7 +150,7 @@ static void GuidanceGrayImageRightSubCallback( const sensor_msgs::ImageConstPtr&
 GuidanceDistance ultrasonic;
 GuidanceDistance obstacle_distance;
 Point3f velocity;
-//GuidanceÊä³öµÄ³¬Éù²¨¾àÀëĞÅÏ¢
+//Guidanceè¾“å‡ºçš„è¶…å£°æ³¢è·ç¦»ä¿¡æ¯
 static void GuidanceUltrasonicSubCallback( const sensor_msgs::LaserScan& msg)
 {
     ultrasonic.vbus_1_distance = fabs(msg.ranges[1]);
@@ -171,7 +171,7 @@ static void GuidanceUltrasonicSubCallback( const sensor_msgs::LaserScan& msg)
     return;
 }
 
-//GuidanceÊä³öµÄÕÏ°­Îï¾àÀëĞÅÏ¢
+//Guidanceè¾“å‡ºçš„éšœç¢ç‰©è·ç¦»ä¿¡æ¯
 static void GuidanceObstacleDistanceSubCallback( const sensor_msgs::LaserScan& msg)
 {
     obstacle_distance.vbus_1_distance = fabs(msg.ranges[1]);
@@ -193,7 +193,7 @@ static void GuidanceObstacleDistanceSubCallback( const sensor_msgs::LaserScan& m
     return;
 }
 
-//GuidanceÊä³öµÄËÙ¶ÈĞÅÏ¢
+//Guidanceè¾“å‡ºçš„é€Ÿåº¦ä¿¡æ¯
 static void GuidanceVelocitySubCallback( const geometry_msgs::Vector3Stamped& msg)
 {
     velocity.x = msg.vector.x;
@@ -203,7 +203,7 @@ static void GuidanceVelocitySubCallback( const geometry_msgs::Vector3Stamped& ms
     return;
 }
 
-//×ÓÏß³Ì£º¶©ÔÄGuidanceÉî¶ÈÍ¼Ïñ¡¢»Ò¶ÈÍ¼Ïñ¡¢³¬Éù²¨,GuidanceDataSubThread
+//å­çº¿ç¨‹ï¼šè®¢é˜…Guidanceæ·±åº¦å›¾åƒã€ç°åº¦å›¾åƒã€è¶…å£°æ³¢,GuidanceDataSubThread
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "guidance_data_process");
@@ -228,5 +228,3 @@ int main(int argc, char **argv)
     }
 */
 }
-
-

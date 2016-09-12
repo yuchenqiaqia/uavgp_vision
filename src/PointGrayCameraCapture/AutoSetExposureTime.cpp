@@ -1,7 +1,7 @@
 #include "DetectRectToGetImageLightness.h"
 
 
-////»ñÈ¡¼üÅÌ×Ö·ûÏß³Ì
+////èŽ·å–é”®ç›˜å­—ç¬¦çº¿ç¨‹
 char pressedKey[20] = {-1};
 void* getKey(void*)
 {
@@ -28,7 +28,7 @@ void OpenGetKeyThread()
     int ret=pthread_create(&getKeyBoard,NULL,getKey,NULL);
     if(ret!=0)
     {
-        //»ñÈ¡¼üÅÌ×Ö·ûÏß³Ì´´½¨Ê§°Ü
+        //èŽ·å–é”®ç›˜å­—ç¬¦çº¿ç¨‹åˆ›å»ºå¤±è´¥
         printf ("Create get KeyBoard thread error!..\n");
         exit (1);
     }
@@ -89,7 +89,7 @@ double CalculateExposureTime( Mat& currentImg, const double currentExposureTime,
     printf("HSV_v=%f\n", currentHSV_v);
 
     double exposureTimeSet ;
-    double timeUnit = 0.05;     //µ¥Î»£ºms, 0.1
+    double timeUnit = 0.05;     //å•ä½ï¼šms, 0.1
     double brightnessErr = currentHSV_v - brightnessSet;
     if(fabs(brightnessErr) >= 20)
     {

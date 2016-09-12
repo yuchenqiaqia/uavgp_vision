@@ -1,6 +1,6 @@
 #include "define.h"
 
-//±£´æÊÓÆµ
+//ä¿å­˜è§†é¢‘
 bool saveEnble = false;
 char baseDir[200] = "/home/xiaobin/uavgp_vision";
 
@@ -19,25 +19,25 @@ int main(int argc, char **argv)
     pub = it.advertise("camera/image", 1);
 
     pImgPubNode = &imgPubNode;
-    //ÎªrosÏûÏ¢·¢²¼´´½¨Ò»¸öĞÂµÄÏß³Ì
+    //ä¸ºrosæ¶ˆæ¯å‘å¸ƒåˆ›å»ºä¸€ä¸ªæ–°çš„çº¿ç¨‹
     pthread_t thread_id;
     int ret;
     ret=pthread_create(&thread_id,NULL,RosThread,NULL);
     if(ret!=0)
     {
-        //Ïß³Ì´´½¨Ê§°Ü
+        //çº¿ç¨‹åˆ›å»ºå¤±è´¥
         printf ("Create ros_thread error!\n");
         exit (1);
     }
 
-	//³õÊ¼»¯·ÖÀàÆ÷
+	//åˆå§‹åŒ–åˆ†ç±»å™¨
     basicOCR myKNNocr(baseDir);
 
-    //opencv·½Ê½´ò¿ªÏà»ú
+    //opencvæ–¹å¼æ‰“å¼€ç›¸æœº
     capture.open(0);
     if(false == capture.isOpened())
     {
-        cout<<"´ò¿ªÏà»úÊ§°Ü"<<endl;
+        cout<<"æ‰“å¼€ç›¸æœºå¤±è´¥"<<endl;
         return 0;
     }
 
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     {
         if( -1 == CreatDir(baseDir))
             exit(-1);
-        //´´½¨ÊÓÆµ
+        //åˆ›å»ºè§†é¢‘
         capture>>srcImg;
         char video_name[100];
         sprintf(video_name,"%s/DigitDetect.avi",baseDir);
@@ -57,35 +57,35 @@ int main(int argc, char **argv)
     int k = 0;
     while( imgPubNode.ok() )
 	{
-		//¶ÁÍ¼Æ¬
+		//è¯»å›¾ç‰‡
 		char srcImg_filename[200];	
         sprintf( srcImg_filename,"..\\output\\digitDetect-%d.jpg",k);
 		//srct = imread( srcImg_filename );
 
-        //ÔÚÏà»úÖĞ×¥È¡Ò»Ö¡Í¼Ïñ
+        //åœ¨ç›¸æœºä¸­æŠ“å–ä¸€å¸§å›¾åƒ
         capture>>srcImg;
 
-		//·ÀÖ¹ÏßÀÂËÉ¶¯
+		//é˜²æ­¢çº¿ç¼†æ¾åŠ¨
         if(!srcImg.data)
 		{	
-            cout<<"¶ÁÏà»úÊ§°Ü"<<endl;
+            cout<<"è¯»ç›¸æœºå¤±è´¥"<<endl;
             waitKey(50);
 			continue;	
 		}
 
-        //È¥³ı±ßÔµµÄ3¸öÏñËØ
+        //å»é™¤è¾¹ç¼˜çš„3ä¸ªåƒç´ 
         srcImg = srcImg(Rect(3,3,srcImg.cols-6,srcImg.rows-6));
         resize(srcImg,srcImg,Size(640 *2/shrink,480 *2/shrink));
 		if (true == saveEnble)
 		{
-			//´æ´¢Ô­Ê¼Í¼Ïñ
+			//å­˜å‚¨åŸå§‹å›¾åƒ
             char fileName[150];
             sprintf(fileName,"%s/image/digitDetect-%06d.jpg",baseDir,k);
             imwrite(fileName,srcImg);
 		}
 		cout<<"imageNo="<<k<<endl;
 		k++;
-		//imshow("Ô­Í¼Ïñ",srct);
+		//imshow("åŸå›¾åƒ",srct);
         //waitKey(1);
 		Mat srcGray;
         cvtColor(srcImg,srcGray,CV_BGR2GRAY);
@@ -95,17 +95,17 @@ int main(int argc, char **argv)
         imshow("Canny",srcCanny);
 
         Mat rectResultImg = srcImg.clone();
-		//¼ì²âËÄ±ßĞÎ
+		//æ£€æµ‹å››è¾¹å½¢
 		RectangleDetect( srcCanny, rectResultImg );
-		//Í¸ÊÓ±ä»»
+		//é€è§†å˜æ¢
         PerspectiveTransformation(srcImg, rectCandidateImg, rectCategory);
-		//¶ÔÍ¸ÊÓ±ä»»ºóµÄÍ¼Ïñ¼ì²âºÚ¿ò
+		//å¯¹é€è§†å˜æ¢åçš„å›¾åƒæ£€æµ‹é»‘æ¡†
 		BlackFrameDetect(rectCategory);
-		//Î»ÖÃ¹À¼Æ
+		//ä½ç½®ä¼°è®¡
 		EstimatePosition(rectResultImg, rectCategory);
-		//Êı×ÖÊ¶±ğ
+		//æ•°å­—è¯†åˆ«
 		DigitDetector(rectResultImg, myKNNocr, rectCategory);
-		//ÏÔÊ¾×îÖÕ½á¹ûÍ¼Ïñ
+		//æ˜¾ç¤ºæœ€ç»ˆç»“æœå›¾åƒ
 		imshow("FinalResultImg",rectResultImg);
 		if (true == saveEnble)
         {
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
         //result image copy to globle image
         rectResultImg.copyTo(g_rectResultImg);
 
-        //ÇåÀíÄÚ´æ
+        //æ¸…ç†å†…å­˜
 		rectPossible.clear();
 		rectCategory.clear();
 		rectCandidateImg.clear();
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 }
 
 
-//¾ØĞÎ£¨ËÄ±ßĞÎ£©¼ì²â
+//çŸ©å½¢ï¼ˆå››è¾¹å½¢ï¼‰æ£€æµ‹
 void RectangleDetect(Mat& srcCanny, Mat& resultImg)
 {
     Mat srcGray;
@@ -148,15 +148,15 @@ void RectangleDetect(Mat& srcCanny, Mat& resultImg)
     //srcGray = imgBinary;
     //imshow("imgBinary",imgBinary);
 
-    vector< Point > hull;	//Í¹°üµã
+    vector< Point > hull;	//å‡¸åŒ…ç‚¹
     vector< vector<Point> >all_contours;
     vector< vector<Point> >contours;
     vector<Vec4i>hierarchy;
-    //²éÕÒÂÖÀª
+    //æŸ¥æ‰¾è½®å»“
     findContours( srcCanny, all_contours, hierarchy ,CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
-    //cout<<"ÂÖÀª×Ü¸öÊı=" << all_contours.size() <<endl;
+    //cout<<"è½®å»“æ€»ä¸ªæ•°=" << all_contours.size() <<endl;
 
-    //¹ıÂËµôÌ«Ğ¡µÄÂÖÀª
+    //è¿‡æ»¤æ‰å¤ªå°çš„è½®å»“
     for (int i = 0; i < (int)all_contours.size(); ++i)
     {
         if ((int)all_contours[i].size() > srcCanny.cols/20*4 && (int)all_contours[i].size()<srcCanny.rows*4)
@@ -166,22 +166,22 @@ void RectangleDetect(Mat& srcCanny, Mat& resultImg)
                 contours.push_back(all_contours[i]);
         }
     }
-    //cout<<"ÓĞĞ§ÂÖÀª¸öÊı=" << contours.size() <<endl;
+    //cout<<"æœ‰æ•ˆè½®å»“ä¸ªæ•°=" << contours.size() <<endl;
 
-    //ËÄ±ßĞÎÉ¸Ñ¡
+    //å››è¾¹å½¢ç­›é€‰
     vector<Point> approxCurve;
     int id = 0;
     for (size_t i=0; i<contours.size(); i++)
     {
-        //½üËÆ¶à±ßĞÎ±Æ½ü£¬ÁíÍâ¿ÉÒÔÊÔÊÔÄâºÏÍ¹°ü£¨¿ÉÒÔÈ¥³ı±ßÔµÕÚµ²¸ÉÈÅ£©
+        //è¿‘ä¼¼å¤šè¾¹å½¢é€¼è¿‘ï¼Œå¦å¤–å¯ä»¥è¯•è¯•æ‹Ÿåˆå‡¸åŒ…ï¼ˆå¯ä»¥å»é™¤è¾¹ç¼˜é®æŒ¡å¹²æ‰°ï¼‰
         approxPolyDP(contours[i], approxCurve, double(contours[i].size())*0.005, true);	//double(contours[i].size())*0.05
-        //·Ç4±ßĞÎ²»¸ĞĞËÈ¤
+        //é4è¾¹å½¢ä¸æ„Ÿå…´è¶£
         if (approxCurve.size() != 4)
             continue;
-        //·ÇÍ¹4±ßĞÎ²»¸ĞĞËÈ¤
+        //éå‡¸4è¾¹å½¢ä¸æ„Ÿå…´è¶£
         if (!isContourConvex(approxCurve))
             continue;
-        //ËÄ¸ö¶¥µãÅÅĞò£¬Ë³Ê±Õë£º0£¬1£¬2£¬3£¬×óÉÏ½ÇÎª0£»
+        //å››ä¸ªé¡¶ç‚¹æ’åºï¼Œé¡ºæ—¶é’ˆï¼š0ï¼Œ1ï¼Œ2ï¼Œ3ï¼Œå·¦ä¸Šè§’ä¸º0ï¼›
         for(int m=0;m<(int)approxCurve.size();m++)
         {
             for (int n=m+1;n<(int)approxCurve.size();n++)
@@ -195,7 +195,7 @@ void RectangleDetect(Mat& srcCanny, Mat& resultImg)
         if (approxCurve[3].x > approxCurve[2].x)
             std::swap(approxCurve[2], approxCurve[3]);
 
-        // ÕÒËÄ±ßĞÎµÄ×îĞ¡±ß¡¢×î´ó±ß
+        // æ‰¾å››è¾¹å½¢çš„æœ€å°è¾¹ã€æœ€å¤§è¾¹
         float minDist = 1280.0f;
         float maxDist = 0.0f;
         float sideLength[4] = {0};
@@ -211,7 +211,7 @@ void RectangleDetect(Mat& srcCanny, Mat& resultImg)
                 maxDist = sideLength[n];
             }
         }
-        //Êú³¤·½ĞÎ£¬0¡¢2ºÅ±ß³¤Ó¦Ğ¡ÓÚ1¡¢3ºÅ±ß³¤
+        //ç«–é•¿æ–¹å½¢ï¼Œ0ã€2å·è¾¹é•¿åº”å°äº1ã€3å·è¾¹é•¿
         float minLength = sideLength[0];
         if (minLength > sideLength[2])
         {
@@ -221,14 +221,14 @@ void RectangleDetect(Mat& srcCanny, Mat& resultImg)
         {
             continue;
         }
-        //¸÷±ß¼Ğ½Ç²»¿ÉÌ«Ğ¡
+        //å„è¾¹å¤¹è§’ä¸å¯å¤ªå°
         double angle0 = GetTwoSideAngle(approxCurve[3],approxCurve[0], approxCurve[1]);
         double angle1 = GetTwoSideAngle(approxCurve[0],approxCurve[1], approxCurve[2]);
         double angle2 = GetTwoSideAngle(approxCurve[1],approxCurve[2], approxCurve[3]);
         double angle3 = GetTwoSideAngle(approxCurve[2],approxCurve[3], approxCurve[0]);
         double minAngleThres = 90 - 15;
         double maxAngleThres = 90 + 15;
-        //ÏàÁÚÁ½½Ç²»¿ÉÍ¬Ê±´óÓÚ90¶È
+        //ç›¸é‚»ä¸¤è§’ä¸å¯åŒæ—¶å¤§äº90åº¦
         if( (angle0>95 && angle1>95) || (angle1>95 && angle2>95) || (angle2>95 && angle3>95) || (angle3>95 && angle0>95) )
         {
             continue;
@@ -238,18 +238,18 @@ void RectangleDetect(Mat& srcCanny, Mat& resultImg)
         {
             continue;
         }
-        ////²»ÄÜÊÇÊúÏòÆ½ĞĞËÄ±ßĞÎ
+        ////ä¸èƒ½æ˜¯ç«–å‘å¹³è¡Œå››è¾¹å½¢
         //double angle0_0 = GetTwoSideAngle(approxCurve[1],approxCurve[0],Point2f(approxCurve[1].x,approxCurve[0].y) );
         //double angle1_0 = GetTwoSideAngle(approxCurve[0],approxCurve[1],Point2f(approxCurve[1].x,approxCurve[0].y) );
         //if (angle0<80 && angle1>100 && angle0_0>20 && angle1_0>20)
         //{
         //	continue;
         //}
-        //ËÄ±ßĞÎ×î¶Ì±ß²»¿ÉÌ«Ğ¡
+        //å››è¾¹å½¢æœ€çŸ­è¾¹ä¸å¯å¤ªå°
         float m_minSideLengthAllowed = float(srcCanny.rows/25);
-        //×î³¤±ßÓë×î¶Ì±ßÖ®±È²»¿É¹ıĞ¡
+        //æœ€é•¿è¾¹ä¸æœ€çŸ­è¾¹ä¹‹æ¯”ä¸å¯è¿‡å°
         float m_maxSideLengthRatio = maxDist/minDist;
-        //¹ıÂË²¢´æ´¢ÓĞĞ§µÄËÄ±ßĞÎĞÅÏ¢
+        //è¿‡æ»¤å¹¶å­˜å‚¨æœ‰æ•ˆçš„å››è¾¹å½¢ä¿¡æ¯
         if (minDist > m_minSideLengthAllowed && m_maxSideLengthRatio < maxSideLengthRatioAllowed)
         {
             RectMark markTemp;
@@ -267,19 +267,19 @@ void RectangleDetect(Mat& srcCanny, Mat& resultImg)
         }
      }
 
-    //ÌŞ³ıÖØºÏµÄËÄ±ßĞÎ
+    //å‰”é™¤é‡åˆçš„å››è¾¹å½¢
     RectErase( rectPossible );
-    //ËÄ±ßĞÎ·ÖÀà
+    //å››è¾¹å½¢åˆ†ç±»
     RectClassify(rectPossible, rectCategory);
-    //°´Ãæ»ıÅÅĞò
+    //æŒ‰é¢ç§¯æ’åº
     RectSortByArea( rectCategory );
-    //»­³ö¸÷ËÄ±ßĞÎ
+    //ç”»å‡ºå„å››è¾¹å½¢
     DrawAllRect(resultImg, rectCategory);
 
     return;
 }
 
-//ÇóËÄ±ßĞÎÄÚ²à¼Ğ½Ç
+//æ±‚å››è¾¹å½¢å†…ä¾§å¤¹è§’
 double GetTwoSideAngle(Point2f p1,Point2f p2, Point2f p3)
 {
     //vector1
@@ -295,7 +295,7 @@ double GetTwoSideAngle(Point2f p1,Point2f p2, Point2f p3)
 }
 
 
-//ÌŞ³ıÖØºÏµÄËÄ±ßĞÎ
+//å‰”é™¤é‡åˆçš„å››è¾¹å½¢
 void RectErase( vector<RectMark>& rectPossible )
 {
     float rectErr[4] = {0};
@@ -306,7 +306,7 @@ void RectErase( vector<RectMark>& rectPossible )
         {
             for (int k=0; k<4; k++)
             {
-                //¼ÆËãÁ½¸ö¾ØĞÎ¶ÔÓ¦µÄµÚk¸ö¶¥µãµÄÏñËØ¾àÀë
+                //è®¡ç®—ä¸¤ä¸ªçŸ©å½¢å¯¹åº”çš„ç¬¬kä¸ªé¡¶ç‚¹çš„åƒç´ è·ç¦»
                 rectErr[k] = sqrt(pow((rectPossible[i].m_points[k].x - rectPossible[j].m_points[k].x),2)
                                 + pow((rectPossible[i].m_points[k].y - rectPossible[j].m_points[k].y),2));
                 if (rectErr[k] > maxErr)
@@ -314,13 +314,13 @@ void RectErase( vector<RectMark>& rectPossible )
             }
             if (rectErr[0] <= maxErr  &&  rectErr[1] <= maxErr  &&  rectErr[2] <= maxErr  &&  rectErr[3] <= maxErr)
             {
-                //È¡ÖØ¸´¾ØĞÎËÄ¸ö¶¥µãµÄÆ½¾ùÖµ×÷Îª±£Áô¶¥µã
+                //å–é‡å¤çŸ©å½¢å››ä¸ªé¡¶ç‚¹çš„å¹³å‡å€¼ä½œä¸ºä¿ç•™é¡¶ç‚¹
                 for (int k=0; k<4; k++)
                 {
                     rectPossible[j].m_points[k].x = (rectPossible[i].m_points[k].x + rectPossible[j].m_points[k].x)/2;
                     rectPossible[j].m_points[k].y = (rectPossible[i].m_points[k].y + rectPossible[j].m_points[k].y)/2;
                 }
-                //ÌŞ³ıÖØ¸´¾ØĞÎµÄ¶¥µã
+                //å‰”é™¤é‡å¤çŸ©å½¢çš„é¡¶ç‚¹
                 rectPossible.erase(rectPossible.begin() + i);
                 i--;
                 break;
@@ -330,7 +330,7 @@ void RectErase( vector<RectMark>& rectPossible )
     return;
 }
 
-//ËÄ±ßĞÎ·ÖÀà
+//å››è¾¹å½¢åˆ†ç±»
 void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& rectCategory)
 {
     vector<RectMark> rectArrayTemp;
@@ -344,7 +344,7 @@ void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& r
         {
             Point2f middlePoint_j = Point2f((rectPossible[j].m_points[0].x+rectPossible[j].m_points[2].x)/2,
                                             (rectPossible[j].m_points[0].y+rectPossible[j].m_points[2].y)/2);
-            //Á½¸öËÄ±ßĞÎ¶Ô½ÇÏßÖĞµãµÄ¾àÀë
+            //ä¸¤ä¸ªå››è¾¹å½¢å¯¹è§’çº¿ä¸­ç‚¹çš„è·ç¦»
             float twoPointDistance = sqrt(pow(middlePoint_i.x-middlePoint_j.x,2)+pow(middlePoint_i.y-middlePoint_j.y,2));
             float minSide = 0;
             if (rectPossible[i].minSideLength < rectPossible[j].minSideLength)
@@ -352,7 +352,7 @@ void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& r
             else
                 minSide = rectPossible[j].minSideLength;
 
-            //ÅĞ¶ÏÁ½ËÄ±ßĞÎÊÇ·ñÊôÓÚÎªÍ¬Ò»ÎïÀí±êÖ¾
+            //åˆ¤æ–­ä¸¤å››è¾¹å½¢æ˜¯å¦å±äºä¸ºåŒä¸€ç‰©ç†æ ‡å¿—
             if (twoPointDistance < (minSide * rectClassifyThres))
             {
                 rectArrayTemp.push_back(rectPossible[j]);
@@ -360,19 +360,19 @@ void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& r
                 j--;
             }
         }
-        //Í¬Ò»ÀàµÄ·ÅÔÚÒ»Æğ
+        //åŒä¸€ç±»çš„æ”¾åœ¨ä¸€èµ·
         rectCategory.push_back(rectArrayTemp);
         rectArrayTemp.clear();
     }
     return;
 }
 
-//Í¬Ò»ÀàÄÚµÄËÄ±ßĞÎ°´Ãæ»ıÅÅĞò
+//åŒä¸€ç±»å†…çš„å››è¾¹å½¢æŒ‰é¢ç§¯æ’åº
 void RectSortByArea( vector< vector<RectMark> >& rectCategory )
 {
     for (int k=0;k<(int)rectCategory.size();++k)
     {
-        //Í¬Ò»ÀàÄÚÅÅĞò
+        //åŒä¸€ç±»å†…æ’åº
         for (int i=0;i<(int)rectCategory[k].size();++i)
         {
             for (int j=i+1;j<(int)rectCategory[k].size();++j)
@@ -388,7 +388,7 @@ void RectSortByArea( vector< vector<RectMark> >& rectCategory )
 }
 
 
-//»­³ö¸÷ËÄ±ßĞÎ
+//ç”»å‡ºå„å››è¾¹å½¢
 void DrawAllRect(Mat& resultImg, vector< vector<RectMark> >& rectCategory)
 {
     //image = Mat::zeros(480, 640, CV_8UC3);
@@ -405,7 +405,7 @@ void DrawAllRect(Mat& resultImg, vector< vector<RectMark> >& rectCategory)
             line(resultImg, rectCategory[k][i].m_points[3], rectCategory[k][i].m_points[0], Scalar(255,255,0), 3, 8);
             if (0 == i)
             {
-                //Ö»ÔÚ×îÄÚ²àËÄ±ßĞÎÉÏ±ê³ö0¡¢1¡¢2¡¢3
+                //åªåœ¨æœ€å†…ä¾§å››è¾¹å½¢ä¸Šæ ‡å‡º0ã€1ã€2ã€3
                 for (int j=0;j<4;j++)
                 {
                     circle(resultImg,rectCategory[k][i].m_points[j],4,Scalar(0,255,0),-1);
@@ -417,12 +417,12 @@ void DrawAllRect(Mat& resultImg, vector< vector<RectMark> >& rectCategory)
         }
     }
     //cout<<"MarkNo="<<rectCategory.size()<<endl;
-    //imshow("¾ØĞÎ¼ì²â",resultImg);
+    //imshow("çŸ©å½¢æ£€æµ‹",resultImg);
     return;
 }
 
 
-//Í¸ÊÓ±ä»»
+//é€è§†å˜æ¢
 void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vector< vector<RectMark> >& rectCategory)
 {
     char windowName[50];
@@ -432,15 +432,15 @@ void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vecto
         int minLoopCount = ((int)rectCategory[i].size()>2) ? (2) : ((int)rectCategory[i].size());
         for (int j=0;j<minLoopCount;++j)
         {
-            //Ä¿±ê¾ØĞÎ¶ÔÓ¦Í¼Ïñ×ø±ê0~3
+            //ç›®æ ‡çŸ©å½¢å¯¹åº”å›¾åƒåæ ‡0~3
             imagePoints2d[0]=Point2d(rectCategory[i][j].m_points[0].x,rectCategory[i][j].m_points[0].y);
             imagePoints2d[1]=Point2d(rectCategory[i][j].m_points[1].x,rectCategory[i][j].m_points[1].y);
             imagePoints2d[2]=Point2d(rectCategory[i][j].m_points[2].x,rectCategory[i][j].m_points[2].y);
             imagePoints2d[3]=Point2d(rectCategory[i][j].m_points[3].x,rectCategory[i][j].m_points[3].y);
 
-            // ±ê×¼RectÔÚ2d¿Õ¼äÎª100*100µÄ¾ØĞÎ
+            // æ ‡å‡†Rectåœ¨2dç©ºé—´ä¸º100*100çš„çŸ©å½¢
             Size m_RectSize = Size(300, int(300*1.25));
-            // ¾ØĞÎ 4¸ö½ÇµãµÄÕı½»Í¶Ó°±ê×¼Öµ
+            // çŸ©å½¢ 4ä¸ªè§’ç‚¹çš„æ­£äº¤æŠ•å½±æ ‡å‡†å€¼
             vector<Point2f> m_RectCorners2d;
             //vector<Point3f> m_RectCorners3d;
             m_RectCorners2d.push_back(Point2f(0, 0));
@@ -448,17 +448,17 @@ void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vecto
             m_RectCorners2d.push_back(Point2f(float(m_RectSize.width-1), float(m_RectSize.height-1)));
             m_RectCorners2d.push_back(Point2f(0, float(m_RectSize.height-1) ) );
 
-            // Í¶Ó°±ä»»,»Ö¸´2Î¬±ê×¼ÊÓÍ¼
+            // æŠ•å½±å˜æ¢,æ¢å¤2ç»´æ ‡å‡†è§†å›¾
             Mat canonicalImg;
-            // µÃµ½µ±Ç°markerµÄÍ¸ÊÓ±ä»»¾ØÕóM
+            // å¾—åˆ°å½“å‰markerçš„é€è§†å˜æ¢çŸ©é˜µM
             Mat M = getPerspectiveTransform(rectCategory[i][j].m_points, m_RectCorners2d);
-            // ½«µ±Ç°µÄmarker±ä»»ÎªÕı½»Í¶Ó°
+            // å°†å½“å‰çš„markerå˜æ¢ä¸ºæ­£äº¤æŠ•å½±
             warpPerspective(srcImg, canonicalImg, M, m_RectSize);
-            //´æ´¢¾ØĞÎÇøÓòÍ¼Ïñ
+            //å­˜å‚¨çŸ©å½¢åŒºåŸŸå›¾åƒ
             canonicalImg.copyTo(rectCategory[i][j].perspectiveImg);
             //rectCandidateImg.push_back(canonicalImg);
-            //·Ö´°¿ÚÏÔÊ¾¸÷±ê×¼¾ØĞÎÇøÓò
-            sprintf(windowName,"±ê×¼ËÄ±ßĞÎ-%d",j);
+            //åˆ†çª—å£æ˜¾ç¤ºå„æ ‡å‡†çŸ©å½¢åŒºåŸŸ
+            sprintf(windowName,"æ ‡å‡†å››è¾¹å½¢-%d",j);
             //imshow(windowName, rectCategory[i][j].perspectiveImg);
         }
     }
@@ -466,7 +466,7 @@ void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vecto
 }
 
 
-//ºÚ¿ò¼ì²â
+//é»‘æ¡†æ£€æµ‹
 void BlackFrameDetect(vector< vector<RectMark> >& rectCategory)
 {
     for (int i=0;i<(int)rectCategory.size();++i)
@@ -498,15 +498,15 @@ void BlackFrameDetect(vector< vector<RectMark> >& rectCategory)
                 continue;
             double thresHoldVal = double((averagePixelVal1 + averagePixelVal2)/g_ThresHold_Val1_Val2_Ratio);
 
-            //¶şÖµ»¯
+            //äºŒå€¼åŒ–
             Mat perspectiveImgBinary;
             threshold(perspectiveImg,perspectiveImgBinary,thresHoldVal,255,THRESH_BINARY);	// THRESH_BINARY | THRESH_OTSU
             imshow("Binary_raw",perspectiveImgBinary);
 
-            //¿ªÔËËã,ÏÈ¸¯Ê´ÔÙÅòÕÍ
+            //å¼€è¿ç®—,å…ˆè…èš€å†è†¨èƒ€
             Mat element=getStructuringElement(MORPH_ELLIPSE,Size(5,5));
             morphologyEx(perspectiveImgBinary,perspectiveImgBinary,MORPH_OPEN ,element);
-            //±ÕÔËËã,Ïû³ıĞ¡ºÚµã
+            //é—­è¿ç®—,æ¶ˆé™¤å°é»‘ç‚¹
             element=getStructuringElement(MORPH_ELLIPSE,Size(3,3));
             morphologyEx(perspectiveImgBinary,perspectiveImgBinary,MORPH_CLOSE ,element);
             element=getStructuringElement(MORPH_ELLIPSE,Size(11,11));
@@ -516,22 +516,22 @@ void BlackFrameDetect(vector< vector<RectMark> >& rectCategory)
             int binaryImgAveragePixelVal = GetBoxFramePixelAverageValue(perspectiveImgBinary);
             if (binaryImgAveragePixelVal > 50)
                 continue;
-            //¼ì²âµ½ºÚ¿ò
+            //æ£€æµ‹åˆ°é»‘æ¡†
             rectCategory[i][j].blackFrameDetectedFlag = true;
-            //´æ´¢¿ÉÄÜµÄÊı×ÖroiÇøÓò
+            //å­˜å‚¨å¯èƒ½çš„æ•°å­—roiåŒºåŸŸ
             int widthCut  = int((perspectiveImg.cols/2.0/8.0) * g_CutScaleWidth);
             int heightCut = int((perspectiveImg.rows/2.0/8.0) * g_CutScaleLength);
             Rect roiPossibleDigit = Rect(roiInside.x+widthCut,roiInside.y+heightCut, roiInside.width-widthCut*2,roiInside.height-heightCut*2);
             perspectiveImgBinary(roiPossibleDigit).copyTo(rectCategory[i][j].possibleDigitBinaryImg);
             //imshow("yesBlackFrame",rectCategory[i][j].possibleDigitBinaryImg);
-            //ÓĞºÚ¿òµÄËÄ±ßĞÎÒÆÖÁ¶ÓÍ·
+            //æœ‰é»‘æ¡†çš„å››è¾¹å½¢ç§»è‡³é˜Ÿå¤´
             swap(rectCategory[i][0],rectCategory[i][j]);
         }
     }
     return;
 }
 
-//¼ÆËã°üÎ§ºÚ¿òÏñËØÆ½¾ùÖµ
+//è®¡ç®—åŒ…å›´é»‘æ¡†åƒç´ å¹³å‡å€¼
 int GetBoxFramePixelAverageValue(const Mat& img)
 {
     double totalValue = 0;
@@ -553,7 +553,7 @@ int GetBoxFramePixelAverageValue(const Mat& img)
 }
 
 
-//µ¥Ä¿Î»ÖÃ¹À¼Æ
+//å•ç›®ä½ç½®ä¼°è®¡
 void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
 {
     vector<Point2f> imagePoints2d(4);
@@ -571,15 +571,15 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         double myInSideRectHalfWidth   = 0.149/2;
         double myInSideRectHalfLength  = 0.200/2;
 
-        //ÊÒÄÚÊÔÑéÔİÓÃĞ¡±êÖ¾Îï´úÌæÊµ¼Ê±êÖ¾Îï
+        //å®¤å†…è¯•éªŒæš‚ç”¨å°æ ‡å¿—ç‰©ä»£æ›¿å®é™…æ ‡å¿—ç‰©
         outSideRectHalfWidth  = myOutSideRectHalfWidth;
         outSideRectHalfLength = myOutSideRectHalfLength;
         inSideRectHalfWidth   = myInSideRectHalfWidth;
         inSideRectHalfLength  = myInSideRectHalfLength;
-        //°´ÊÇ·ñ¼ì²âµ½ºÚ¿òÎªÊµ¼Ê×ø±ê¸³Öµ
+        //æŒ‰æ˜¯å¦æ£€æµ‹åˆ°é»‘æ¡†ä¸ºå®é™…åæ ‡èµ‹å€¼
         if (false == rectCategory[i][0].blackFrameDetectedFlag)
         {
-            //Ã»ÓĞ¼ì²âµ½ºÚ¿ò£¬Ä¿±êÄÚ²à¾ØĞÎÉÏËÄ¸öµãÊÀ½ç×ø±ê
+            //æ²¡æœ‰æ£€æµ‹åˆ°é»‘æ¡†ï¼Œç›®æ ‡å†…ä¾§çŸ©å½¢ä¸Šå››ä¸ªç‚¹ä¸–ç•Œåæ ‡
             objectPoints3d[0]=Point3d(-inSideRectHalfWidth, -inSideRectHalfLength, 0);
             objectPoints3d[1]=Point3d(inSideRectHalfWidth,  -inSideRectHalfLength, 0);
             objectPoints3d[2]=Point3d(inSideRectHalfWidth,   inSideRectHalfLength, 0);
@@ -587,30 +587,30 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         }
         else
         {
-            //¼ì²âµ½ºÚ¿ò£¬Ä¿±êÍâ²à¾ØĞÎÉÏËÄ¸öµãÊÀ½ç×ø±ê
+            //æ£€æµ‹åˆ°é»‘æ¡†ï¼Œç›®æ ‡å¤–ä¾§çŸ©å½¢ä¸Šå››ä¸ªç‚¹ä¸–ç•Œåæ ‡
             objectPoints3d[0]=Point3d(-outSideRectHalfWidth, -outSideRectHalfLength, 0);
             objectPoints3d[1]=Point3d(outSideRectHalfWidth,  -outSideRectHalfLength, 0);
             objectPoints3d[2]=Point3d(outSideRectHalfWidth,   outSideRectHalfLength, 0);
             objectPoints3d[3]=Point3d(-outSideRectHalfWidth,  outSideRectHalfLength, 0);
         }
 
-        //Ä¿±ê¾ØĞÎ¶ÔÓ¦Í¼Ïñ×ø±ê0~3
+        //ç›®æ ‡çŸ©å½¢å¯¹åº”å›¾åƒåæ ‡0~3
         imagePoints2d[0]=Point2d(rectCategory[i][0].m_points[0].x,rectCategory[i][0].m_points[0].y);
         imagePoints2d[1]=Point2d(rectCategory[i][0].m_points[1].x,rectCategory[i][0].m_points[1].y);
         imagePoints2d[2]=Point2d(rectCategory[i][0].m_points[2].x,rectCategory[i][0].m_points[2].y);
         imagePoints2d[3]=Point2d(rectCategory[i][0].m_points[3].x,rectCategory[i][0].m_points[3].y);
 
         Mat rvec,tvec;
-        //¼ÆËãĞı×ª¾ØÕó¡¢Æ½ÒÆ¾ØÕó
+        //è®¡ç®—æ—‹è½¬çŸ©é˜µã€å¹³ç§»çŸ©é˜µ
         solvePnP(objectPoints3d,imagePoints2d,t_cameraMatrix,t_distcoef,rvec,tvec);
 
-        //ÔÚÍ¼ÏñÖĞÏÔÊ¾Æ½ÒÆÏòÁ¿£¨x,y,z£©
+        //åœ¨å›¾åƒä¸­æ˜¾ç¤ºå¹³ç§»å‘é‡ï¼ˆx,y,zï¼‰
         Mat imgColor;
         //cvtColor(srcGray,imgColor,CV_GRAY2BGR);
         imgColor = srcColor;
         double tvec_x,tvec_y,tvec_z;
         tvec_x=tvec.at<double>(0,0),tvec_y=tvec.at<double>(1,0), tvec_z=tvec.at<double>(2,0);
-        //ÌŞ³ı¹ıÔ¶»ò¹ı½üµÄ
+        //å‰”é™¤è¿‡è¿œæˆ–è¿‡è¿‘çš„
         if(tvec_z>10 || tvec_z<0.1)
         {
             rectCategory.erase(rectCategory.begin()+i);
@@ -622,13 +622,13 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         Point T_showCenter;
         T_showCenter=Point2d(rectCategory[i][0].m_points[1].x,(rectCategory[i][0].m_points[1].y + rectCategory[i][0].m_points[2].y)/2);
         putText(imgColor, transf, T_showCenter,CV_FONT_HERSHEY_PLAIN,1.0,Scalar(0,0,255),2);
-        //imshow("¾ØĞÎ¼ì²â",imgColor);
+        //imshow("çŸ©å½¢æ£€æµ‹",imgColor);
     }
     return;
 }
 
 
-//Êı×ÖÊ¶±ğ
+//æ•°å­—è¯†åˆ«
 void DigitDetector(Mat& ResultImg, basicOCR& ocr, vector< vector<RectMark> >& rectCategory)
 {
     for (int i=0;i<(int)rectCategory.size();++i)
@@ -636,7 +636,7 @@ void DigitDetector(Mat& ResultImg, basicOCR& ocr, vector< vector<RectMark> >& re
         bool blackFrameDetectFlag = rectCategory[i][0].blackFrameDetectedFlag;
         if (false == blackFrameDetectFlag)
         {
-            //ºÚ¿òÍâ±ßÔµÃ»ÓĞ¼ì²âµ½
+            //é»‘æ¡†å¤–è¾¹ç¼˜æ²¡æœ‰æ£€æµ‹åˆ°
             Mat perspectiveImg;
             if (3 == rectCategory[i][0].perspectiveImg.channels())
             {
@@ -649,54 +649,54 @@ void DigitDetector(Mat& ResultImg, basicOCR& ocr, vector< vector<RectMark> >& re
             int widthCut  = int((perspectiveImg.cols/2.0/8.0) * g_CutScaleWidth);
             int heightCut = int((perspectiveImg.rows/2.0/8.0) * g_CutScaleLength);
             Rect roiPossibleDigit = Rect(widthCut,heightCut, perspectiveImg.cols-widthCut*2,perspectiveImg.rows-heightCut*2);
-            //²Ã¼ôµô±ßÔµ
+            //è£å‰ªæ‰è¾¹ç¼˜
             perspectiveImg = perspectiveImg(roiPossibleDigit);
-            //°´Õû¸öÄÚÇøÓòÈ¡ãĞÖµ
+            //æŒ‰æ•´ä¸ªå†…åŒºåŸŸå–é˜ˆå€¼
             double averageAllPixelsVal = (double)GetAllPixelAverageValue(perspectiveImg);
             double thresHoldValAllPixels = double(averageAllPixelsVal*2.0/g_ThresHold_Val1_Val2_Ratio);
-            //°´ÄÚÇøÓòÍâ±ßÒ»È¦È¡ãĞÖµ
+            //æŒ‰å†…åŒºåŸŸå¤–è¾¹ä¸€åœˆå–é˜ˆå€¼
             int averagePixelVal = GetBoxFramePixelAverageValue(perspectiveImg);
             int thresHoldVal = int(averagePixelVal*2.0/3.5);//2/4
 
-            //¶şÖµ»¯
+            //äºŒå€¼åŒ–
             Mat perspectiveImgBinary;
             threshold(perspectiveImg,perspectiveImgBinary,thresHoldValAllPixels,255,THRESH_BINARY);	// THRESH_BINARY | THRESH_OTSU
             imshow("Binary_raw",perspectiveImgBinary);
-            //ĞÎÌ¬Ñ§´¦Àí
-            //¿ªÔËËã,ÏÈ¸¯Ê´ÔÙÅòÕÍ£¬Ïû³ıĞ¡°×µã
+            //å½¢æ€å­¦å¤„ç†
+            //å¼€è¿ç®—,å…ˆè…èš€å†è†¨èƒ€ï¼Œæ¶ˆé™¤å°ç™½ç‚¹
             Mat element=getStructuringElement(MORPH_ELLIPSE,Size(5,5));
             morphologyEx(perspectiveImgBinary,perspectiveImgBinary,MORPH_OPEN ,element);
-            //±ÕÔËËã,Ïû³ıĞ¡ºÚµã
+            //é—­è¿ç®—,æ¶ˆé™¤å°é»‘ç‚¹
             element=getStructuringElement(MORPH_ELLIPSE,Size(3,3));
             morphologyEx(perspectiveImgBinary,perspectiveImgBinary,MORPH_CLOSE ,element);
             element=getStructuringElement(MORPH_ELLIPSE,Size(11,11));
             erode(perspectiveImgBinary,perspectiveImgBinary,element);
-            //´æÈëvector
+            //å­˜å…¥vector
             perspectiveImgBinary.copyTo(rectCategory[i][0].possibleDigitBinaryImg);
             //imshow("DigitBinaryImg",rectCategory[i][0].possibleDigitBinaryImg);
         }
 
-        //½øÒ»²½ÅĞ¶ÏÊÇ·ñÊÇÕæÕıµÄÊı×ÖÇøÓò,ÔöÇ¿³ÌĞòÂ³°ôĞÔ
+        //è¿›ä¸€æ­¥åˆ¤æ–­æ˜¯å¦æ˜¯çœŸæ­£çš„æ•°å­—åŒºåŸŸ,å¢å¼ºç¨‹åºé²æ£’æ€§
         Mat possibleDigitBinaryImg = rectCategory[i][0].possibleDigitBinaryImg.clone();
         resize(possibleDigitBinaryImg,possibleDigitBinaryImg,Size(128,128));
         imshow("waitClassifyImg",possibleDigitBinaryImg);
-        //Ô¤ÅĞ¶Ï
+        //é¢„åˆ¤æ–­
         double pixelAverageValue = GetAllPixelAverageValue(possibleDigitBinaryImg);
         if (pixelAverageValue > 253 || pixelAverageValue < 2)
         {
             rectCategory[i][0].validFlag = false;
             continue;
         }
-        //Êı×ÖÊ¶±ğ
+        //æ•°å­—è¯†åˆ«
         IplImage ipl_img(possibleDigitBinaryImg);
         ocrImg = &ipl_img;
         float classResult = ocr.classify(ocrImg,1);
-        //´òÓ¡Ê¶±ğ½á¹û
+        //æ‰“å°è¯†åˆ«ç»“æœ
         float precisionRatio = g_PrecisionRatio;
         int accuracyAmount   = g_AccuracyAmount;
         printf("Result=%d   Precision=%0.1f%%\n\n",(int)classResult,precisionRatio);
 
-        //Ê¶±ğ½á¹ûÔÚÍ¼ÏñÖĞÏÔÊ¾
+        //è¯†åˆ«ç»“æœåœ¨å›¾åƒä¸­æ˜¾ç¤º
         char digit[50];
         sprintf(digit,"%d",int(classResult));
         int x = int((rectCategory[i][0].m_points[0].x + rectCategory[i][0].m_points[2].x)/2) - int(rectCategory[i][0].minSideLength/10);
@@ -716,7 +716,3 @@ void DigitDetector(Mat& ResultImg, basicOCR& ocr, vector< vector<RectMark> >& re
         imshow("Classify",possibleDigitBinaryImg);
     }
 }
-
-
-
-

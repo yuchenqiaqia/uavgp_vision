@@ -1,9 +1,7 @@
 /******************************************************************************
-
-°æÈ¨ËùÓĞ:  2016, ÖĞ¹ú¿ÆÑ§ÔºÉòÑô×Ô¶¯»¯ÑĞ¾¿Ëù£¬Ò»ÊÒ£¬ĞıÒí·ÉĞĞ»úÆ÷ÈË¿ÎÌâ×é
-
+ç‰ˆæƒæ‰€æœ‰:  2016, ä¸­å›½ç§‘å­¦é™¢æ²ˆé˜³è‡ªåŠ¨åŒ–ç ”ç©¶æ‰€ï¼Œä¸€å®¤ï¼Œæ—‹ç¿¼é£è¡Œæœºå™¨äººè¯¾é¢˜ç»„
 ******************************************************************************
-×÷	  Õß   : Ğ¤±ó
+ä½œ	  è€…   : è‚–æ–Œ
 ******************************************************************************/
 #include <iostream>
 //#include <string>
@@ -68,17 +66,17 @@ int PoinCloudProcess(Mat& depth_img, Mat& xyz_img, Mat& gray_img)
     //pcl::io::savePCDFileBinaryCompressed("/home/sia/test_pcdc.pcd",cloud);
     static bool imgNo = 0;
 
-    //pcl::RadiusOutlierRemoval<pcl::PointXYZRGB> outrem;// ´´½¨ÂË²¨Æ÷
-    //outrem.setInputCloud( cloud_ptr );                    //ÉèÖÃÊäÈëµãÔÆ
-    //outrem.setRadiusSearch( 0.8 );                        //ÉèÖÃÔÚ0.8°ë¾¶µÄ·¶Î§ÄÚÕÒÁÚ½üµã
-    //outrem.setMinNeighborsInRadius( 5 );      //ÉèÖÃ²éÑ¯µãµÄÁÚ½üµã¼¯ÊıĞ¡ÓÚ2µÄÉ¾³ı
-    //outrem.filter (*cloud_filtered);                    //Ö´ĞĞÌõ¼şÂË²¨£¬´æ´¢½á¹ûµ½cloud_filtered
+    //pcl::RadiusOutlierRemoval<pcl::PointXYZRGB> outrem;// åˆ›å»ºæ»¤æ³¢å™¨
+    //outrem.setInputCloud( cloud_ptr );                    //è®¾ç½®è¾“å…¥ç‚¹äº‘
+    //outrem.setRadiusSearch( 0.8 );                        //è®¾ç½®åœ¨0.8åŠå¾„çš„èŒƒå›´å†…æ‰¾é‚»è¿‘ç‚¹
+    //outrem.setMinNeighborsInRadius( 5 );      //è®¾ç½®æŸ¥è¯¢ç‚¹çš„é‚»è¿‘ç‚¹é›†æ•°å°äº2çš„åˆ é™¤
+    //outrem.filter (*cloud_filtered);                    //æ‰§è¡Œæ¡ä»¶æ»¤æ³¢ï¼Œå­˜å‚¨ç»“æœåˆ°cloud_filtered
 
-    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;// ´´½¨ÂË²¨Æ÷¶ÔÏó
-    //sor.setInputCloud( cloud_ptr );                      //ÉèÖÃ´ôÂË²¨µÄµãÔÆ
-    //sor.setMeanK(50);                                   //ÉèÖÃÔÚ½øĞĞÍ³¼ÆÊ±¿¼ÂÇ²éÑ¯µãÁÚ½üµãÊı
-    //sor.setStddevMulThresh(1.0);                //ÉèÖÃÅĞ¶ÏÊÇ·ñÎªÀëÈºµãµÄãĞÖµ
-    //sor.filter(*cloud_filtered);                       //Ö´ĞĞÂË²¨´¦Àí±£´æÄÚµãµ½cloud_filtered
+    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;// åˆ›å»ºæ»¤æ³¢å™¨å¯¹è±¡
+    //sor.setInputCloud( cloud_ptr );                      //è®¾ç½®å‘†æ»¤æ³¢çš„ç‚¹äº‘
+    //sor.setMeanK(50);                                   //è®¾ç½®åœ¨è¿›è¡Œç»Ÿè®¡æ—¶è€ƒè™‘æŸ¥è¯¢ç‚¹é‚»è¿‘ç‚¹æ•°
+    //sor.setStddevMulThresh(1.0);                //è®¾ç½®åˆ¤æ–­æ˜¯å¦ä¸ºç¦»ç¾¤ç‚¹çš„é˜ˆå€¼
+    //sor.filter(*cloud_filtered);                       //æ‰§è¡Œæ»¤æ³¢å¤„ç†ä¿å­˜å†…ç‚¹åˆ°cloud_filtered
     //viewer.showCloud ( cloud_filtered );
 
     viewer.showCloud (cloud_ptr);
@@ -160,7 +158,7 @@ int PointCloudShow ( )
 
     char filename[100];
     sprintf(filename, "/home/sia/dji_guidance/pcd/test_pcd_001000.pcd");
-    if(pcl::io::loadPCDFile<pcl::PointXYZRGB>(filename,*cloud)==-1)//*´ò¿ªµãÔÆÎÄ¼ş
+    if(pcl::io::loadPCDFile<pcl::PointXYZRGB>(filename,*cloud)==-1)//*æ‰“å¼€ç‚¹äº‘æ–‡ä»¶
    {
        PCL_ERROR("Couldn't read file test_pcd.pcd\n");
        return(-1);
@@ -171,17 +169,17 @@ int PointCloudShow ( )
     //viewer.runOnVisualizationThreadOnce (viewerOneOff);
     //viewer.runOnVisualizationThread (viewerPsycho);
 
-    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;// ´´½¨ÂË²¨Æ÷¶ÔÏó
-    sor.setInputCloud( cloud );                      //ÉèÖÃ´ôÂË²¨µÄµãÔÆ
-    sor.setMeanK(2000);                                   //ÉèÖÃÔÚ½øĞĞÍ³¼ÆÊ±¿¼ÂÇ²éÑ¯µãÁÚ½üµãÊı
-    sor.setStddevMulThresh(0.5);                //ÉèÖÃÅĞ¶ÏÊÇ·ñÎªÀëÈºµãµÄãĞÖµ
-    sor.filter(*cloud_filtered);                         //Ö´ĞĞÂË²¨´¦Àí±£´æÄÚµãµ½cloud_filtered
+    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;// åˆ›å»ºæ»¤æ³¢å™¨å¯¹è±¡
+    sor.setInputCloud( cloud );                      //è®¾ç½®å‘†æ»¤æ³¢çš„ç‚¹äº‘
+    sor.setMeanK(2000);                                   //è®¾ç½®åœ¨è¿›è¡Œç»Ÿè®¡æ—¶è€ƒè™‘æŸ¥è¯¢ç‚¹é‚»è¿‘ç‚¹æ•°
+    sor.setStddevMulThresh(0.5);                //è®¾ç½®åˆ¤æ–­æ˜¯å¦ä¸ºç¦»ç¾¤ç‚¹çš„é˜ˆå€¼
+    sor.filter(*cloud_filtered);                         //æ‰§è¡Œæ»¤æ³¢å¤„ç†ä¿å­˜å†…ç‚¹åˆ°cloud_filtered
 
-    //pcl::RadiusOutlierRemoval<pcl::PointXYZRGB> outrem;// ´´½¨ÂË²¨Æ÷
-    //outrem.setInputCloud( cloud );                    //ÉèÖÃÊäÈëµãÔÆ
-    //outrem.setRadiusSearch( 20 );                        //ÉèÖÃÔÚ0.8°ë¾¶µÄ·¶Î§ÄÚÕÒÁÚ½üµã
-    //outrem.setMinNeighborsInRadius( 100 );      //ÉèÖÃ²éÑ¯µãµÄÁÚ½üµã¼¯ÊıĞ¡ÓÚ2µÄÉ¾³ı
-    //outrem.filter (*cloud_filtered);                    //Ö´ĞĞÌõ¼şÂË²¨£¬´æ´¢½á¹ûµ½cloud_filtered
+    //pcl::RadiusOutlierRemoval<pcl::PointXYZRGB> outrem;// åˆ›å»ºæ»¤æ³¢å™¨
+    //outrem.setInputCloud( cloud );                    //è®¾ç½®è¾“å…¥ç‚¹äº‘
+    //outrem.setRadiusSearch( 20 );                        //è®¾ç½®åœ¨0.8åŠå¾„çš„èŒƒå›´å†…æ‰¾é‚»è¿‘ç‚¹
+    //outrem.setMinNeighborsInRadius( 100 );      //è®¾ç½®æŸ¥è¯¢ç‚¹çš„é‚»è¿‘ç‚¹é›†æ•°å°äº2çš„åˆ é™¤
+    //outrem.filter (*cloud_filtered);                    //æ‰§è¡Œæ¡ä»¶æ»¤æ³¢ï¼Œå­˜å‚¨ç»“æœåˆ°cloud_filtered
 
     pcl::visualization::PCLVisualizer viewer2("PCLVisualizer");
     viewer2.initCameraParameters();

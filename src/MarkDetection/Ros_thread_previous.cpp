@@ -18,13 +18,13 @@ void* RosThread(void*)
             continue;
         }
 
-        //½«MatĞÍÍ¼Ïñ×ª»»ÎªrosµÄÏûÏ¢¶ÔÏó
+        //å°†Matå‹å›¾åƒè½¬æ¢ä¸ºrosçš„æ¶ˆæ¯å¯¹è±¡
         sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", g_rectResultImg).toImageMsg();
-        //ËµÃ÷Òª·¢²¼µÄÏûÏ¢¶ÔÏó
+        //è¯´æ˜è¦å‘å¸ƒçš„æ¶ˆæ¯å¯¹è±¡
          pub.publish(msg);
-         //Ö´ĞĞÒ»´ÎrosÏûÏ¢·¢²¼
+         //æ‰§è¡Œä¸€æ¬¡rosæ¶ˆæ¯å‘å¸ƒ
          ros::spinOnce();
-         //°´ÏûÏ¢·¢²¼µÄÑ­»·ÆµÂÊĞİÃßÒ»¶ÎÊ±¼ä
+         //æŒ‰æ¶ˆæ¯å‘å¸ƒçš„å¾ªç¯é¢‘ç‡ä¼‘çœ ä¸€æ®µæ—¶é—´
          loop_rate.sleep();
 
 //       printf("ros_thread is running..%d\n",k);

@@ -1,9 +1,7 @@
 /******************************************************************************
-
-°æÈ¨ËùÓĞ:  2016, ÖĞ¹ú¿ÆÑ§ÔºÉòÑô×Ô¶¯»¯ÑĞ¾¿Ëù£¬Ò»ÊÒ£¬ĞıÒí·ÉĞĞ»úÆ÷ÈË¿ÎÌâ×é
-
+ç‰ˆæƒæ‰€æœ‰:  2016, ä¸­å›½ç§‘å­¦é™¢æ²ˆé˜³è‡ªåŠ¨åŒ–ç ”ç©¶æ‰€ï¼Œä¸€å®¤ï¼Œæ—‹ç¿¼é£è¡Œæœºå™¨äººè¯¾é¢˜ç»„
 ******************************************************************************
-×÷	  Õß   : Ğ¤±ó
+ä½œ	  è€…   : è‚–æ–Œ
 ******************************************************************************/
 #include "declare.h"
 #define FRAME_AMOUNT_OF_VIDEO  (10*60*15)
@@ -34,7 +32,7 @@ void SaveResultImage( Mat& input_image )
 }
 
 
-//1. rosÍ¼ÏñÏûÏ¢·¢²¼Ïß³Ì£¬Ğ¡·Ö±æÂÊÍ¼Ïñ
+//1. roså›¾åƒæ¶ˆæ¯å‘å¸ƒçº¿ç¨‹ï¼Œå°åˆ†è¾¨ç‡å›¾åƒ
 void* RosImagePublishThread_1(void*)
 {
     while( false == g_rectResultImgUpdated )
@@ -85,7 +83,7 @@ void* RosImagePublishThread_1(void*)
 }
 
 
-//2. rosÍ¼ÏñÏûÏ¢·¢²¼Ïß³Ì, ±ê×¼640*480Í¼Ïñ
+//2. roså›¾åƒæ¶ˆæ¯å‘å¸ƒçº¿ç¨‹, æ ‡å‡†640*480å›¾åƒ
 void* RosImagePublishThread_2(void*)
 {
     while( false == g_rectResultImgUpdated )
@@ -154,17 +152,17 @@ void* RosImagePublishThread_2(void*)
 }
 
 
-//´´½¨rosÏûÏ¢·¢²¼µÄ¸÷¸öÏß³Ì
+//åˆ›å»ºrosæ¶ˆæ¯å‘å¸ƒçš„å„ä¸ªçº¿ç¨‹
 void CreateRosPublishThread(const char* dir)
 {
     memcpy(baseDir, dir, sizeof(baseDir));
-    //1. ÎªrosÍ¼ÏñÏûÏ¢·¢²¼´´½¨Ò»¸öĞÂµÄÏß³Ì
+    //1. ä¸ºroså›¾åƒæ¶ˆæ¯å‘å¸ƒåˆ›å»ºä¸€ä¸ªæ–°çš„çº¿ç¨‹
     pthread_t thread_imgPub_1;
     int ret;
     ret=pthread_create(&thread_imgPub_1,NULL,RosImagePublishThread_1,NULL);
     if(ret!=0)
     {
-        //Ïß³Ì´´½¨Ê§°Ü
+        //çº¿ç¨‹åˆ›å»ºå¤±è´¥
         printf ("Create ros image publish thread 1 error!..\n");
         exit (1);
     }
@@ -172,7 +170,7 @@ void CreateRosPublishThread(const char* dir)
     ret=pthread_create(&thread_imgPub_2,NULL,RosImagePublishThread_2,NULL);
     if(ret!=0)
     {
-        //Ïß³Ì´´½¨Ê§°Ü
+        //çº¿ç¨‹åˆ›å»ºå¤±è´¥
         printf ("Create ros image publish thread 2 error!..\n");
         exit (1);
     }

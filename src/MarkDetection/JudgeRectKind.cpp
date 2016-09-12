@@ -1,25 +1,23 @@
 /******************************************************************************
-
-°æÈ¨ËùÓĞ:  2016, ÖĞ¹ú¿ÆÑ§ÔºÉòÑô×Ô¶¯»¯ÑĞ¾¿Ëù£¬Ò»ÊÒ£¬ĞıÒí·ÉĞĞ»úÆ÷ÈË¿ÎÌâ×é
-
+ç‰ˆæƒæ‰€æœ‰:  2016, ä¸­å›½ç§‘å­¦é™¢æ²ˆé˜³è‡ªåŠ¨åŒ–ç ”ç©¶æ‰€ï¼Œä¸€å®¤ï¼Œæ—‹ç¿¼é£è¡Œæœºå™¨äººè¯¾é¢˜ç»„
 ******************************************************************************
-×÷	  Õß   : Ğ¤±ó
+ä½œ	  è€…   : è‚–æ–Œ
 ******************************************************************************/
 #include "declare.h"
 
 
 char windowName[100];
-//¶ÔËùÓĞ°üÎ§¾ØĞÎ°´Ãæ»ıÅÅĞò£¬ÄæĞò£¬´óµÄÔÚÇ°
+//å¯¹æ‰€æœ‰åŒ…å›´çŸ©å½¢æŒ‰é¢ç§¯æ’åºï¼Œé€†åºï¼Œå¤§çš„åœ¨å‰
 void BoundingRectSortByAreaSize( vector< Rect>& minBoundingRect );
-//¶Ô°üÎ§¾ØĞÎµÄÖÖÀà×öÅĞ¶Ï
+//å¯¹åŒ…å›´çŸ©å½¢çš„ç§ç±»åšåˆ¤æ–­
 int RectKind(  Mat& inputImg, Mat& outputImg, vector< Rect>& minBoundingRect  );
-//Á½¸ö¾ØĞÎÖ®¼äµÄÏñËØÆ½¾ùÖµ
+//ä¸¤ä¸ªçŸ©å½¢ä¹‹é—´çš„åƒç´ å¹³å‡å€¼
 double GetPixelAverageValueBetweenTwoRect( Mat inputImg, Mat outputImg, Rect& rect_outside, Rect& rect_inside);
-//°´¾ØĞÎÀà±ğ´æ´¢Êı×ÖÇøÓòÍ¼Ïñ
+//æŒ‰çŸ©å½¢ç±»åˆ«å­˜å‚¨æ•°å­—åŒºåŸŸå›¾åƒ
 void GetDigitRoiImg( Mat& binaryImg, vector< Rect>& minBoundingRect, int rectKind,  vector<RectMark>&  rectCategory );
 
 Mat img;
-//¶ÔÍ¸ÊÓ±ä»»ºóµÄÍ¼Ïñ×ö´¦Àí£¬ÅĞ¶Ï³ö¼ì²âµ½µÄ¾ØĞÎµÄÀà±ğ
+//å¯¹é€è§†å˜æ¢åçš„å›¾åƒåšå¤„ç†ï¼Œåˆ¤æ–­å‡ºæ£€æµ‹åˆ°çš„çŸ©å½¢çš„ç±»åˆ«
 void GetRectKinds( vector< vector<RectMark> >&  rectCategory )
 {
     for (int i=0; i<(int)rectCategory.size(); ++i)
@@ -35,8 +33,8 @@ void GetRectKinds( vector< vector<RectMark> >&  rectCategory )
         adaptiveThreshold(srcGray, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
         //morphologyEx(imgBinary, imgBinary, MORPH_CLOSE, Mat());
 
-        ////¸ù¾İÖØÓ³ÉäÇ°µÄ¾ØĞÎ´óĞ¡À´ÉèÖÃ±ÕÔËËãµÄwindowsize
-        ////´ıÍê³É......
+        ////æ ¹æ®é‡æ˜ å°„å‰çš„çŸ©å½¢å¤§å°æ¥è®¾ç½®é—­è¿ç®—çš„windowsize
+        ////å¾…å®Œæˆ......
         Mat element=getStructuringElement(MORPH_ELLIPSE, Size(7,7) ); //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
         morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
         imgBinary.copyTo(rectCategory[i][0].possibleRectBinaryImg);
@@ -50,9 +48,9 @@ void GetRectKinds( vector< vector<RectMark> >&  rectCategory )
         vector<RotatedRect>  box;
         vector<Rect> minBoundingRect;
         minBoundingRect.push_back( Rect(0,0,img.cols,img.rows) );
-        //²éÕÒÂÖÀª
+        //æŸ¥æ‰¾è½®å»“
         findContours( img_bin, contours, hierarchy ,CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
-        //cout<<"ÂÖÀª×Ü¸öÊı=" << all_contours.size() <<endl;
+        //cout<<"è½®å»“æ€»ä¸ªæ•°=" << all_contours.size() <<endl;
         for (int k = 0; k < (int)contours.size(); ++k)
         {
             if ( (int)contours[k].size() < img.cols || fabs( (float)contourArea(contours[k])<pow( img.cols*0.15,2) )  )
@@ -63,17 +61,17 @@ void GetRectKinds( vector< vector<RectMark> >&  rectCategory )
             //RotatedRect boxTemp = minAreaRect( Mat(contours[i]) );
             //Point2f vertex[4];
             //boxTemp.points(vertex);
-            //»­³ö¸÷¸ö×îĞ¡Ãæ»ıµÄ°üÎ§¾ØĞÎ
+            //ç”»å‡ºå„ä¸ªæœ€å°é¢ç§¯çš„åŒ…å›´çŸ©å½¢
             //for(int j=0; j<4;++j)
             //{
                 //line(showImg, vertex[j], vertex[(j+1)%4], Scalar(0,255,0), 2, 8);
             //}
 
-            //×îĞ¡°üÎ§µÄÕı¾ØĞÎ
+            //æœ€å°åŒ…å›´çš„æ­£çŸ©å½¢
             Rect minBoundingRectTemp = boundingRect( Mat(contours[k]) );
-            //ÓÃÀ¶É«»­³öËùÓĞÍâ°üÎ§¾ØĞÎ
+            //ç”¨è“è‰²ç”»å‡ºæ‰€æœ‰å¤–åŒ…å›´çŸ©å½¢
             rectangle( showImg, minBoundingRectTemp, Scalar(255,0,0), 2, 8);
-            //Ö»´æ´¢ÖĞĞÄµãÔÚÍ¼ÏñÖĞĞÄµÄ¾ØĞÎ
+            //åªå­˜å‚¨ä¸­å¿ƒç‚¹åœ¨å›¾åƒä¸­å¿ƒçš„çŸ©å½¢
             Point2d minBoundingRectMiddlePoint = Point2d( minBoundingRectTemp.x + minBoundingRectTemp.width*0.5, minBoundingRectTemp.y + minBoundingRectTemp.height*0.5 );
             double err = sqrt( pow(minBoundingRectMiddlePoint.x - img.cols*0.5, 2) + pow(minBoundingRectMiddlePoint.y - img.rows*0.5, 2) );
             if ( err < img.cols*0.06)
@@ -84,23 +82,23 @@ void GetRectKinds( vector< vector<RectMark> >&  rectCategory )
                 }
             }
         }
-        //¿ÕÇøÓò²»¸ĞĞËÈ¤
+        //ç©ºåŒºåŸŸä¸æ„Ÿå…´è¶£
         if ( minBoundingRect.size() <= 1)
         {
             continue;
         }
 
-        //°üÎ§¾ØĞÎ°´Ãæ»ıÅÅĞò
+        //åŒ…å›´çŸ©å½¢æŒ‰é¢ç§¯æ’åº
         BoundingRectSortByAreaSize( minBoundingRect );
 
         for (int j=0;j<(int)minBoundingRect.size(); ++j)
         {
-            //ÓÃºìÉ«»­³öËùÓĞÖĞĞÄµãÔÚÍ¼ÏñÖĞĞÄµÄÍâ°ü¾ØĞÎ
+            //ç”¨çº¢è‰²ç”»å‡ºæ‰€æœ‰ä¸­å¿ƒç‚¹åœ¨å›¾åƒä¸­å¿ƒçš„å¤–åŒ…çŸ©å½¢
             rectangle( showImg, minBoundingRect[j], Scalar(0,0,255), 2, 8);
             circle(showImg, Point(minBoundingRect[j].x+minBoundingRect[j].width*0.5, minBoundingRect[j].y+minBoundingRect[j].height*0.5), 2, Scalar(0,0,255), -1, 8);
         }
 
-        //·ÖÇéĞÎÅĞ¶Ï¾ØĞÎÖÖÀà
+        //åˆ†æƒ…å½¢åˆ¤æ–­çŸ©å½¢ç§ç±»
         int rectKind = RectKind( imgBinary, showImg, minBoundingRect );
         GetDigitRoiImg( imgBinary, minBoundingRect, rectKind,  rectCategory[i] );
 
@@ -109,7 +107,7 @@ void GetRectKinds( vector< vector<RectMark> >&  rectCategory )
     return;
 }
 
-//¶ÔËùÓĞ°üÎ§¾ØĞÎ°´Ãæ»ıÅÅĞò£¬ÄæĞò£¬´óµÄÔÚÇ°
+//å¯¹æ‰€æœ‰åŒ…å›´çŸ©å½¢æŒ‰é¢ç§¯æ’åºï¼Œé€†åºï¼Œå¤§çš„åœ¨å‰
 void BoundingRectSortByAreaSize( vector< Rect>& minBoundingRect )
 {
         for (int i=0;i<(int)minBoundingRect.size();++i)
@@ -132,38 +130,38 @@ void BoundingRectSortByAreaSize( vector< Rect>& minBoundingRect )
     return;
 }
 
-//¶Ô°üÎ§¾ØĞÎµÄÖÖÀà×öÅĞ¶Ï
+//å¯¹åŒ…å›´çŸ©å½¢çš„ç§ç±»åšåˆ¤æ–­
 int RectKind(  Mat& inputImg, Mat& outputImg, vector< Rect>& minBoundingRect  )
 {
     int kind = -1;
     double rectOutside_rectInside_pixelValue = GetPixelAverageValueBetweenTwoRect( inputImg, outputImg, minBoundingRect[0], minBoundingRect[1]);
     //printf("rectOutside_rectInside_pixelValue = %f\n", rectOutside_rectInside_pixelValue);
 
-    //¸Ã¾ØĞÎÎªµÚ¶şÖÖÇé¿ö£¬¼ì²âµ½µÄÊÇÖĞ¼ä¾ØĞÎ
+    //è¯¥çŸ©å½¢ä¸ºç¬¬äºŒç§æƒ…å†µï¼Œæ£€æµ‹åˆ°çš„æ˜¯ä¸­é—´çŸ©å½¢
     if (rectOutside_rectInside_pixelValue > 100 && minBoundingRect.size() >=3)
     {
         kind = 1;
-        //ÈÏÎªÊÇÈ«ºÚµÄºÚ¿ò
+        //è®¤ä¸ºæ˜¯å…¨é»‘çš„é»‘æ¡†
         rectangle(outputImg, minBoundingRect[0], Scalar(0,0,0), 4, 8);
         rectangle(outputImg, minBoundingRect[1], Scalar(0,0,0), 4, 8);
     }
-    //¾ØĞÎÎªµÚÒ»¡¢µÚÈıÖÖÇé¿ö
+    //çŸ©å½¢ä¸ºç¬¬ä¸€ã€ç¬¬ä¸‰ç§æƒ…å†µ
     else if (rectOutside_rectInside_pixelValue < 50 )
     {
-        //ÈÏÎªÊÇÈ«°×µÄ°×¿ò
+        //è®¤ä¸ºæ˜¯å…¨ç™½çš„ç™½æ¡†
         rectangle(outputImg, minBoundingRect[0], Scalar( 255, 255, 255 ), 4, 8);
         rectangle(outputImg, minBoundingRect[1], Scalar( 255, 255, 255 ), 4, 8);
-        //Èç¹ûÖ»ÓĞÁ½¸öÍâ°ü¾ØĞÎ£¬¿Ï¶¨ÊÇµÚÒ»ÖÖÇé¿ö, ×îÄÚ²à¾ØĞÎ
+        //å¦‚æœåªæœ‰ä¸¤ä¸ªå¤–åŒ…çŸ©å½¢ï¼Œè‚¯å®šæ˜¯ç¬¬ä¸€ç§æƒ…å†µ, æœ€å†…ä¾§çŸ©å½¢
         if (minBoundingRect.size() <= 2)
         {
             kind = 0;
         }
         else if (3 == minBoundingRect.size() )
         {
-            //¿ÉÄÜÊÇÊı×Ö0
+            //å¯èƒ½æ˜¯æ•°å­—0
             kind = 0;
         }
-        //µÚÈıÖÖÇé¿ö£¬¼ì²âµ½ÁË×îÍâ±ßµÄ¾ØĞÎ
+        //ç¬¬ä¸‰ç§æƒ…å†µï¼Œæ£€æµ‹åˆ°äº†æœ€å¤–è¾¹çš„çŸ©å½¢
         else
         {
             double widthRatio0 = double(minBoundingRect[0].width)/minBoundingRect[1].width;
@@ -186,7 +184,7 @@ int RectKind(  Mat& inputImg, Mat& outputImg, vector< Rect>& minBoundingRect  )
     return kind;
 }
 
-//°´¾ØĞÎÀà±ğ, ´æ´¢Êı×ÖÇøÓòÍ¼Ïñ
+//æŒ‰çŸ©å½¢ç±»åˆ«, å­˜å‚¨æ•°å­—åŒºåŸŸå›¾åƒ
 void GetDigitRoiImg( Mat& binaryImg, vector< Rect>& minBoundingRect, int rectKind,  vector<RectMark>&  rectCategory_i )
 {
 
@@ -210,7 +208,7 @@ void GetDigitRoiImg( Mat& binaryImg, vector< Rect>& minBoundingRect, int rectKin
         roi = minBoundingRect[3];
      }
 
-        //roiÇøÓòÀ©´ó1.1±¶
+        //roiåŒºåŸŸæ‰©å¤§1.1å€
         Point middlePoint = Point(roi.x + roi.width/2, roi.y + roi.height/2);
         roi.height = roi.height * 1.1;  //1.1
         roi.width = roi.height * 2.7/4;
@@ -226,7 +224,7 @@ void GetDigitRoiImg( Mat& binaryImg, vector< Rect>& minBoundingRect, int rectKin
         if ( roi.y + roi.height >= binaryImg.rows )
             roi.height = binaryImg.rows - roi.y;
 
-        //¶şÖµ»¯·­×ª
+        //äºŒå€¼åŒ–ç¿»è½¬
         binaryImg( roi ).copyTo(img);
         //imshow( "roi", img );
         threshold(img, img, 125, 255, THRESH_BINARY_INV);
@@ -242,7 +240,7 @@ void GetDigitRoiImg( Mat& binaryImg, vector< Rect>& minBoundingRect, int rectKin
 }
 
 
-//ÇóÁ½¸ö°üÎ§¾ØĞÎÖ®¼äµÄÏñËØÆ½¾ùÖµ
+//æ±‚ä¸¤ä¸ªåŒ…å›´çŸ©å½¢ä¹‹é—´çš„åƒç´ å¹³å‡å€¼
 double GetPixelAverageValueBetweenTwoRect( Mat inputImg, Mat outputImg, Rect& rect_outside, Rect& rect_inside)
 {
     double totalValue = 0;
@@ -250,7 +248,7 @@ double GetPixelAverageValueBetweenTwoRect( Mat inputImg, Mat outputImg, Rect& re
     for (int i=0;i<inputImg.rows;++i)
     {
         uchar* data= inputImg.ptr<uchar>(i);
-        //ÉÏÏÂºáÌõ
+        //ä¸Šä¸‹æ¨ªæ¡
         if ( (i>= rect_outside.y && i<=rect_inside.y) || ( i >= (rect_inside.y + rect_inside.height) && i <= (rect_outside.y + rect_outside.height) ) )
         {
             for (int j=0;j<inputImg.cols;++j)
@@ -262,7 +260,7 @@ double GetPixelAverageValueBetweenTwoRect( Mat inputImg, Mat outputImg, Rect& re
                     //outputImg.at<Vec3b>( i,j )[2] = 0;
             }
         }
-        //×óÓÒÊúÌõ
+        //å·¦å³ç«–æ¡
         if (  i > rect_inside.y  &&  i < (rect_inside.y + rect_inside.height) )
         {
             for (int j=0;j<inputImg.cols;++j)
