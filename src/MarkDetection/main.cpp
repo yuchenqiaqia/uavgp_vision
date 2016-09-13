@@ -3,6 +3,7 @@
  * @auhtor	: xiaobin <xiaobin619@126.com>
  * @time	: 2016/09/12
  */
+
 #include "define.h"
 #include "project_path_config.h"
 
@@ -65,7 +66,7 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         g_rawSaveImage.copyTo( rawCameraImg );
 
         //误差统计法检测矩形
-        //RectDectByStatisticsError(rawCameraImg);
+        RectDetectByStatisticsError(rawCameraImg);
 
         //重置图像分辨率
         if (rawCameraImg.cols < 1384)

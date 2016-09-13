@@ -1,3 +1,9 @@
+/*
+ * @file	: RectDetectByStatisticError.cpp
+ * @auhtor	: xiaobin <xiaobin619@126.com>
+ * @time	: 2016/09/12
+ */
+
 #include "declare.h"
 
 class LinearEquation
@@ -220,22 +226,22 @@ void ErrorStatisticsBetweenRectAndContour(ContoursInfo& contoursInfo, Mat& input
             double d1 = fabs(linear_equation[1].A*contour[i].x + linear_equation[1].B*contour[i].y + linear_equation[1].C)/(sqrt(pow(linear_equation[1].A,2) + pow(linear_equation[1].B,2)));
             double d2 = fabs(linear_equation[2].A*contour[i].x + linear_equation[2].B*contour[i].y + linear_equation[2].C)/(sqrt(pow(linear_equation[2].A,2) + pow(linear_equation[2].B,2)));
             double d3 = fabs(linear_equation[3].A*contour[i].x + linear_equation[3].B*contour[i].y + linear_equation[3].C)/(sqrt(pow(linear_equation[3].A,2) + pow(linear_equation[3].B,2)));
-            if ( d0 < linear_equation[0].line_length*thres && contour[i].x>linear_equation[0].vertex0.x && contour[i].x<linear_equation[0].vertex1.x && (d0<d1 && d0<d2 && d0<d3) )
+            if ( d0 < linear_equation[0].line_length*thres && (d0<d1 && d0<d2 && d0<d3) )
             {
                 points_error[0].push_back(Point3d(contour[i].x, contour[i].y, d0));
                 linear_equation[0].statistics_points_num++;
             }
-            else if ( d1 < linear_equation[1].line_length*thres && contour[i].y>linear_equation[1].vertex0.y && contour[i].y<linear_equation[1].vertex1.y && (d1<d0 && d1<d2 && d1<d3) )
+            else if ( d1 < linear_equation[1].line_length*thres && (d1<d0 && d1<d2 && d1<d3) )
             {
                 points_error[1].push_back(Point3d(contour[i].x, contour[i].y, d1));
                 linear_equation[1].statistics_points_num++;
             }
-            else if ( d2 < linear_equation[2].line_length*thres && contour[i].x>linear_equation[2].vertex1.x && contour[i].x<linear_equation[2].vertex0.x && (d2<d0 && d2<d1 && d2<d3) )
+            else if ( d2 < linear_equation[2].line_length*thres && (d2<d0 && d2<d1 && d2<d3) )
             {
                 points_error[2].push_back(Point3d(contour[i].x, contour[i].y, d2));
                 linear_equation[2].statistics_points_num++;
             }
-            else if ( d3 < linear_equation[3].line_length*thres && contour[i].y>linear_equation[3].vertex1.y && contour[i].y<linear_equation[3].vertex0.y && (d3<d0 && d3<d1 && d3<d2) )
+            else if ( d3 < linear_equation[3].line_length*thres && (d3<d0 && d3<d1 && d3<d2) )
             {
                 points_error[3].push_back(Point3d(contour[i].x, contour[i].y, d3));
                 linear_equation[3].statistics_points_num++;
@@ -274,15 +280,25 @@ void ErrorStatisticsBetweenRectAndContour(ContoursInfo& contoursInfo, Mat& input
             contoursInfo.isRects.push_back(0);
         }
     }
+
+    int rects_num = 0;
+    for (int i=0;i<(contoursInfo.isRects.size());++i)
+    {
+        if ( 1 == contoursInfo.isRects[i] )
+            rects_num++;
+    }
+    //printf("rects number = %d\n", rects_num);
+    imshow("rects",input_img);
+
     return;
 }
 
-
-int RectDectByStatisticsError(Mat& input_img)
+int RectDetectByStatisticsError(Mat& input_img)
 {
-    Mat show_img = input_img.clone();
-    resize(show_img, show_img, Size(640,480));
-    Mat resizedImg = show_img.clone();
+    Mat show_img;
+    resize(input_img, show_img, Size(640,480));
+    Mat resizedImg = show_img;
+    Mat show_rect = show_img.clone();
 
     Mat gaussianImg,cannyImg;
     GaussianBlur(resizedImg, gaussianImg, Size(7,7),0,0);
@@ -317,7 +333,7 @@ int RectDectByStatisticsError(Mat& input_img)
            contours.push_back(all_contours[i]);
         }
     }
-    cout<<"contours num=" << contours.size() <<endl;
+    //cout<<"contours num=" << contours.size() <<endl;
 
     ContoursInfo contoursInfo;
     GetPossibleRectVertexes(contours, contoursInfo, show_img);
@@ -326,6 +342,6 @@ int RectDectByStatisticsError(Mat& input_img)
     imshow("all_contours", show_img);
     //return 0;
 
-    ErrorStatisticsBetweenRectAndContour(contoursInfo, show_img);
+    ErrorStatisticsBetweenRectAndContour(contoursInfo, show_rect);
     return 1;
 }

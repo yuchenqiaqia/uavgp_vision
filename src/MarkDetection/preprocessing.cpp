@@ -1,3 +1,9 @@
+/*
+ * @file	: preprocessing.cpp
+ * @auhtor	: xiaobin <xiaobin619@126.com>
+ * @time	: 2016/09/12
+ */
+
 #include "preprocessing.h"
 
 #ifdef _CH_
