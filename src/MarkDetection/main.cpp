@@ -1,8 +1,8 @@
-/******************************************************************************
-版权所有:  2016, 中国科学院沈阳自动化研究所，一室，旋翼飞行机器人课题组
-******************************************************************************
-作	  者   : 肖斌
-******************************************************************************/
+/*
+ * @file	: main.cpp
+ * @auhtor	: xiaobin <xiaobin619@126.com>
+ * @time	: 2016/09/12
+ */
 #include "define.h"
 #include "project_path_config.h"
 
@@ -39,7 +39,6 @@ void InitRawImgSubscriber( )
     image_transport::Subscriber rawImgSub;
     image_transport::ImageTransport imageProcessNode_it(imageProcessNode);
     rawImgSub = imageProcessNode_it.subscribe("vision/camera_image", 1, MainImageProcessing);
-    //rawImgSub = imageProcessNode_it.subscribe("/guidance/right_image", 1, MainImageProcessing);
     vision_digit_position_publisher = imageProcessNode.advertise<sensor_msgs::LaserScan>("vision/digit_nws_position", 1);
     attSub = imageProcessNode.subscribe("imu/attitude", 1, AttitudeSubCallBack);
 
@@ -66,10 +65,10 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         g_rawSaveImage.copyTo( rawCameraImg );
 
         //误差统计法检测矩形
-        RectDectByStatisticsError(rawCameraImg);
+        //RectDectByStatisticsError(rawCameraImg);
 
         //重置图像分辨率
-        if (rawCameraImg.cols <= 800)
+        if (rawCameraImg.cols < 1384)
             resize(rawCameraImg, rawCameraImg, Size(1384,1032));
         ResizeImageByDistance(rawCameraImg, srcImg, oldResult);
         //printf("ResizeImageByDistance done!\n");
