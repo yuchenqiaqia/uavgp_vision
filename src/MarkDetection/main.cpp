@@ -65,7 +65,7 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         //printf("imgNo=%d\n", imageProcessedNo);
         g_rawSaveImage.copyTo( rawCameraImg );
 
-        //误差统计法检测矩形
+        //a rect detection algorithm based statistics errors
         RectDetectByStatisticsError(rawCameraImg);
 
         //重置图像分辨率
