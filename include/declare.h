@@ -177,4 +177,4 @@ void ConvertToPseudoColor( Mat& mat_xyz, Mat& img_pseudo_color );
 //
 double GetROI_AverageVal( Mat src, Point point, int channel, int radius);
 //根据累积误差检测矩形
-int RectDetectByStatisticsError(Mat& input_img);
+int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& lastValidResult, vector<VisionResult>& incompleteRectResult);

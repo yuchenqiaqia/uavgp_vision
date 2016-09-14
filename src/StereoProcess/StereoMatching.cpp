@@ -15,7 +15,6 @@ StereoMatchingType::StereoMatchingType()
     bm = StereoBM::create(16,9);
     sgbm = StereoSGBM::create(0,16,3);
 
-     //left相机内参
     fx_l=238.22462;
     fy_l=237.37011;
     cx_l=158.84752;
@@ -23,7 +22,6 @@ StereoMatchingType::StereoMatchingType()
     M_CamLeft=(Mat_<double>(3,3) << fx_l,0,cx_l,0,fy_l,cy_l,0,0,1);
     D_CamLeft=(Mat_<double>(5,1) << 0.01035, -0.00777, 0.00180, -0.00009,0.000);
 
-     //right相机内参
     fx_r=239.68003;
     fy_r=238.72529;
     cx_r=158.77224;
@@ -32,7 +30,7 @@ StereoMatchingType::StereoMatchingType()
     D_CamRight=(Mat_<double>(5,1) << 0.02186, -0.01878, -0.00017, 0.00113,0.000);
 
     //stereo_RV=(Mat_<double>(3,1) << -0.00489, 0.00366,  0.00041 );
-    stereo_RV=(Mat_<double>(3,1) << -0.00489, -0.0009,  0.00041 );      //该参数更准
+    stereo_RV=(Mat_<double>(3,1) << -0.00489, -0.0009,  0.00041 );      //more accurate
     stereo_T=(Mat_<double>(3,1) << -150.12139, -0.12009, 1.97403 );
 
     alg = STEREO_BM;
@@ -52,7 +50,7 @@ void StereoMatchingType::StereoMatchingConfigration( )
 {
     float scale = 1.f;
 
-    Rodrigues( stereo_RV, stereo_RM );			//旋转向量到旋转矩阵
+    Rodrigues( stereo_RV, stereo_RM );			//RV to RM
     Mat M1, D1, M2, D2;
     M1=M_CamLeft;
     D1=D_CamLeft;
@@ -101,25 +99,11 @@ void StereoMatchingType::StereoMatching(  )
         bm->setSpeckleRange(32);//32
         bm->setDisp12MaxDiff(1);
 
-        //bm.state->roi1 = roi1;
-        //bm.state->roi2 = roi2;
-        //bm.state->preFilterCap = 31;  //原参数
-        //bm.state->SADWindowSize = SADWindowSize > 0 ? SADWindowSize : 9;
-        //bm.state->minDisparity = 0;
-        //bm.state->numberOfDisparities = numberOfDisparities;
-        //bm.state->textureThreshold = 10;
-        //bm.state->uniquenessRatio = 15;
-        //bm.state->speckleWindowSize = 100;
-        //bm.state->speckleRange = 32;
-        //bm.state->disp12MaxDiff = 1;
-
         sgbm->setPreFilterCap(63);
         int sgbmWinSize = SADWindowSize > 0 ? SADWindowSize : 3;
         sgbm->setBlockSize(sgbmWinSize);
 
         int cn = img1r.channels();
-
-
         sgbm->setP1(8*cn*sgbmWinSize*sgbmWinSize);
         sgbm->setP2(32*cn*sgbmWinSize*sgbmWinSize);
         sgbm->setMinDisparity(0);
@@ -141,16 +125,12 @@ void StereoMatchingType::StereoMatching(  )
 
         Mat disp;
         if( alg == STEREO_BM )
-            //bm(img1r, img2r, disp,CV_16S);
-            //bm(img1p, img2p, dispp,CV_16S);
             //bm->compute(img1p, img2p, dispp);
             bm->compute(img1r, img2r, disp);
         else if(  alg == STEREO_SGBM || alg == STEREO_HH || alg == STEREO_3WAY )
-            //sgbm(img1r, img2r, disp);
-            //sgbm(img1p, img2p, dispp);
-            sgbm->compute(img1p, img2p, dispp);
+            //sgbm->compute(img1p, img2p, dispp);
+            sgbm->compute(img1r, img2r, disp);
 
-        //拓展搜索匹配
         //disp = dispp.colRange(numberOfDisparities, img1p.cols);
         if( alg != STEREO_VAR )
             disp.convertTo(disp8, CV_8U, 255/(numberOfDisparities*16.));
@@ -158,15 +138,13 @@ void StereoMatchingType::StereoMatching(  )
             disp.convertTo(disp8, CV_8U);
 
         disp8.copyTo(disp8_show);
-        //disp8_show=disp8_show(roi1);
-
         reprojectImageTo3D(disp, mat_xyz, Q, true);
         StereoMatchingType::ConvertXYZToPseudoColor( );
 
         return;
 }
 
-//深度图转为深度伪彩图
+//3d image convert to pseudo color image
 void StereoMatchingType::ConvertXYZToPseudoColor( )
 {
     Mat pseudo_color = Mat::zeros(mat_xyz.rows, mat_xyz.cols, CV_8UC3);

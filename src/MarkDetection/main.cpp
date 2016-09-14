@@ -46,7 +46,6 @@ void InitRawImgSubscriber( )
     ros::spin();
 }
 
-
 void AttitudeSubCallBack(const geometry_msgs::TransformStamped::ConstPtr& att_msg)
 {
     attitude3d.roll = float(att_msg->transform.rotation.x);
@@ -64,43 +63,33 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
 
         //printf("imgNo=%d\n", imageProcessedNo);
         g_rawSaveImage.copyTo( rawCameraImg );
-
-        //a rect detection algorithm based statistics errors
-        RectDetectByStatisticsError(rawCameraImg);
-
-        //重置图像分辨率
         if (rawCameraImg.cols < 1384)
             resize(rawCameraImg, rawCameraImg, Size(1384,1032));
-        ResizeImageByDistance(rawCameraImg, srcImg, oldResult);
-        //printf("ResizeImageByDistance done!\n");
+        //resize image
+        ResizeImageByDistance(rawCameraImg, srcImg, lastFrameResult);
 
-        //如果是灰度相机，先转成三通道
         if (1 == srcImg.channels())
             cvtColor(srcImg,srcImg,CV_GRAY2BGR);
-        //另存一份，用于显示
         Mat rectResultImg = srcImg.clone();
+
+        //a rect detection algorithm based statistics errors
+        RectDetectByStatisticsError( srcImg, lastValidResult, incompleteRectResult);
 
         //rect detector
         RectangleDetect( rectResultImg, rectCategory, imageProcessedNo );
-        //printf("RectangleDetect done!\n");
         //透视变换
         PerspectiveTransformation(srcImg, rectCandidateImg, rectCategory);
-        //printf("PerspectiveTransformation done!\n");
         //Jugde rect kind
         GetRectKinds( rectCategory );
-        //printf("GetRectKinds done!\n");
         //位置估计
         EstimatePosition(rectResultImg, rectCategory);
-        //printf("EstimatePosition done!\n");
         //数字识别
         DigitDetector(rectResultImg, KNNocr, rectCategory, digitBinaryImgSaveEnable);
         //printf("DigitDetector done!\n");
         //视觉检测结果保存为txt
         SaveResultToTxt( baseDir, shrink, visionResult );
-        //printf("saveResultToTxt done!\n");
         //show time and fps
         ShowTime(rectResultImg, imageProcessedNo, shrink);
-        //printf("ShowTime done!\n");
         //show result image
         resize(rectResultImg, rectResultImg, Size(640,480), 0, 0, INTER_AREA);
         imshow("ImageProcessing",rectResultImg);
@@ -126,7 +115,7 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         for(int k=0;k<visionResult.size();++k)
             g_visionResult.push_back(visionResult[k]);
 
-        //清理内存
+        //clear memory
         if (false == rectCategory.empty())
             vector< vector<RectMark> >().swap(rectCategory);
         if (false == visionResult.empty())
@@ -135,20 +124,16 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
             vector<Mat>().swap(rectCandidateImg);
         if (false == rectPossible.empty())
             vector<RectMark>().swap(rectPossible);
-        //rectPossible.clear();
-        //rectCategory.clear();
-        //rectCandidateImg.clear();
-        //visionResult.clear();
         g_PrecisionRatio = -1;
         g_AccuracyAmount = -1;
 
         int c = waitKey(1);
-        //按键‘q’退出
+        //press ‘q’ to exit
         if ( 113 == c )  //113 == c || 131153 == c
             exit(0);
-        //printf("image-%d all process done!\n", imageProcessedNo);
         imageProcessedNo++;
         //printf("roll=%.2f; pit=%.2f; yaw=%.2f;\n",attitude3d.roll*180/3.14,attitude3d.pitch*180/3.14,attitude3d.yaw*180/3.14);
+        //printf("image-%d all process done!\n", imageProcessedNo);
         return;
 }
 
@@ -184,7 +169,7 @@ void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, 
     if (size < 3)
         size = 3;
     Mat element;
-    if (oldResult.size()>0 && oldResult[0].cameraPos3D.z<1)
+    if (lastFrameResult.size()>0 && lastFrameResult[0].cameraPos3D.z<1)
     {
         element=getStructuringElement(MORPH_ELLIPSE, Size( size,size ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
     }
@@ -393,7 +378,7 @@ void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& r
 {
     for (int i=0;i<(int)rectPossible.size();++i)
     {
-        //rectArrayTemp can't defined before "for(){"!
+        //rectArrayTemp can't defined before "for(int i=0;...){"!
         vector<RectMark> rectArrayTemp;
         rectArrayTemp.push_back(rectPossible[i]);
 
@@ -700,21 +685,26 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
     }
 
     //清空上一帧的检测结果
-    if (false == oldResult.empty())
-        vector<VisionResult>().swap(oldResult);
+    if (false == lastFrameResult.empty())
+        vector<VisionResult>().swap(lastFrameResult);
     for(int i=0; i<(int)visionResult.size(); ++i)
     {
-        oldResult. push_back(visionResult[i]);
+        lastFrameResult.push_back(visionResult[i]);
     }
 
+    if (visionResult.size() >= 1)
+    {
+        vector< vector<VisionResult> >().swap(lastValidResult);
+        lastValidResult.push_back(visionResult);
+    }
     return;
 }
 
-void ResizeImageByDistance( Mat& inputImg, Mat& outputImg, vector<VisionResult>& oldResult)
+void ResizeImageByDistance( Mat& inputImg, Mat& outputImg, vector<VisionResult>& lastFrameResult)
 {
-    static double oldResultDistance = 0;
+    static double lastFrameResultDistance = 0;
 
-    if ( oldResult.size() < 1 )
+    if ( lastFrameResult.size() < 1 )
     {
         shrink = SHRINK_HIGHEST_VALUE;
         resize(inputImg, outputImg, Size(inputImg.cols*shrink, inputImg.rows*shrink), 0, 0, CV_INTER_AREA);
@@ -722,27 +712,27 @@ void ResizeImageByDistance( Mat& inputImg, Mat& outputImg, vector<VisionResult>&
     }
 
     double totalDis = 0;
-    for(int i=0; i<oldResult.size(); ++i)
+    for(int i=0; i<lastFrameResult.size(); ++i)
     {
-        totalDis += oldResult[i].cameraPos3D.z;
+        totalDis += lastFrameResult[i].cameraPos3D.z;
     }
-    oldResultDistance = totalDis/oldResult.size();
+    lastFrameResultDistance = totalDis/lastFrameResult.size();
 
-    if (oldResultDistance <= 1.0)
+    if (lastFrameResultDistance <= 1.0)
         shrink = SHRINK_LOWEST_VALUE;
-    else if (oldResultDistance <= 1.5 && oldResultDistance > 1.0)
+    else if (lastFrameResultDistance <= 1.5 && lastFrameResultDistance > 1.0)
         shrink = SHRINK_LOWEST_VALUE;
-    else if (oldResultDistance <= 2 && oldResultDistance > 1.5)
+    else if (lastFrameResultDistance <= 2 && lastFrameResultDistance > 1.5)
         shrink = SHRINK_LOWEST_VALUE + 0.1; //0.57
-    else if (oldResultDistance <= 2.5 && oldResultDistance > 2)
+    else if (lastFrameResultDistance <= 2.5 && lastFrameResultDistance > 2)
         shrink = SHRINK_LOWEST_VALUE + 0.2; //0.67
-    else if (oldResultDistance <= 3 && oldResultDistance > 2.5)
+    else if (lastFrameResultDistance <= 3 && lastFrameResultDistance > 2.5)
         shrink = SHRINK_LOWEST_VALUE + 0.3; //0.77
-    else if (oldResultDistance <= 3.5 && oldResultDistance > 3)
+    else if (lastFrameResultDistance <= 3.5 && lastFrameResultDistance > 3)
         shrink = SHRINK_LOWEST_VALUE + 0.4; //0.87
-    else if (oldResultDistance <= 4 && oldResultDistance > 3.5)
+    else if (lastFrameResultDistance <= 4 && lastFrameResultDistance > 3.5)
         shrink = SHRINK_LOWEST_VALUE + 0.5; //0.97
-    else if (oldResultDistance <= 4.5 && oldResultDistance > 4)
+    else if (lastFrameResultDistance <= 4.5 && lastFrameResultDistance > 4)
         shrink = SHRINK_HIGHEST_VALUE;
     else
         shrink = SHRINK_HIGHEST_VALUE;
@@ -785,5 +775,6 @@ void DigitResultPublish(vector<VisionResult>& visionResult )
         digits_position.ranges[i*4 + 3] = -(float)visionResult[i].negPos3D.z;
     }
     vision_digit_position_publisher.publish(digits_position);
+
     return;
 }

@@ -35,14 +35,6 @@ bool rawImgHasSavedFlag = true;
 bool resultImgHasSavedFlag = true;
 bool g_rectResultImgUpdated = false;
 
-//维视镜头内参，mv-ub130gc相机（130万）
-//double c_fx=501.98355 *2/shrink,c_fy=504.37856 *2/shrink,c_cx=327.11066 *2/shrink,c_cy=223.05380 *2/shrink;
-//Mat c_distcoef=(Mat_<double>(1,5) << -0.41779, 0.28133, 0.00074, 0.00001,0);
-//Mat c_cameraMatrix=(Mat_<double>(3,3) << c_fx,0,c_cx,0,c_fy,c_cy,0,0,1);
-//double t_fx=502.35122 *2/shrink,t_fy=504.31678 *2/shrink,t_cx=331.40974 *2/shrink,t_cy=224.52460 *2/shrink;
-//Mat t_distcoef=(Mat_<double>(1,5) << 0.01135,-0.05718,0.00132,0.00277,0);
-//Mat t_cameraMatrix=(Mat_<double>(3,3) << t_fx,0,t_cx,0,t_fy,t_cy,0,0,1),rvec,tvec;
-
 //矩形长宽比例阈值
 float maxSideLengthRatioAllowed = 2.5f;
 float rectClassifyThres = 0.5f;
@@ -75,9 +67,10 @@ private:
 extern vector<VisionResult>  g_visionResult;
 //视频存储
 VideoWriter outputVideo;
-//globle image, sub function use
 vector<VisionResult>  visionResult;
-vector<VisionResult>  oldResult;
+vector<VisionResult>  incompleteRectResult;
+vector<VisionResult>  lastFrameResult;
+vector< vector<VisionResult> >  lastValidResult;
 Attitude3D attitude3d;
 //可能的各矩形信息
 vector<RectMark> rectPossible;
