@@ -414,11 +414,11 @@ void EstimateTargetPosition(vector<RectInfo>& rectsInfo, Mat& inputImg)
         }
 
         char transf[50];
-        sprintf(transf,"[%0.3fm,%0.3fm,%0.3fm]",tvec_y,tvec_x,tvec_z);
+        sprintf(transf,"T:[%0.3fm,%0.3fm,%0.3fm]",tvec_x,tvec_y,tvec_z);
         Point T_showCenter;
-        T_showCenter=Point2d(rectsInfo[i].imagePos2D.x,rectsInfo[i].imagePos2D.y);
+        T_showCenter=Point2d(3,20);
         if (0 == i)
-            putText(inputImg, transf, T_showCenter,CV_FONT_HERSHEY_PLAIN,1.6,Scalar(255,255,0),2);
+            putText(inputImg, transf, T_showCenter,CV_FONT_HERSHEY_PLAIN,1.4,Scalar(255,255,0),2);
     }
     return;
 }
@@ -440,15 +440,15 @@ int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& 
         return 0;
 
     Mat show_img;
-    resize(input_img, show_img, Size(1384*0.5,1032*0.5));
+    resize(input_img, show_img, Size(1384*0.5,1032*0.5), 0, 0, INTER_LINEAR);
     Mat resizedImg = show_img;
     Mat show_rect = show_img.clone();
 
     Mat gaussianImg,cannyImg;
     GaussianBlur(resizedImg, gaussianImg, Size(7,7),0,0);
     //imshow("gauss",gaussianImg);
-    Canny(gaussianImg,cannyImg,180,80);
-    imshow("canny",cannyImg);
+    Canny(gaussianImg,cannyImg,200,80);
+    //imshow("canny",cannyImg);
 
     Mat srcGray;
     cvtColor(show_img,srcGray,CV_BGR2GRAY);
@@ -460,7 +460,7 @@ int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& 
     Mat element;
     element=getStructuringElement(MORPH_ELLIPSE, Size( 5,5 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
     morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
-    imshow("StatisticsErrorBinary", imgBinary);
+    //imshow("StatisticsErrorBinary", imgBinary);
 
     vector< vector<Point> > all_contours;
     vector< vector<Point> > contours;
@@ -481,14 +481,25 @@ int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& 
     ContoursInfo contoursInfo;
     GetPossibleRectVertexes(contours, contoursInfo, show_img);
 
-    drawContours(show_img, contours, -1, Scalar(0,0,255), 1 );
-    imshow("all_contours", show_img);
+    //drawContours(show_img, contours, -1, Scalar(0,0,255), 1 );
+    //imshow("all_contours", show_img);
 
     ErrorStatisticsBetweenRectAndContour(contoursInfo, show_rect);
     vector<RectInfo> rectsInfo;
     GetTheTargetRect(contoursInfo, rectsInfo, show_rect);
     EstimateTargetPosition(rectsInfo, show_rect);
 
+    if (rectsInfo.size()>0)
+    {
+       VisionResult  incomplete_rect;
+       incomplete_rect.digitNo = -1;
+       incomplete_rect.imagePos2D.x = rectsInfo[0].imagePos2D.x;
+       incomplete_rect.imagePos2D.y = rectsInfo[0].imagePos2D.y;
+       incomplete_rect.cameraPos3D.x = rectsInfo[0].cameraPos3D.x;
+       incomplete_rect.cameraPos3D.y = rectsInfo[0].cameraPos3D.y;
+       incomplete_rect.cameraPos3D.z = rectsInfo[0].cameraPos3D.z;
+       incompleteRectResult.push_back(incomplete_rect);
+    }
     imshow("rects",show_rect);
     return 1;
 }

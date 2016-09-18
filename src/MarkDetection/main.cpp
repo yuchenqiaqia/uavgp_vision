@@ -73,7 +73,7 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         Mat rectResultImg = srcImg.clone();
 
         //a rect detection algorithm based statistics errors
-        RectDetectByStatisticsError( srcImg, lastValidResult, incompleteRectResult);
+        RectDetectByStatisticsError( rectResultImg, lastValidResult, incompleteRectResult);
 
         //rect detector
         RectangleDetect( rectResultImg, rectCategory, imageProcessedNo );
@@ -86,6 +86,10 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         //数字识别
         DigitDetector(rectResultImg, KNNocr, rectCategory, digitBinaryImgSaveEnable);
         //printf("DigitDetector done!\n");
+
+        if (0 == visionResult.size() && incompleteRectResult.size()>0)
+            swap(visionResult,incompleteRectResult);
+
         //视觉检测结果保存为txt
         SaveResultToTxt( baseDir, shrink, visionResult );
         //show time and fps
@@ -116,14 +120,16 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
             g_visionResult.push_back(visionResult[k]);
 
         //clear memory
-        if (false == rectCategory.empty())
-            vector< vector<RectMark> >().swap(rectCategory);
-        if (false == visionResult.empty())
-            vector<VisionResult>().swap(visionResult);
         if (false == rectCandidateImg.empty())
             vector<Mat>().swap(rectCandidateImg);
         if (false == rectPossible.empty())
             vector<RectMark>().swap(rectPossible);
+        if (false == rectCategory.empty())
+            vector< vector<RectMark> >().swap(rectCategory);
+        if (false == visionResult.empty())
+            vector<VisionResult>().swap(visionResult);
+        if (false == incompleteRectResult.empty())
+            vector<VisionResult>().swap(incompleteRectResult);
         g_PrecisionRatio = -1;
         g_AccuracyAmount = -1;
 

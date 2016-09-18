@@ -14,9 +14,9 @@ using namespace cv;
 static char baseDir[100] = TXT_FILE_PATH;
 
 //是否为室外环境
-bool isOutdoor = false;
+bool isOutdoor = true;
 //设定的画面亮度值
-double brightnessSet = 175;
+double brightnessSet = 170;
 //室内：maxShutterVal=30， 室外：maxShutterVal=10
 float maxShutterVal;
 //使能一键半自动自动曝光
