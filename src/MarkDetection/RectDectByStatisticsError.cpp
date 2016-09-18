@@ -351,14 +351,18 @@ void GetTheTargetRect(ContoursInfo& contoursInfo, vector<RectInfo>& rectsInfo, M
 
     for (int i=0;i<(int)rectsInfo.size();++i)
     {
+        Point ref_point = Point(input_img.cols*0.5, input_img.rows*0.6);
+        float pixel_dis_i = sqrt(pow(ref_point.x - rectsInfo[i].imagePos2D.x, 2) + pow(ref_point.y - rectsInfo[i].imagePos2D.y, 2));
         for(int j=i+1;j<(int)rectsInfo.size();++j)
         {
-            if (rectsInfo[i].width > rectsInfo[j].width)
+            float pixel_dis_j = sqrt(pow(ref_point.x - rectsInfo[j].imagePos2D.x, 2) + pow(ref_point.y - rectsInfo[j].imagePos2D.y, 2));
+            //if (rectsInfo[i].width > rectsInfo[j].width)
+            if (pixel_dis_i > pixel_dis_j)
                 swap(rectsInfo[i],rectsInfo[j]);
         }
     }
     if (rectsInfo.size() > 0)
-        circle(input_img,rectsInfo[0].imagePos2D,6,Scalar(255,255,0),-1,8,0);
+        circle(input_img,rectsInfo[0].imagePos2D,6,Scalar(0,0,255),-1,8,0);
     return;
 }
 
@@ -439,17 +443,16 @@ int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& 
     if (dist > 1.0)
         return 0;
 
-    Mat show_img;
-    resize(input_img, show_img, Size(1384*0.5,1032*0.5), 0, 0, INTER_LINEAR);
-    Mat resizedImg = show_img;
-    Mat show_rect = show_img.clone();
+    resize(input_img, input_img, Size(1384*0.5,1032*0.5), 0, 0, INTER_LINEAR);
+    Mat show_rect = input_img;
+    Mat show_img = input_img.clone();
 
     Mat gaussianImg,cannyImg;
-    GaussianBlur(resizedImg, gaussianImg, Size(7,7),0,0);
+    GaussianBlur(show_img, gaussianImg, Size(7,7),0,0);
     //imshow("gauss",gaussianImg);
     Canny(gaussianImg,cannyImg,200,80);
     //imshow("canny",cannyImg);
-
+/*
     Mat srcGray;
     cvtColor(show_img,srcGray,CV_BGR2GRAY);
     Mat imgBinary;
@@ -461,7 +464,7 @@ int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& 
     element=getStructuringElement(MORPH_ELLIPSE, Size( 5,5 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
     morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
     //imshow("StatisticsErrorBinary", imgBinary);
-
+*/
     vector< vector<Point> > all_contours;
     vector< vector<Point> > contours;
     vector<Vec4i> hierarchy;
@@ -471,7 +474,7 @@ int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& 
     ////filter too small contours
     for (int i = 0; i < (int)all_contours.size(); ++i)
     {
-        if ((int)all_contours[i].size() > srcGray.rows*0.1*3 )
+        if ((int)all_contours[i].size() > input_img.rows*0.1*3 )
         {
            contours.push_back(all_contours[i]);
         }
@@ -500,6 +503,6 @@ int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& 
        incomplete_rect.cameraPos3D.z = rectsInfo[0].cameraPos3D.z;
        incompleteRectResult.push_back(incomplete_rect);
     }
-    imshow("rects",show_rect);
+    //imshow("rects",show_rect);
     return 1;
 }
