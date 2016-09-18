@@ -11,8 +11,8 @@ class StereoMatchingType
 {
 public:
     StereoMatchingType();
-    void StereoMatching( );
     void StereoMatchingConfigration();
+    void StereoMatching( );
     void ConvertXYZToPseudoColor( );
 
     bool left_img_has_copied;
@@ -32,7 +32,7 @@ public:
     double dif_value;
 
 private:
-    double fx_l ;			     //left相机内参
+    double fx_l ;
     double fy_l;
     double cx_l;
     double cy_l;
@@ -40,7 +40,7 @@ private:
     Mat M_CamLeft;
     Mat D_CamLeft;
 
-    double fx_r;                  //right相机内参
+    double fx_r;
     double fy_r;
     double cx_r;
     double cy_r;

@@ -1,3 +1,9 @@
+/*
+ * @file	: RectDetectByStatisticError.cpp
+ * @auhtor	: xiaobin <xiaobin619@126.com>
+ * @time	: 2016/09/12
+ */
+
 #include "declare.h"
 
 class LinearEquation
@@ -43,9 +49,18 @@ public:
     vector< ContourVertexesInfo > rotatedRectsInfo;
     vector< vector<LinearEquation> > linearEquationsInfo;
     vector< int > isRects;
-    vector<VisionResult> resultRects;
 };
 
+class RectInfo
+{
+public:
+    Point2f deteced_vertex[4];
+    Point real_vertex[4];
+    float width;
+    Point2f imagePos2D;
+    Point3f cameraPos3D;
+    Point3d negPos3D;
+};
 
 void GetPossibleRectVertexes(vector< vector<Point> >& contours, ContoursInfo& contoursInfo, Mat& input_img)
 {
@@ -93,7 +108,7 @@ void GetPossibleRectVertexes(vector< vector<Point> >& contours, ContoursInfo& co
         }
         if (maxDist/minDist > 4)
             continue;
-        if (boxTemp.size.width*boxTemp.size.height < pow(show_img.rows*0.1,2) || boxTemp.size.width*boxTemp.size.height > pow(show_img.rows*0.9,2))
+        if (boxTemp.size.width*boxTemp.size.height < pow(show_img.rows*0.2,2) || boxTemp.size.width*boxTemp.size.height > pow(show_img.rows*0.9,2))
             continue;
 
         contour_vertexes.min_area_rect_box = boxTemp;
@@ -210,6 +225,7 @@ void ErrorStatisticsBetweenRectAndContour(ContoursInfo& contoursInfo, Mat& input
         {
             GetLinearEquationByTwoPoint(vertex[i%4], vertex[(i+1)%4], linear_equation[i]);
         }
+        contoursInfo.linearEquationsInfo.push_back( linear_equation );
 
         vector<Point> contour;
         contour = contoursInfo.contours[k];
@@ -220,22 +236,22 @@ void ErrorStatisticsBetweenRectAndContour(ContoursInfo& contoursInfo, Mat& input
             double d1 = fabs(linear_equation[1].A*contour[i].x + linear_equation[1].B*contour[i].y + linear_equation[1].C)/(sqrt(pow(linear_equation[1].A,2) + pow(linear_equation[1].B,2)));
             double d2 = fabs(linear_equation[2].A*contour[i].x + linear_equation[2].B*contour[i].y + linear_equation[2].C)/(sqrt(pow(linear_equation[2].A,2) + pow(linear_equation[2].B,2)));
             double d3 = fabs(linear_equation[3].A*contour[i].x + linear_equation[3].B*contour[i].y + linear_equation[3].C)/(sqrt(pow(linear_equation[3].A,2) + pow(linear_equation[3].B,2)));
-            if ( d0 < linear_equation[0].line_length*thres && contour[i].x>linear_equation[0].vertex0.x && contour[i].x<linear_equation[0].vertex1.x && (d0<d1 && d0<d2 && d0<d3) )
+            if ( d0 < linear_equation[0].line_length*thres && (d0<d1 && d0<d2 && d0<d3) )
             {
                 points_error[0].push_back(Point3d(contour[i].x, contour[i].y, d0));
                 linear_equation[0].statistics_points_num++;
             }
-            else if ( d1 < linear_equation[1].line_length*thres && contour[i].y>linear_equation[1].vertex0.y && contour[i].y<linear_equation[1].vertex1.y && (d1<d0 && d1<d2 && d1<d3) )
+            else if ( d1 < linear_equation[1].line_length*thres && (d1<d0 && d1<d2 && d1<d3) )
             {
                 points_error[1].push_back(Point3d(contour[i].x, contour[i].y, d1));
                 linear_equation[1].statistics_points_num++;
             }
-            else if ( d2 < linear_equation[2].line_length*thres && contour[i].x>linear_equation[2].vertex1.x && contour[i].x<linear_equation[2].vertex0.x && (d2<d0 && d2<d1 && d2<d3) )
+            else if ( d2 < linear_equation[2].line_length*thres && (d2<d0 && d2<d1 && d2<d3) )
             {
                 points_error[2].push_back(Point3d(contour[i].x, contour[i].y, d2));
                 linear_equation[2].statistics_points_num++;
             }
-            else if ( d3 < linear_equation[3].line_length*thres && contour[i].y>linear_equation[3].vertex1.y && contour[i].y<linear_equation[3].vertex0.y && (d3<d0 && d3<d1 && d3<d2) )
+            else if ( d3 < linear_equation[3].line_length*thres && (d3<d0 && d3<d1 && d3<d2) )
             {
                 points_error[3].push_back(Point3d(contour[i].x, contour[i].y, d3));
                 linear_equation[3].statistics_points_num++;
@@ -255,6 +271,11 @@ void ErrorStatisticsBetweenRectAndContour(ContoursInfo& contoursInfo, Mat& input
 
         for(int m=0; m<4; ++m)
         {
+            float line_length_thres;
+            if (0 == m)
+                line_length_thres = 0.85;
+            else
+                line_length_thres = 0.5;
             if ( linear_equation[m].inline_points_num>linear_equation[m].line_length*0.5 && linear_equation[m].inline_points_num > linear_equation[m].statistics_points_num*0.8)
             {
                 linear_equation[m].is_side_of_rect = true;
@@ -266,28 +287,167 @@ void ErrorStatisticsBetweenRectAndContour(ContoursInfo& contoursInfo, Mat& input
             contoursInfo.isRects.push_back(1);
             ContourVertexesInfo contour_vertexes;
             contour_vertexes = contoursInfo.rotatedRectsInfo[k];
-            for(int i=0;i<4;++i)
-                line(input_img, contour_vertexes.contour_vertex[i], contour_vertexes.contour_vertex[(i+1)%4], Scalar(0,0,255), 3, 8);
+            //for(int i=0;i<4;++i)
+                //line(input_img, contour_vertexes.contour_vertex[i], contour_vertexes.contour_vertex[(i+1)%4], Scalar(0,0,255), 3, 8);
         }
         else
         {
             contoursInfo.isRects.push_back(0);
         }
     }
+
+    int rects_num = 0;
+    for (int i=0;i<(contoursInfo.isRects.size());++i)
+    {
+        if ( 1 == contoursInfo.isRects[i] )
+            rects_num++;
+    }
+    //printf("rects number = %d\n", rects_num);
     return;
 }
 
-
-int RectDectByStatisticsError(Mat& input_img)
+void GetTheTargetRect(ContoursInfo& contoursInfo, vector<RectInfo>& rectsInfo, Mat& input_img)
 {
-    Mat show_img = input_img.clone();
-    resize(show_img, show_img, Size(640,480));
-    Mat resizedImg = show_img.clone();
+    for(int i=0;i<contoursInfo.isRects.size();++i)
+    {
+        if (1 == contoursInfo.isRects[i])
+        {
+            Point2f middle_point = Point2f( (contoursInfo.rotatedRectsInfo[i].contour_vertex[0].x + contoursInfo.rotatedRectsInfo[i].contour_vertex[2].x)/2, (contoursInfo.rotatedRectsInfo[i].contour_vertex[0].y + contoursInfo.rotatedRectsInfo[i].contour_vertex[2].y)/2);
+            if (middle_point.x>=input_img.cols*0.1 && middle_point.x<=input_img.cols*0.9 && middle_point.y>=input_img.rows*0.1)
+            {
+                RectInfo rectInfo;
+                for(int j=0;j<4;++j)
+                {
+                    rectInfo.deteced_vertex[j] = contoursInfo.rotatedRectsInfo[i].contour_vertex[j];
+                    if (j<2)
+                        rectInfo.real_vertex[j] = rectInfo.deteced_vertex[j];
+                    else if (2 == j)
+                    {
+                        float y = rectInfo.deteced_vertex[1].y + contoursInfo.linearEquationsInfo[i][0].line_length*1.333;
+                        double A = contoursInfo.linearEquationsInfo[i][1].A;
+                        double B = contoursInfo.linearEquationsInfo[i][1].B;
+                        double C = contoursInfo.linearEquationsInfo[i][1].C;
+                        rectInfo.real_vertex[j] = Point(-(B*y + C)/A, y);
+                    }
+                    else if (3 == j)
+                    {
+                        float y = rectInfo.deteced_vertex[0].y + contoursInfo.linearEquationsInfo[i][0].line_length*1.333;
+                        double A = contoursInfo.linearEquationsInfo[i][3].A;
+                        double B = contoursInfo.linearEquationsInfo[i][3].B;
+                        double C = contoursInfo.linearEquationsInfo[i][3].C;
+                        rectInfo.real_vertex[j] = Point(-(B*y + C)/A, y);
+                    }
+                }
+                rectInfo.width = contoursInfo.linearEquationsInfo[i][0].line_length;
+                Point point_mid_02 = Point((rectInfo.real_vertex[0].x+rectInfo.real_vertex[2].x)/2, (rectInfo.real_vertex[0].y+rectInfo.real_vertex[2].y)/2);
+                Point point_mid_13 = Point((rectInfo.real_vertex[1].x+rectInfo.real_vertex[3].x)/2, (rectInfo.real_vertex[1].y+rectInfo.real_vertex[3].y)/2);
+                rectInfo.imagePos2D = Point((point_mid_02.x+point_mid_13.x)/2, (point_mid_02.y+point_mid_13.y)/2);
+                for(int j=0;j<4;++j)
+                    line(input_img, rectInfo.real_vertex[j], rectInfo.real_vertex[(j+1)%4], Scalar(255,0,0), 3, 8);
+                rectsInfo.push_back(rectInfo);
+            }
+        }
+    }
+
+    for (int i=0;i<(int)rectsInfo.size();++i)
+    {
+        for(int j=i+1;j<(int)rectsInfo.size();++j)
+        {
+            if (rectsInfo[i].width > rectsInfo[j].width)
+                swap(rectsInfo[i],rectsInfo[j]);
+        }
+    }
+    if (rectsInfo.size() > 0)
+        circle(input_img,rectsInfo[0].imagePos2D,6,Scalar(255,255,0),-1,8,0);
+    return;
+}
+
+void EstimateTargetPosition(vector<RectInfo>& rectsInfo, Mat& inputImg)
+{
+    float shrink = 0.5;
+    vector<Point2f> imagePoints2d(4);
+    vector<Point3f> objectPoints3d(4);
+    const static double kind_0_width = 0.3;
+    const static double kind_0_height = 0.4;
+    const static double kind_1_width = 0.4;
+    const static double kind_1_height = 0.5;
+    const static double kind_2_width = 0.6;
+    const static double kind_2_height = 0.7;
+    double realRectHalfWidth;
+    double realRectHalfHeight;
+    realRectHalfWidth  = kind_0_width/2;
+    realRectHalfHeight = kind_0_height/2;
+    //目标矩形上四个点世界坐标
+    objectPoints3d[0]=Point3d(-realRectHalfWidth, -realRectHalfHeight, 0);
+    objectPoints3d[1]=Point3d(realRectHalfWidth,  -realRectHalfHeight, 0);
+    objectPoints3d[2]=Point3d(realRectHalfWidth,   realRectHalfHeight, 0);
+    objectPoints3d[3]=Point3d(-realRectHalfWidth,  realRectHalfHeight, 0);
+
+    for (int i=0; i<(int)rectsInfo.size(); ++i)
+    {
+        //目标矩形对应图像坐标0~3
+        imagePoints2d[0]=Point2d((double)rectsInfo[i].real_vertex[0].x,(double)rectsInfo[i].real_vertex[0].y);
+        imagePoints2d[1]=Point2d((double)rectsInfo[i].real_vertex[1].x,(double)rectsInfo[i].real_vertex[1].y);
+        imagePoints2d[2]=Point2d((double)rectsInfo[i].real_vertex[2].x,(double)rectsInfo[i].real_vertex[2].y);
+        imagePoints2d[3]=Point2d((double)rectsInfo[i].real_vertex[3].x,(double)rectsInfo[i].real_vertex[3].y);
+
+        //Point Gray Flea3-14s3c
+        double t_fx=893.25550*shrink, t_fy=894.63039*shrink, t_cx=686.67029*shrink, t_cy=518.99170*shrink;
+        Mat t_distcoef=(Mat_<double>(1,5) << -0.05173, 0.07077, -0.00047, 0.00061,0);
+        Mat t_cameraMatrix=(Mat_<double>(3,3) << t_fx,0,t_cx,0,t_fy,t_cy,0,0,1);
+
+        //计算旋转矩阵、平移矩阵
+        Mat rvec,tvec;
+        solvePnP(objectPoints3d,imagePoints2d,t_cameraMatrix,t_distcoef,rvec,tvec);
+
+        double tvec_x,tvec_y,tvec_z;
+        tvec_x=tvec.at<double>(0,0);
+        tvec_y=tvec.at<double>(1,0);
+        tvec_z=tvec.at<double>(2,0);
+        rectsInfo[i].cameraPos3D = Point3d( tvec_x,tvec_y,tvec_z );
+        //剔除过远或过近的
+        if(tvec_z>1 || tvec_z<0.2)
+        {
+            rectsInfo.erase(rectsInfo.begin()+i);
+            i--;
+            continue;
+        }
+
+        char transf[50];
+        sprintf(transf,"[%0.3fm,%0.3fm,%0.3fm]",tvec_y,tvec_x,tvec_z);
+        Point T_showCenter;
+        T_showCenter=Point2d(rectsInfo[i].imagePos2D.x,rectsInfo[i].imagePos2D.y);
+        if (0 == i)
+            putText(inputImg, transf, T_showCenter,CV_FONT_HERSHEY_PLAIN,1.6,Scalar(255,255,0),2);
+    }
+    return;
+}
+
+int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& lastValidResult, vector<VisionResult>& incompleteRectResult)
+{
+    if (lastValidResult.size() < 1)
+        return 0;
+    float dist = 0;
+    float sum = 0;
+    int num = 0;
+    for(int i=0;i<lastValidResult[0].size();++i)
+    {
+        sum += lastValidResult[0][i].cameraPos3D.z;
+        num++;
+    }
+    dist = sum/num;
+    if (dist > 1.0)
+        return 0;
+
+    Mat show_img;
+    resize(input_img, show_img, Size(1384*0.5,1032*0.5));
+    Mat resizedImg = show_img;
+    Mat show_rect = show_img.clone();
 
     Mat gaussianImg,cannyImg;
     GaussianBlur(resizedImg, gaussianImg, Size(7,7),0,0);
     //imshow("gauss",gaussianImg);
-    Canny(gaussianImg,cannyImg,160,80);
+    Canny(gaussianImg,cannyImg,180,80);
     imshow("canny",cannyImg);
 
     Mat srcGray;
@@ -305,11 +465,10 @@ int RectDectByStatisticsError(Mat& input_img)
     vector< vector<Point> > all_contours;
     vector< vector<Point> > contours;
     vector<Vec4i> hierarchy;
-    //查找轮廓
     findContours( cannyImg, all_contours, hierarchy , RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
     //printf("Contours number before filter: %d\n", int(all_contours.size()) );
 
-    //过滤掉太小的轮廓
+    ////filter too small contours
     for (int i = 0; i < (int)all_contours.size(); ++i)
     {
         if ((int)all_contours[i].size() > srcGray.rows*0.1*3 )
@@ -317,15 +476,19 @@ int RectDectByStatisticsError(Mat& input_img)
            contours.push_back(all_contours[i]);
         }
     }
-    cout<<"contours num=" << contours.size() <<endl;
+    //cout<<"contours num=" << contours.size() <<endl;
 
     ContoursInfo contoursInfo;
     GetPossibleRectVertexes(contours, contoursInfo, show_img);
 
     drawContours(show_img, contours, -1, Scalar(0,0,255), 1 );
     imshow("all_contours", show_img);
-    //return 0;
 
-    ErrorStatisticsBetweenRectAndContour(contoursInfo, show_img);
+    ErrorStatisticsBetweenRectAndContour(contoursInfo, show_rect);
+    vector<RectInfo> rectsInfo;
+    GetTheTargetRect(contoursInfo, rectsInfo, show_rect);
+    EstimateTargetPosition(rectsInfo, show_rect);
+
+    imshow("rects",show_rect);
     return 1;
 }

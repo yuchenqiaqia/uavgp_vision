@@ -2,7 +2,7 @@
 <package>
   <name>uavgp_vision</name>
   <version>0.0.0</version>
-  <description>The my_image_transport package</description>
+  <description>The uavgp_vision package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
