@@ -495,7 +495,7 @@ int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& 
     if (rectsInfo.size()>0)
     {
        VisionResult  incomplete_rect;
-       incomplete_rect.digitNo = -1;
+       incomplete_rect.digitNo = 11;
        incomplete_rect.imagePos2D.x = rectsInfo[0].imagePos2D.x;
        incomplete_rect.imagePos2D.y = rectsInfo[0].imagePos2D.y;
        incomplete_rect.cameraPos3D.x = rectsInfo[0].cameraPos3D.x;
