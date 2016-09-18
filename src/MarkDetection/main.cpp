@@ -71,9 +71,10 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         if (1 == srcImg.channels())
             cvtColor(srcImg,srcImg,CV_GRAY2BGR);
         Mat rectResultImg = srcImg.clone();
+        Mat alg2_rectResultImg = srcImg.clone();
 
-        //a rect detection algorithm based statistics errors
-        RectDetectByStatisticsError( srcImg, lastValidResult, incompleteRectResult);
+        //a rect detection algorithm based on statistics errors
+        RectDetectByStatisticsError( alg2_rectResultImg, lastValidResult, incompleteRectResult);
 
         //rect detector
         RectangleDetect( rectResultImg, rectCategory, imageProcessedNo );
@@ -86,6 +87,14 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         //数字识别
         DigitDetector(rectResultImg, KNNocr, rectCategory, digitBinaryImgSaveEnable);
         //printf("DigitDetector done!\n");
+
+        //switch result by the algorithm based on statistics errors
+        if (0 == visionResult.size() && incompleteRectResult.size()>0)
+        {
+            swap(visionResult,incompleteRectResult);
+            rectResultImg = alg2_rectResultImg;
+        }
+
         //视觉检测结果保存为txt
         SaveResultToTxt( baseDir, shrink, visionResult );
         //show time and fps
@@ -116,14 +125,16 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
             g_visionResult.push_back(visionResult[k]);
 
         //clear memory
-        if (false == rectCategory.empty())
-            vector< vector<RectMark> >().swap(rectCategory);
-        if (false == visionResult.empty())
-            vector<VisionResult>().swap(visionResult);
         if (false == rectCandidateImg.empty())
             vector<Mat>().swap(rectCandidateImg);
         if (false == rectPossible.empty())
             vector<RectMark>().swap(rectPossible);
+        if (false == rectCategory.empty())
+            vector< vector<RectMark> >().swap(rectCategory);
+        if (false == visionResult.empty())
+            vector<VisionResult>().swap(visionResult);
+        if (false == incompleteRectResult.empty())
+            vector<VisionResult>().swap(incompleteRectResult);
         g_PrecisionRatio = -1;
         g_AccuracyAmount = -1;
 
@@ -135,13 +146,6 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         //printf("roll=%.2f; pit=%.2f; yaw=%.2f;\n",attitude3d.roll*180/3.14,attitude3d.pitch*180/3.14,attitude3d.yaw*180/3.14);
         //printf("image-%d all process done!\n", imageProcessedNo);
         return;
-}
-
-//数码显示屏数字识别
-void DisplayScreenDigitDetect(Mat& input_img)
-{
-
-
 }
 
 
