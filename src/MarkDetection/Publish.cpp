@@ -92,11 +92,6 @@ void* RosImagePublishThread_2(void*)
         usleep(50000);
     }
 
-    //ros::NodeHandle smallImgPubNode;
-    //image_transport::ImageTransport it_0(smallImgPubNode);
-    //image_transport::Publisher pub2ground;
-    //pub2ground = it_0.advertise("vision/result_small_image",  1 );
-
     ros::NodeHandle imgPubNode;
     image_transport::ImageTransport it_1(imgPubNode);
     image_transport::Publisher pub2save;

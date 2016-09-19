@@ -103,7 +103,7 @@ void GetRectKinds( vector< vector<RectMark> >&  rectCategory )
         int rectKind = RectKind( imgBinary, showImg, minBoundingRect );
         GetDigitRoiImg( imgBinary, minBoundingRect, rectKind,  rectCategory[i] );
 
-        imshow("minRect", showImg);
+        //imshow("minRect", showImg);
     }
     return;
 }

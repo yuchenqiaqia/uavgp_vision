@@ -6,7 +6,6 @@
 
 #include "StereoMatching.h"
 
-
 StereoMatchingType::StereoMatchingType()
 {
     left_img_has_copied = true;
@@ -29,14 +28,13 @@ StereoMatchingType::StereoMatchingType()
     M_CamRight=(Mat_<double>(3,3) << fx_r,0,cx_r,0,fy_r,cy_r,0,0,1);
     D_CamRight=(Mat_<double>(5,1) << 0.02186, -0.01878, -0.00017, 0.00113,0.000);
 
-    //stereo_RV=(Mat_<double>(3,1) << -0.00489, 0.00366,  0.00041 );
-    stereo_RV=(Mat_<double>(3,1) << -0.00489, -0.0009,  0.00041 );      //more accurate
+    stereo_RV=(Mat_<double>(3,1) << -0.00489, -0.0009,  0.00041 );
     stereo_T=(Mat_<double>(3,1) << -150.12139, -0.12009, 1.97403 );
 
     alg = STEREO_BM;
-    BM_SadWindowSize = 13;  //17
+    BM_SadWindowSize = 13;
     SGBM_SadWindowSize = 7;
-    numberOfDisparities =  0;// 21,0
+    numberOfDisparities =  0;
     img_size = Size(320,240);
 
     distanceZ_min = 0.52;
