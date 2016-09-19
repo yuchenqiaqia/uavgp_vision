@@ -1,22 +1,16 @@
-/******************************************************************************
- *
-版权所有 (C), 2016, 中国科学院沈阳自动化研究所，一室，旋翼飞行机器人课题组
-******************************************************************************
-版 本 号   : v1.0
-作	  者   : 肖斌
-******************************************************************************/
+/*
+ * @file	: define.h
+ * @auhtor	: xiaobin <xiaobin619@126.com>
+ * @time	: 2016/09/12
+ */
 
 #include "declare.h"
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/TransformStamped.h>
 
-//图像缩小系数
-//#define  SHRINK_LOWEST_VALUE  0.9248555
-//#define  SHRINK_LOWEST_VALUE  1.2
 #define  SHRINK_LOWEST_VALUE  0.46
 #define  SHRINK_HIGHEST_VALUE 1.0
 
-//图像缩小
 double shrink = 1;
 
 basicOCR* KNNocr;

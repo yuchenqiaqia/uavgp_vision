@@ -343,7 +343,7 @@ void GetTheTargetRect(ContoursInfo& contoursInfo, vector<RectInfo>& rectsInfo, M
                 Point point_mid_13 = Point((rectInfo.real_vertex[1].x+rectInfo.real_vertex[3].x)/2, (rectInfo.real_vertex[1].y+rectInfo.real_vertex[3].y)/2);
                 rectInfo.imagePos2D = Point((point_mid_02.x+point_mid_13.x)/2, (point_mid_02.y+point_mid_13.y)/2);
                 for(int j=0;j<4;++j)
-                    line(input_img, rectInfo.real_vertex[j], rectInfo.real_vertex[(j+1)%4], Scalar(255,0,0), 3, 8);
+                    line(input_img, rectInfo.real_vertex[j], rectInfo.real_vertex[(j+1)%4], Scalar(255,0,255), 3, 8);
                 rectsInfo.push_back(rectInfo);
             }
         }
