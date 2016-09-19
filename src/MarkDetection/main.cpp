@@ -112,8 +112,9 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         DigitResultPublish( visionResult );
 
         for(int k=0;k<(int)visionResult.size();++k)
-            ROS_INFO("\nimgNo=%d; \nx=%.2f;y=%.2f;z=%.2f; \nroll=%.2f;pit=%.2f;yaw=%.2f; \nN=%.2f;W=%.2f;A=%.2f;\n",
+            ROS_INFO("\nimgNo=%d;\ndigit=%d;\nx=%.2f;y=%.2f;z=%.2f; \nroll=%.2f;pit=%.2f;yaw=%.2f; \nN=%.2f;W=%.2f;A=%.2f;\n",
                     imageProcessedNo,
+                    visionResult[k].digitNo,
                     visionResult[k].cameraPos3D.x, visionResult[k].cameraPos3D.y,visionResult[k].cameraPos3D.z,
                     attitude3d.roll*180/3.14,attitude3d.pitch*180/3.14,attitude3d.yaw*180/3.14,
                     visionResult[k].negPos3D.x, -visionResult[k].negPos3D.y, -visionResult[k].negPos3D.z
