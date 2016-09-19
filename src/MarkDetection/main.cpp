@@ -185,14 +185,13 @@ void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, 
     morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
 
     Mat imgBinaryShow;
-    resize(imgBinary, imgBinaryShow, Size(640,480),0,0,INTER_AREA);
-    imshow("adaptiveThresholdImg",imgBinaryShow);
+    //resize(imgBinary, imgBinaryShow, Size(640,480),0,0,INTER_AREA);
+    //imshow("adaptiveThresholdImg",imgBinaryShow);
     //printf("imshow imgBinaryShow done!\n");
 
-    //vector< Point > hull;	//凸包点
-    vector<Vec4i>hierarchy;
-    vector< vector<Point> >all_contours;
-    vector< vector<Point> >contours;
+    vector<Vec4i> hierarchy;
+    vector< vector<Point> > all_contours;
+    vector< vector<Point> > contours;
     //查找轮廓
     //findContours( imgBinary, all_contours, hierarchy ,RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
     findContours( imgBinary, all_contours, RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
@@ -597,7 +596,7 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         tvec_z=tvec.at<double>(2,0);
         rectCategory[i][0].position = Point3d( tvec_x,tvec_y,tvec_z );
         //剔除过远或过近的
-        if(tvec_z>10 || tvec_z<0.2)
+        if(tvec_z>10 || tvec_z<0.3)
         {
             rectCategory.erase(rectCategory.begin()+i);
             i--;
@@ -661,9 +660,9 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         result.cameraPos3D = rectCategory[i][0].position;
         visionResult.push_back(result);
 
-        //将用于识别的图像进行分窗口显示
+        //将用于识别的digit图像进行分窗口显示
         sprintf(digit,"%d",int(classResult));
-        imshow(digit, rectCategory[i][0].possibleDigitBinaryImg);
+        //imshow(digit, rectCategory[i][0].possibleDigitBinaryImg);
 
         int x = int((rectCategory[i][0].m_points[0].x + rectCategory[i][0].m_points[2].x)/2) - 10;
         int y = int((rectCategory[i][0].m_points[0].y + rectCategory[i][0].m_points[2].y)/2) + 10;
@@ -682,7 +681,7 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         //imshow("Classify",possibleDigitBinaryImg);
 
         sprintf(digit,"beforeClassify-%d",int(classResult));
-        imshow(digit, rectCategory[i][0].possibleRectBinaryImg);
+        //imshow(digit, rectCategory[i][0].possibleRectBinaryImg);
 
         //if ( precisionRatio<70 )
         //    waitKey(0);
