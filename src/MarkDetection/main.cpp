@@ -782,10 +782,10 @@ void DigitResultPublish(vector<VisionResult>& visionResult )
         digits_position.header.stamp    = ros::Time::now();
         for ( int i = 0; i < (int)visionResult.size(); ++i )
         {
-            digits_position.ranges[i*4] = (float)visionResult[i].digitNo;
-            digits_position.ranges[i*4 + 1] = (float)visionResult[i].negPos3D.x;
-            digits_position.ranges[i*4 + 2] = -(float)visionResult[i].negPos3D.y;
-            digits_position.ranges[i*4 + 3] = -(float)visionResult[i].negPos3D.z;
+            digits_position.ranges[i*4] = float(visionResult[i].digitNo);
+            digits_position.ranges[i*4 + 1] = float(visionResult[i].negPos3D.x);
+            digits_position.ranges[i*4 + 2] = float(-visionResult[i].negPos3D.y);
+            digits_position.ranges[i*4 + 3] = float(-visionResult[i].negPos3D.z);
         }
     }
     vision_digit_position_publisher.publish(digits_position);
