@@ -6,9 +6,9 @@
 
 #include "declare.h"
 
-static double distance_x = 0;
+static double distance_x = 0.695;//-0.695
 static double distance_y = 0;
-static double distance_z = 0;
+static double distance_z = 0.15;//-0.15
 
 void CameraCoordinate2NegCoordinate( vector<VisionResult>& vision_results, const Attitude3D& attitude3d) //从相机坐标系到飞机坐标系，再从飞机坐标系到NEG坐标系；
 {
