@@ -47,20 +47,18 @@ public:
 	{
 		indexId = -1;
 		validFlag = false;
-		blackFrameDetectedFlag = false;
 		minSideLength = 0;	
 		maxSideLength = 0;	
 		area = 0;
         rectKind = -1;
-		//perspectiveImg.create(int(200*1.25),200,CV_8UC3);//create（行，列，类型）
-		//possibleDigitBinaryImg.create(int(200*1.25),200,CV_8UC1);
-	}
+        digitNo = -1;
+    }
     int frameNo;
     int indexId;                    //Rect编号
 	bool validFlag;					//该Rect是否有效
-	bool blackFrameDetectedFlag;
     //矩形类别，矩形检测到后的正常取值：0， 1， 2
     int rectKind;
+    int digitNo;
 
 	//contour信息
     float minSideLength;            //最小边长

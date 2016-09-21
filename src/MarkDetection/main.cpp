@@ -21,11 +21,8 @@ int main(int argc, char **argv)
     //初始化分类器, 分类器初始化要放在文件夹创建之前
     basicOCR myKNNocr(baseDir);
     KNNocr = &myKNNocr;
-    //创建数据保存线程
     CreatSaveDir(baseDir, imageSaveEnable);
-    //创建ros消息发布的各个线程
     CreateRosPublishThread(baseDir);
-    //初始化订阅相机原始图像的节点
     InitRawImgSubscriber( );
     return 0;
 }
@@ -35,7 +32,6 @@ ros::Subscriber attSub;
 //初始化订阅相机的节点
 void InitRawImgSubscriber( )
 {
-    //图像处理 订阅 节点初始化
     ros::NodeHandle imageProcessNode;
     image_transport::Subscriber rawImgSub;
     image_transport::ImageTransport imageProcessNode_it(imageProcessNode);
@@ -67,6 +63,8 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
             resize(rawCameraImg, rawCameraImg, Size(1384,1032));
         //resize image
         ResizeImageByDistance(rawCameraImg, srcImg, lastFrameResult);
+        Mat lightness_img;
+        GetLightnessImage( srcImg, lightness_img);
 
         if (1 == srcImg.channels())
             cvtColor(srcImg,srcImg,CV_GRAY2BGR);
@@ -86,7 +84,6 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         EstimatePosition(rectResultImg, rectCategory);
         //数字识别
         DigitDetector(rectResultImg, KNNocr, rectCategory, digitBinaryImgSaveEnable);
-        //printf("DigitDetector done!\n");
 
         //switch result by the algorithm based on statistics errors
         if (0 == visionResult.size() && incompleteRectResult.size()>0)
@@ -101,7 +98,6 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         ShowTime(rectResultImg, imageProcessedNo, shrink);
         //show result image
         resize(rectResultImg, rectResultImg, Size(640,480), 0, 0, INTER_AREA);
-        imshow("ImageProcessing",rectResultImg);
 
         rectResultImg.copyTo(g_rectResultImg);
         g_rectResultImgUpdated = true;
@@ -112,6 +108,7 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         DigitResultPublish( visionResult );
 
         for(int k=0;k<(int)visionResult.size();++k)
+        {
             ROS_INFO("\nimgNo=%d;\ndigit=%d;\nx=%.2f;y=%.2f;z=%.2f; \nroll=%.2f;pit=%.2f;yaw=%.2f; \nE=%.2f;N=%.2f;U=%.2f;\n",
                     imageProcessedNo,
                     visionResult[k].digitNo,
@@ -119,6 +116,9 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
                     attitude3d.roll*180/3.14,attitude3d.pitch*180/3.14,attitude3d.yaw*180/3.14,
                     visionResult[k].negPos3D.y, visionResult[k].negPos3D.x, -visionResult[k].negPos3D.z
                     );
+        }
+
+        imshow("ImageProcessing",rectResultImg);
 
         if (false == g_visionResult.empty())
             vector<VisionResult>().swap(g_visionResult);
@@ -139,7 +139,10 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         g_PrecisionRatio = -1;
         g_AccuracyAmount = -1;
 
-        int c = waitKey(1);
+        int waitValue = 1;
+        int c = waitKey(waitValue);
+        if ('p' == c)
+            waitValue = 0;
         //press ‘q’ to exit
         if ( 113 == c )  //113 == c || 131153 == c
             exit(0);
@@ -149,6 +152,19 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         return;
 }
 
+void GetLightnessImage( Mat& input_bgr_img, Mat& output_lightness_img)
+{
+    Mat rawHSVImg;
+    cvtColor(input_bgr_img,rawHSVImg, CV_BGR2HSV_FULL);
+    vector<Mat> channels;
+    split(rawHSVImg, channels);
+    Mat value_image = channels.at(2);
+    equalizeHist(value_image,output_lightness_img);
+    cvtColor(output_lightness_img,output_lightness_img,CV_GRAY2BGR);
+    Mat equalize_img;
+    resize(output_lightness_img,equalize_img,Size(640,480));
+    imshow("hsv_v", equalize_img);
+}
 
 //矩形（四边形）检测
 void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, int frameNo)
@@ -502,7 +518,7 @@ void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vecto
             imagePoints2d[3]=Point2d(rectCategory[i][j].m_points[3].x,rectCategory[i][j].m_points[3].y);
 
             // 标准Rect在2d空间为100*100的矩形
-            Size m_RectSize = Size(130, int(130*1.25));
+            Size m_RectSize = Size(100, int(100*1.25));
             // 矩形 4个角点的正交投影标准值
             vector<Point2f> m_RectCorners2d;
             //vector<Point3f> m_RectCorners3d;
@@ -576,12 +592,6 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         imagePoints2d[2]=Point2d(rectCategory[i][0].m_points[2].x,rectCategory[i][0].m_points[2].y);
         imagePoints2d[3]=Point2d(rectCategory[i][0].m_points[3].x,rectCategory[i][0].m_points[3].y);
 
-
-        //Point Gray Flea3-03s2c
-        //double t_fx=557.24612 *1384*shrink/640, t_fy=555.36689 *1384*shrink/640, t_cx=313.54129 *1384*shrink/640, t_cy=240.08147 *1384*shrink/640;
-        //Mat t_distcoef=(Mat_<double>(1,5) << -0.04746, 0.07647, 0.00038, 0.00167,0);
-        //Mat t_cameraMatrix=(Mat_<double>(3,3) << t_fx,0,t_cx,0,t_fy,t_cy,0,0,1);
-
         //Point Gray Flea3-14s3c
         double t_fx=893.25550*shrink, t_fy=894.63039*shrink, t_cx=686.67029*shrink, t_cy=518.99170*shrink;
         Mat t_distcoef=(Mat_<double>(1,5) << -0.05173, 0.07077, -0.00047, 0.00061,0);
@@ -597,7 +607,7 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         tvec_z=tvec.at<double>(2,0);
         rectCategory[i][0].position = Point3d( tvec_x,tvec_y,tvec_z );
         //剔除过远或过近的
-        if(tvec_z>10 || tvec_z<0.3)
+        if(tvec_z>12 || tvec_z<0.3)
         {
             rectCategory.erase(rectCategory.begin()+i);
             i--;
@@ -632,7 +642,6 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
             continue;
 
         //数字识别
-        //printf("wait classify ...\n");
         IplImage ipl_img(possibleDigitBinaryImg);
         float classResult = ocr->classify(&ipl_img,1);
         float precisionRatio = g_PrecisionRatio;
@@ -647,11 +656,11 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         }
 
         //识别再过滤, 预测率小于80%都算误识别
-        if (precisionRatio < 90)
+        if (precisionRatio < 90 || rectCategory[i][0].position.z > 9.0)
             continue;
 
-        //打印识别结果
         //printf("Digit=%d;Precision=%0.1f%%\n",(int)classResult,precisionRatio);
+        rectCategory[i][0].digitNo = (int)classResult;
 
         //最终检测结果存入vector
         VisionResult result;
@@ -663,7 +672,7 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
 
         //将用于识别的digit图像进行分窗口显示
         sprintf(digit,"%d",int(classResult));
-        //imshow(digit, rectCategory[i][0].possibleDigitBinaryImg);
+        imshow(digit, rectCategory[i][0].possibleDigitBinaryImg);
 
         int x = int((rectCategory[i][0].m_points[0].x + rectCategory[i][0].m_points[2].x)/2) - 10;
         int y = int((rectCategory[i][0].m_points[0].y + rectCategory[i][0].m_points[2].y)/2) + 10;
@@ -682,7 +691,7 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         //imshow("Classify",possibleDigitBinaryImg);
 
         sprintf(digit,"beforeClassify-%d",int(classResult));
-        //imshow(digit, rectCategory[i][0].possibleRectBinaryImg);
+        imshow(digit, rectCategory[i][0].possibleRectBinaryImg);
 
         //if ( precisionRatio<70 )
         //    waitKey(0);

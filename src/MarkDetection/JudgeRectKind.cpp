@@ -35,8 +35,7 @@ void GetRectKinds( vector< vector<RectMark> >&  rectCategory )
         //morphologyEx(imgBinary, imgBinary, MORPH_CLOSE, Mat());
 
         ////根据重映射前的矩形大小来设置闭运算的windowsize
-        ////待完成......
-        Mat element=getStructuringElement(MORPH_ELLIPSE, Size(7,7) ); //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+        Mat element=getStructuringElement(MORPH_ELLIPSE, Size(11,11) ); //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
         morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
         imgBinary.copyTo(rectCategory[i][0].possibleRectBinaryImg);
 
@@ -103,7 +102,7 @@ void GetRectKinds( vector< vector<RectMark> >&  rectCategory )
         int rectKind = RectKind( imgBinary, showImg, minBoundingRect );
         GetDigitRoiImg( imgBinary, minBoundingRect, rectKind,  rectCategory[i] );
 
-        //imshow("minRect", showImg);
+        imshow("minRect", showImg);
     }
     return;
 }
@@ -211,7 +210,7 @@ void GetDigitRoiImg( Mat& binaryImg, vector< Rect>& minBoundingRect, int rectKin
 
         //roi区域扩大1.1倍
         Point middlePoint = Point(roi.x + roi.width/2, roi.y + roi.height/2);
-        roi.height = roi.height * 1.1;  //1.1
+        roi.height = roi.height * 1.15;  //1.1
         roi.width = roi.height * 2.7/4;
         roi.x = middlePoint.x - roi.width/2 * 1.0;
         roi.y = middlePoint.y - roi.height/2;
