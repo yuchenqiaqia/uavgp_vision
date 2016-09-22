@@ -63,8 +63,8 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
             resize(rawCameraImg, rawCameraImg, Size(1384,1032));
         //resize image
         ResizeImageByDistance(rawCameraImg, srcImg, lastFrameResult);
-        Mat lightness_img;
-        GetLightnessImage( srcImg, lightness_img);
+        Mat lightness_img_8UC3;
+        GetLightnessImage( srcImg, lightness_img_8UC3, lastValidResult);
 
         if (1 == srcImg.channels())
             cvtColor(srcImg,srcImg,CV_GRAY2BGR);
@@ -72,12 +72,12 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         Mat alg2_rectResultImg = srcImg.clone();
 
         //a rect detection algorithm based on statistics errors
-        RectDetectByStatisticsError( alg2_rectResultImg, lastValidResult, incompleteRectResult);
+        RectDetectByStatisticsError( lightness_img_8UC3, alg2_rectResultImg, lastValidResult, incompleteRectResult);
 
         //rect detector
-        RectangleDetect( rectResultImg, rectCategory, imageProcessedNo );
+        RectangleDetect( lightness_img_8UC3, rectResultImg, rectCategory, imageProcessedNo );
         //透视变换
-        PerspectiveTransformation(srcImg, rectCandidateImg, rectCategory);
+        PerspectiveTransformation(lightness_img_8UC3, rectCandidateImg, rectCategory);
         //Jugde rect kind
         GetRectKinds( rectCategory );
         //位置估计
@@ -152,32 +152,44 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         return;
 }
 
-void GetLightnessImage( Mat& input_bgr_img, Mat& output_lightness_img)
+void GetLightnessImage( Mat& input_bgr_img, Mat& output_lightness_img, vector< vector<VisionResult> >& lastValidResult)
 {
+    static unsigned int imgNo = 0;
     Mat rawHSVImg;
     cvtColor(input_bgr_img,rawHSVImg, CV_BGR2HSV_FULL);
     vector<Mat> channels;
     split(rawHSVImg, channels);
     Mat value_image = channels.at(2);
-    equalizeHist(value_image,output_lightness_img);
+    output_lightness_img = value_image;
+
+    float dist = 0;
+    float sum = 0;
+    int num = 0;
+    if (lastValidResult.size() < 1)
+        dist = 10;
+    else
+    {
+        for(int i=0;i<lastValidResult[0].size();++i)
+        {
+            sum += lastValidResult[0][i].cameraPos3D.z;
+            num++;
+        }
+        dist = sum/num;
+    }
+    if (dist < 1.5 && (0 == imgNo%2))
+        equalizeHist(value_image,output_lightness_img);
     cvtColor(output_lightness_img,output_lightness_img,CV_GRAY2BGR);
     Mat equalize_img;
     resize(output_lightness_img,equalize_img,Size(640,480));
     imshow("hsv_v", equalize_img);
+    imgNo++;
 }
 
 //矩形（四边形）检测
-void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, int frameNo)
+void RectangleDetect( Mat& lightness_img, Mat& resultImg, vector< vector<RectMark> >& rectCategory, int frameNo)
 {
-    //Mat gaussianImg;
-    //GaussianBlur(resultImg, gaussianImg, Size(5,5),2,2);
-    //imshow("gauss",gaussianImg);
-    //Canny(gaussianImg,gaussianImg,80,40);
-    //imshow("canny",gaussianImg);
-    //waitKey(0);
-
     Mat srcGray;
-    cvtColor(resultImg,srcGray,CV_BGR2GRAY);
+    cvtColor(lightness_img,srcGray,CV_BGR2GRAY);
     Mat imgBinary;
     int min_size = 100; //100
     int thresh_size = (min_size/4)*2 + 1;
@@ -202,8 +214,8 @@ void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, 
     morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
 
     Mat imgBinaryShow;
-    //resize(imgBinary, imgBinaryShow, Size(640,480),0,0,INTER_AREA);
-    //imshow("adaptiveThresholdImg",imgBinaryShow);
+    resize(imgBinary, imgBinaryShow, Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
+    imshow("adaptiveThresholdImg",imgBinaryShow);
     //printf("imshow imgBinaryShow done!\n");
 
     vector<Vec4i> hierarchy;
@@ -656,7 +668,7 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         }
 
         //识别再过滤, 预测率小于80%都算误识别
-        if (precisionRatio < 90 || rectCategory[i][0].position.z > 9.0)
+        if ((rectCategory[i][0].position.z <=8.0 && (int)precisionRatio < 90) || (rectCategory[i][0].position.z <= 9.0 && rectCategory[i][0].position.z > 8.0 && (int)precisionRatio < 100) || rectCategory[i][0].position.z > 9.0)
             continue;
 
         //printf("Digit=%d;Precision=%0.1f%%\n",(int)classResult,precisionRatio);

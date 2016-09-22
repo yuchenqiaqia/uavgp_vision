@@ -427,7 +427,7 @@ void EstimateTargetPosition(vector<RectInfo>& rectsInfo, Mat& inputImg)
     return;
 }
 
-int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& lastValidResult, vector<VisionResult>& incompleteRectResult)
+int RectDetectByStatisticsError(Mat& lightness_img, Mat& input_img, vector< vector<VisionResult> >& lastValidResult, vector<VisionResult>& incompleteRectResult)
 {
     if (lastValidResult.size() < 1)
         return 0;
@@ -442,13 +442,14 @@ int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& 
     dist = sum/num;
     if (dist > 1.0)
         return 0;
-
+    Mat resized_lightness_img;
+    resize(lightness_img, resized_lightness_img, Size(1384*0.5,1032*0.5), 0, 0, INTER_LINEAR);
     resize(input_img, input_img, Size(1384*0.5,1032*0.5), 0, 0, INTER_LINEAR);
     Mat show_rect = input_img;
     Mat show_img = input_img.clone();
 
     Mat gaussianImg,cannyImg;
-    GaussianBlur(show_img, gaussianImg, Size(7,7),0,0);
+    GaussianBlur(resized_lightness_img, gaussianImg, Size(7,7),0,0);
     //imshow("gauss",gaussianImg);
     Canny(gaussianImg,cannyImg,200,80);
     //imshow("canny",cannyImg);

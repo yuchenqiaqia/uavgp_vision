@@ -77,7 +77,7 @@ vector<Mat> rectCandidateImg;
 //透视变换后的二值化roi图像
 //vector<Mat> vecPossibleDigitBinaryImg;
 
-void GetLightnessImage( Mat& input_bgr_img, Mat& output_lightness_img);
+void GetLightnessImage( Mat& input_bgr_img, Mat& output_lightness_img, vector< vector<VisionResult> >& lastValidResult);
 void InitRawImgSubscriber( );
 void CameraImageSubCallback(const sensor_msgs::ImageConstPtr& msg);
 void SaveResultImage( const sensor_msgs::ImageConstPtr& msg );

@@ -136,7 +136,7 @@ int CreatSaveDir (char* dir , bool saveImgFlag);
 
 void ResizeImageByDistance( Mat& inputImg, Mat& outputImg, vector<VisionResult>& oldResult);
 //矩形（四边形）检测
-void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, int frameNo );
+void RectangleDetect( Mat& lightness_img, Mat& resultImg, vector< vector<RectMark> >& rectCategory, int frameNo );
 //求四边形内侧夹角
 double GetTwoSideAngle(Point2f p1,Point2f p2, Point2f p3);
 //剔除重合的四边形
@@ -175,4 +175,4 @@ void ConvertToPseudoColor( Mat& mat_xyz, Mat& img_pseudo_color );
 //
 double GetROI_AverageVal( Mat src, Point point, int channel, int radius);
 //根据累积误差检测矩形
-int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& lastValidResult, vector<VisionResult>& incompleteRectResult);
+int RectDetectByStatisticsError(Mat& lightness_img, Mat& input_img, vector< vector<VisionResult> >& lastValidResult, vector<VisionResult>& incompleteRectResult);

@@ -13,6 +13,7 @@ void* getKey(void*)
 {
     while(1)
     {
+        pressedKey[0] = 'a';
         if( 'e' != pressedKey[0] )
         {
            printf("\nPress the key 'e' to start auto set exposure time: \n");
