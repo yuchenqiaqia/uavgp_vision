@@ -10,17 +10,17 @@
 
 #define  SHRINK_LOWEST_VALUE  0.46
 #define  SHRINK_HIGHEST_VALUE 1.0
+#define  DISPLAYSCREEN 0
+#define  PRINTBOARD 1
 
 double shrink = 1;
+
 
 basicOCR* KNNocr;
 int cameraNo = 0;
 int imageProcessedNo = 0;
 double time0,time1,time2;
 Mat g_rawImage;
-Mat g_rawSaveImage;
-Mat srcImg;
-Mat rawCameraImg;
 Mat g_rectResultImg;
 
 bool copyIsRunningFlag = false;
@@ -77,6 +77,8 @@ vector<Mat> rectCandidateImg;
 //透视变换后的二值化roi图像
 //vector<Mat> vecPossibleDigitBinaryImg;
 
+void DisplayScreenProcess(Mat& rawCameraImg);
+void PrintBoardProcess(Mat& rawCameraImg);
 void GetLightnessImage( Mat& input_bgr_img, Mat& output_lightness_img, vector< vector<VisionResult> >& lastValidResult);
 void InitRawImgSubscriber( );
 void CameraImageSubCallback(const sensor_msgs::ImageConstPtr& msg);

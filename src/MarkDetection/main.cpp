@@ -51,106 +51,152 @@ void AttitudeSubCallBack(const geometry_msgs::TransformStamped::ConstPtr& att_ms
     return;
 }
 
+int target = PRINTBOARD; //PRINTBOARD; DISPLAYSCREEN
 void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
 {
-        g_rawSaveImage = cv_bridge::toCvCopy(msg, "bgr8")->image;
-        if (!g_rawSaveImage.data)
-            return;
+    Mat g_rawSaveImage;
 
-        //printf("imgNo=%d\n", imageProcessedNo);
-        g_rawSaveImage.copyTo( rawCameraImg );
-        if (rawCameraImg.cols < 1384)
-            resize(rawCameraImg, rawCameraImg, Size(1384,1032));
-        //resize image
-        ResizeImageByDistance(rawCameraImg, srcImg, lastFrameResult);
-        Mat lightness_img_8UC3;
-        GetLightnessImage( srcImg, lightness_img_8UC3, lastValidResult);
-
-        if (1 == srcImg.channels())
-            cvtColor(srcImg,srcImg,CV_GRAY2BGR);
-        Mat rectResultImg = srcImg.clone();
-        Mat alg2_rectResultImg = srcImg.clone();
-
-        //a rect detection algorithm based on statistics errors
-        RectDetectByStatisticsError( lightness_img_8UC3, alg2_rectResultImg, lastValidResult, incompleteRectResult);
-
-        //rect detector
-        RectangleDetect( lightness_img_8UC3, rectResultImg, rectCategory, imageProcessedNo );
-        //透视变换
-        PerspectiveTransformation(lightness_img_8UC3, rectCandidateImg, rectCategory);
-        //Jugde rect kind
-        GetRectKinds( rectCategory );
-        //位置估计
-        EstimatePosition(rectResultImg, rectCategory);
-        //数字识别
-        DigitDetector(rectResultImg, KNNocr, rectCategory, digitBinaryImgSaveEnable);
-
-        //switch result by the algorithm based on statistics errors
-        if (0 == visionResult.size() && incompleteRectResult.size()>0)
-        {
-            swap(visionResult,incompleteRectResult);
-            rectResultImg = alg2_rectResultImg;
-        }
-
-        //视觉检测结果保存为txt
-        SaveResultToTxt( baseDir, shrink, visionResult );
-        //show time and fps
-        ShowTime(rectResultImg, imageProcessedNo, shrink);
-        //show result image
-        resize(rectResultImg, rectResultImg, Size(640,480), 0, 0, INTER_AREA);
-
-        rectResultImg.copyTo(g_rectResultImg);
-        g_rectResultImgUpdated = true;
-
-        //Coordinate transformation
-        CameraCoordinate2NegCoordinate(visionResult, attitude3d);
-        //publish digit result
-        DigitResultPublish( visionResult );
-
-        for(int k=0;k<(int)visionResult.size();++k)
-        {
-            ROS_INFO("\nimgNo=%d;\ndigit=%d;\nx=%.2f;y=%.2f;z=%.2f; \nroll=%.2f;pit=%.2f;yaw=%.2f; \nE=%.2f;N=%.2f;U=%.2f;\n",
-                    imageProcessedNo,
-                    visionResult[k].digitNo,
-                    visionResult[k].cameraPos3D.x, visionResult[k].cameraPos3D.y,visionResult[k].cameraPos3D.z,
-                    attitude3d.roll*180/3.14,attitude3d.pitch*180/3.14,attitude3d.yaw*180/3.14,
-                    visionResult[k].negPos3D.y, visionResult[k].negPos3D.x, -visionResult[k].negPos3D.z
-                    );
-        }
-
-        imshow("ImageProcessing",rectResultImg);
-
-        if (false == g_visionResult.empty())
-            vector<VisionResult>().swap(g_visionResult);
-        for(int k=0;k<visionResult.size();++k)
-            g_visionResult.push_back(visionResult[k]);
-
-        //clear memory
-        if (false == rectCandidateImg.empty())
-            vector<Mat>().swap(rectCandidateImg);
-        if (false == rectPossible.empty())
-            vector<RectMark>().swap(rectPossible);
-        if (false == rectCategory.empty())
-            vector< vector<RectMark> >().swap(rectCategory);
-        if (false == visionResult.empty())
-            vector<VisionResult>().swap(visionResult);
-        if (false == incompleteRectResult.empty())
-            vector<VisionResult>().swap(incompleteRectResult);
-        g_PrecisionRatio = -1;
-        g_AccuracyAmount = -1;
-
-        int waitValue = 1;
-        int c = waitKey(waitValue);
-        if ('p' == c)
-            waitValue = 0;
-        //press ‘q’ to exit
-        if ( 113 == c )  //113 == c || 131153 == c
-            exit(0);
-        imageProcessedNo++;
-        //printf("roll=%.2f; pit=%.2f; yaw=%.2f;\n",attitude3d.roll*180/3.14,attitude3d.pitch*180/3.14,attitude3d.yaw*180/3.14);
-        //printf("image-%d all process done!\n", imageProcessedNo);
+    g_rawSaveImage = cv_bridge::toCvCopy(msg, "bgr8")->image;
+    if (!g_rawSaveImage.data)
         return;
+    Mat rawCameraImg;
+    g_rawSaveImage.copyTo( rawCameraImg );
+    if (rawCameraImg.cols < 1384)
+        resize(rawCameraImg, rawCameraImg, Size(1384,1032));
+
+    if (PRINTBOARD == target)
+        PrintBoardProcess(rawCameraImg);
+    else if (DISPLAYSCREEN == target)
+        DisplayScreenProcess(rawCameraImg);
+    //printf("imgNo=%d\n", imageProcessedNo);
+    imageProcessedNo++;
+    return;
 }
+
+void DisplayScreenProcess(Mat& rawCameraImg)
+{
+    Mat hsv_img;
+    cvtColor(rawCameraImg,hsv_img,CV_BGR2HSV_FULL);
+    vector<Mat> channels;
+    split(hsv_img, channels);
+    Mat color_img;
+    Mat light_img;
+    color_img = channels.at(0);
+    light_img = channels.at(2);
+    for(int i=0;i<rawCameraImg.rows;++i)
+    {
+        for(int j=0;j<rawCameraImg.cols;++j)
+        {
+            int color = color_img.at<uchar>(i,j);
+            if(color>30 && color<220)
+            {
+                rawCameraImg.at<Vec3b>(i,j)[0] = 0;
+                rawCameraImg.at<Vec3b>(i,j)[1] = 0;
+                rawCameraImg.at<Vec3b>(i,j)[2] = 0;
+                light_img.at<uchar>(i,j) = 0;
+            }
+        }
+    }
+    Mat show_img;
+    resize(rawCameraImg,show_img,Size(640,480),0,0,INTER_AREA);
+    resize(light_img,light_img,Size(640,480),0,0,INTER_AREA);
+    imshow("color filter", show_img);
+    imshow("light_img", light_img);
+    waitKey(1);
+    return;
+}
+
+void PrintBoardProcess(Mat& rawCameraImg)
+{
+    Mat srcImg;
+    //resize image
+    ResizeImageByDistance(rawCameraImg, srcImg, lastFrameResult);
+    Mat lightness_img_8UC3;
+    GetLightnessImage( srcImg, lightness_img_8UC3, lastValidResult);
+
+    if (1 == srcImg.channels())
+        cvtColor(srcImg,srcImg,CV_GRAY2BGR);
+    Mat rectResultImg = srcImg.clone();
+    Mat alg2_rectResultImg = srcImg.clone();
+
+    //a rect detection algorithm based on statistics errors
+    RectDetectByStatisticsError( lightness_img_8UC3, alg2_rectResultImg, lastValidResult, incompleteRectResult);
+
+    //rect detector
+    RectangleDetect( lightness_img_8UC3, rectResultImg, rectCategory, imageProcessedNo );
+    //透视变换
+    PerspectiveTransformation(lightness_img_8UC3, rectCandidateImg, rectCategory);
+    //Jugde rect kind
+    GetRectKinds( rectCategory );
+    //位置估计
+    EstimatePosition(rectResultImg, rectCategory);
+    //数字识别
+    DigitDetector(rectResultImg, KNNocr, rectCategory, digitBinaryImgSaveEnable);
+
+    //switch result by the algorithm based on statistics errors
+    if (0 == visionResult.size() && incompleteRectResult.size()>0)
+    {
+        swap(visionResult,incompleteRectResult);
+        rectResultImg = alg2_rectResultImg;
+    }
+
+    //视觉检测结果保存为txt
+    SaveResultToTxt( baseDir, shrink, visionResult );
+    //show time and fps
+    ShowTime(rectResultImg, imageProcessedNo, shrink);
+    //show result image
+    resize(rectResultImg, rectResultImg, Size(640,480), 0, 0, INTER_AREA);
+
+    rectResultImg.copyTo(g_rectResultImg);
+    g_rectResultImgUpdated = true;
+
+    //Coordinate transformation
+    CameraCoordinate2NegCoordinate(visionResult, attitude3d);
+    //publish digit result
+    DigitResultPublish( visionResult );
+
+    for(int k=0;k<(int)visionResult.size();++k)
+    {
+        ROS_INFO("\nimgNo=%d;\ndigit=%d;\nx=%.2f;y=%.2f;z=%.2f; \nroll=%.2f;pit=%.2f;yaw=%.2f; \nE=%.2f;N=%.2f;U=%.2f;\n",
+                imageProcessedNo,
+                visionResult[k].digitNo,
+                visionResult[k].cameraPos3D.x, visionResult[k].cameraPos3D.y,visionResult[k].cameraPos3D.z,
+                attitude3d.roll*180/3.14,attitude3d.pitch*180/3.14,attitude3d.yaw*180/3.14,
+                visionResult[k].negPos3D.y, visionResult[k].negPos3D.x, -visionResult[k].negPos3D.z
+                );
+    }
+
+    imshow("ImageProcessing",rectResultImg);
+
+    if (false == g_visionResult.empty())
+        vector<VisionResult>().swap(g_visionResult);
+    for(int k=0;k<visionResult.size();++k)
+        g_visionResult.push_back(visionResult[k]);
+
+    //clear memory
+    if (false == rectCandidateImg.empty())
+        vector<Mat>().swap(rectCandidateImg);
+    if (false == rectPossible.empty())
+        vector<RectMark>().swap(rectPossible);
+    if (false == rectCategory.empty())
+        vector< vector<RectMark> >().swap(rectCategory);
+    if (false == visionResult.empty())
+        vector<VisionResult>().swap(visionResult);
+    if (false == incompleteRectResult.empty())
+        vector<VisionResult>().swap(incompleteRectResult);
+    g_PrecisionRatio = -1;
+    g_AccuracyAmount = -1;
+
+    int waitValue = 1;
+    int c = waitKey(waitValue);
+    if ('p' == c)
+        waitValue = 0;
+    //press ‘q’ to exit
+    if ( 113 == c )  //113 == c || 131153 == c
+        exit(0);
+    return;
+}
+
 
 void GetLightnessImage( Mat& input_bgr_img, Mat& output_lightness_img, vector< vector<VisionResult> >& lastValidResult)
 {

@@ -10,6 +10,7 @@
 #include <geometry_msgs/TransformStamped.h>  //IMU
 #include <geometry_msgs/Vector3Stamped.h>       //velocity
 #define SUBSCRIBE_RATE  80
+static char baseDir[200] = "/home/sia/guidance";
 
 int MyImageSegmentation( Mat& input_xyz_img, Mat& input_gray_img );
 void MystereoShow( StereoMatchingType& stereo_cam );
@@ -52,17 +53,18 @@ int ShowImages(Mat& gray_image_left, Mat& gray_image_right, Mat& depth8, Mat& ps
     imshow("pseudo_color", pseudo_color_img);
     //resize(depth8,depth8,Size(640,480));
     imshow("depth8", depth8);
-    waitKey(1);
+    int c = waitKey(1);
 
-    /*
+    //if ( c>0 )
+    //{
             char imgName[200];
-            sprintf(imgName, "%s/guidance/depth_1_%06d.png", baseDir, showImgNo);
+            sprintf(imgName, "%s/depth_1_%06d.png", baseDir, showImgNo);
             //imwrite(imgName, guidance_depth_image);
-            sprintf(imgName, "%s/guidance/gray_left_1_%06d.png", baseDir, showImgNo);
+            sprintf(imgName, "%s/gray_left_1_%06d.png", baseDir, showImgNo);
             imwrite(imgName, gray_image_left);
-            sprintf(imgName, "%s/guidance/gray_right_1_%06d.png", baseDir, showImgNo);
+            sprintf(imgName, "%s/gray_right_1_%06d.png", baseDir, showImgNo);
             imwrite(imgName, gray_image_right);
-    */
+    //}
     showImgNo++;
     return 1;
 }

@@ -5,7 +5,7 @@
  */
 
 #include "declare.h"
-#define FRAME_AMOUNT_OF_VIDEO  (10*60*15)
+#define FRAME_AMOUNT_OF_VIDEO  (10*60*10)
 
 vector<VisionResult>  g_visionResult;
 extern Attitude3D attitude3d;
