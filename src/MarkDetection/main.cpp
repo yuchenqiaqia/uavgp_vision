@@ -176,8 +176,8 @@ void GetLightnessImage( Mat& input_bgr_img, Mat& output_lightness_img, vector< v
         }
         dist = sum/num;
     }
-    if (dist < 1.5 && (0 == imgNo%2))
-        equalizeHist(value_image,output_lightness_img);
+    //if (dist < 1.5 )//&& (0 == imgNo%2)
+    //    equalizeHist(value_image,output_lightness_img);
     cvtColor(output_lightness_img,output_lightness_img,CV_GRAY2BGR);
     Mat equalize_img;
     resize(output_lightness_img,equalize_img,Size(640,480));
@@ -619,7 +619,7 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         tvec_z=tvec.at<double>(2,0);
         rectCategory[i][0].position = Point3d( tvec_x,tvec_y,tvec_z );
         //剔除过远或过近的
-        if(tvec_z>12 || tvec_z<0.3)
+        if(tvec_z>10.5 || tvec_z<0.3)
         {
             rectCategory.erase(rectCategory.begin()+i);
             i--;
@@ -668,7 +668,7 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         }
 
         //识别再过滤, 预测率小于80%都算误识别
-        if ((rectCategory[i][0].position.z <=8.0 && (int)precisionRatio < 90) || (rectCategory[i][0].position.z <= 9.0 && rectCategory[i][0].position.z > 8.0 && (int)precisionRatio < 100) || rectCategory[i][0].position.z > 9.0)
+        if ((rectCategory[i][0].position.z <=7.5 && (int)precisionRatio < 90) || (rectCategory[i][0].position.z <= 9.0 && rectCategory[i][0].position.z > 7.5 && (int)precisionRatio < 100) || rectCategory[i][0].position.z > 9.0)
             continue;
 
         //printf("Digit=%d;Precision=%0.1f%%\n",(int)classResult,precisionRatio);

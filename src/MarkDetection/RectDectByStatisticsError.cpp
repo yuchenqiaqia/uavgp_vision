@@ -6,6 +6,8 @@
 
 #include "declare.h"
 
+float statistics_errors_shrink = 0.2;
+
 class LinearEquation
 {
 public:
@@ -275,8 +277,8 @@ void ErrorStatisticsBetweenRectAndContour(ContoursInfo& contoursInfo, Mat& input
             if (0 == m)
                 line_length_thres = 0.85;
             else
-                line_length_thres = 0.5;
-            if ( linear_equation[m].inline_points_num>linear_equation[m].line_length*0.5 && linear_equation[m].inline_points_num > linear_equation[m].statistics_points_num*0.8)
+                line_length_thres = 0.7;
+            if ( linear_equation[m].inline_points_num>linear_equation[m].line_length*line_length_thres && linear_equation[m].inline_points_num > linear_equation[m].statistics_points_num*line_length_thres)
             {
                 linear_equation[m].is_side_of_rect = true;
             }
@@ -342,8 +344,8 @@ void GetTheTargetRect(ContoursInfo& contoursInfo, vector<RectInfo>& rectsInfo, M
                 Point point_mid_02 = Point((rectInfo.real_vertex[0].x+rectInfo.real_vertex[2].x)/2, (rectInfo.real_vertex[0].y+rectInfo.real_vertex[2].y)/2);
                 Point point_mid_13 = Point((rectInfo.real_vertex[1].x+rectInfo.real_vertex[3].x)/2, (rectInfo.real_vertex[1].y+rectInfo.real_vertex[3].y)/2);
                 rectInfo.imagePos2D = Point((point_mid_02.x+point_mid_13.x)/2, (point_mid_02.y+point_mid_13.y)/2);
-                for(int j=0;j<4;++j)
-                    line(input_img, rectInfo.real_vertex[j], rectInfo.real_vertex[(j+1)%4], Scalar(255,0,255), 3, 8);
+                //for(int j=0;j<4;++j)
+                //    line(input_img, rectInfo.real_vertex[j], rectInfo.real_vertex[(j+1)%4], Scalar(255,0,255), 3, 8);
                 rectsInfo.push_back(rectInfo);
             }
         }
@@ -361,14 +363,14 @@ void GetTheTargetRect(ContoursInfo& contoursInfo, vector<RectInfo>& rectsInfo, M
                 swap(rectsInfo[i],rectsInfo[j]);
         }
     }
-    if (rectsInfo.size() > 0)
-        circle(input_img,rectsInfo[0].imagePos2D,6,Scalar(0,0,255),-1,8,0);
+    //if (rectsInfo.size() > 0)
+    //    circle(input_img,rectsInfo[0].imagePos2D,6,Scalar(0,0,255),-1,8,0);
     return;
 }
 
 void EstimateTargetPosition(vector<RectInfo>& rectsInfo, Mat& inputImg)
 {
-    float shrink = 0.5;
+    float shrink = statistics_errors_shrink;
     vector<Point2f> imagePoints2d(4);
     vector<Point3f> objectPoints3d(4);
     const static double kind_0_width = 0.3;
@@ -410,7 +412,7 @@ void EstimateTargetPosition(vector<RectInfo>& rectsInfo, Mat& inputImg)
         tvec_z=tvec.at<double>(2,0);
         rectsInfo[i].cameraPos3D = Point3d( tvec_x,tvec_y,tvec_z );
         //剔除过远或过近的
-        if(tvec_z>1 || tvec_z<0.2)
+        if(tvec_z>1 || tvec_z<0.35)
         {
             rectsInfo.erase(rectsInfo.begin()+i);
             i--;
@@ -421,8 +423,16 @@ void EstimateTargetPosition(vector<RectInfo>& rectsInfo, Mat& inputImg)
         sprintf(transf,"T:[%0.3fm,%0.3fm,%0.3fm]",tvec_x,tvec_y,tvec_z);
         Point T_showCenter;
         T_showCenter=Point2d(3,20);
+        double size = 1.5*inputImg.cols/1384;
         if (0 == i)
-            putText(inputImg, transf, T_showCenter,CV_FONT_HERSHEY_PLAIN,1.4,Scalar(255,255,0),2);
+            putText(inputImg, transf, T_showCenter,CV_FONT_HERSHEY_PLAIN,((size<1)?1:size),Scalar(255,255,0),((size<1)?1:size));
+    }
+    // draw rects
+    for (int i=0; i<(int)rectsInfo.size(); ++i)
+    {
+        circle(inputImg,rectsInfo[i].imagePos2D,2,Scalar(0,0,255),-1,8,0);
+        for(int j=0;j<4;++j)
+            line(inputImg, rectsInfo[i].real_vertex[j], rectsInfo[i].real_vertex[(j+1)%4], Scalar(255,0,255), 1, 8);
     }
     return;
 }
@@ -440,31 +450,31 @@ int RectDetectByStatisticsError(Mat& lightness_img, Mat& input_img, vector< vect
         num++;
     }
     dist = sum/num;
-    if (dist > 1.0)
+    if (dist > 1.5)
         return 0;
     Mat resized_lightness_img;
-    resize(lightness_img, resized_lightness_img, Size(1384*0.5,1032*0.5), 0, 0, INTER_LINEAR);
-    resize(input_img, input_img, Size(1384*0.5,1032*0.5), 0, 0, INTER_LINEAR);
+    resize(lightness_img, resized_lightness_img, Size(1384*statistics_errors_shrink,1032*statistics_errors_shrink), 0, 0, INTER_LINEAR);
+    resize(input_img, input_img, Size(1384*statistics_errors_shrink,1032*statistics_errors_shrink), 0, 0, INTER_LINEAR);
     Mat show_rect = input_img;
     Mat show_img = input_img.clone();
 
     Mat gaussianImg,cannyImg;
-    GaussianBlur(resized_lightness_img, gaussianImg, Size(7,7),0,0);
+    GaussianBlur(resized_lightness_img, gaussianImg, Size(5,5),0,0);
     //imshow("gauss",gaussianImg);
-    Canny(gaussianImg,cannyImg,200,80);
-    //imshow("canny",cannyImg);
+    Canny(gaussianImg,cannyImg,180,50);
+    imshow("canny",cannyImg);
 /*
     Mat srcGray;
     cvtColor(show_img,srcGray,CV_BGR2GRAY);
     Mat imgBinary;
-    int min_size = 100; //100
+    int min_size = 80; //100
     int thresh_size = (min_size/4)*2 + 1;
     adaptiveThreshold(srcGray, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
 
     Mat element;
     element=getStructuringElement(MORPH_ELLIPSE, Size( 5,5 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
     morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
-    //imshow("StatisticsErrorBinary", imgBinary);
+    imshow("StatisticsErrorBinary", imgBinary);
 */
     vector< vector<Point> > all_contours;
     vector< vector<Point> > contours;
@@ -485,8 +495,8 @@ int RectDetectByStatisticsError(Mat& lightness_img, Mat& input_img, vector< vect
     ContoursInfo contoursInfo;
     GetPossibleRectVertexes(contours, contoursInfo, show_img);
 
-    //drawContours(show_img, contours, -1, Scalar(0,0,255), 1 );
-    //imshow("all_contours", show_img);
+    drawContours(show_img, contours, -1, Scalar(0,0,255), 1 );
+    imshow("all_contours", show_img);
 
     ErrorStatisticsBetweenRectAndContour(contoursInfo, show_rect);
     vector<RectInfo> rectsInfo;
@@ -504,6 +514,6 @@ int RectDetectByStatisticsError(Mat& lightness_img, Mat& input_img, vector< vect
        incomplete_rect.cameraPos3D.z = rectsInfo[0].cameraPos3D.z;
        incompleteRectResult.push_back(incomplete_rect);
     }
-    //imshow("rects",show_rect);
+    imshow("rects",show_rect);
     return 1;
 }
