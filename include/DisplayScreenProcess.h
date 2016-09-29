@@ -3,10 +3,17 @@
 using namespace std;
 using namespace cv;
 
+class RoiAreaInfo
+{
+public:
+    vector<Rect> minBoundingRects;
+    vector<Mat>  roi_imgs;
+};
+
 class DisplayScreenProcessType
 {
 public:
-    DisplayScreenProcessType( );
+    DisplayScreenProcessType();
     void DisplayScreenProcess(Mat& input_img, basicOCR* KNNocr, const char* baseDir);
 
     int imgNo;
@@ -16,4 +23,13 @@ public:
     Mat show_img;
     float rect_filter_two_side_ratio_max;
     float rect_filter_two_side_ratio_min;
+
+private:
+    void ContoursPreFilter(vector< vector<Point> >& all_contours, vector< vector<Point> >& contours);
+    void GetDigitRoi(vector< vector<Point> >& contours, Mat& binary_img, RoiAreaInfo& roiAreaInfos);
+    void ColorFilter(Mat& rawCameraImg, Mat& median_blur_light_img);
+    void ThresholdProcess(Mat& median_blur_light_img, Mat& imgBinary);
+    void DigitClassify(RoiAreaInfo& roiAreaInfos, Mat& rawCameraImg, basicOCR* KNNocr, const char* baseDir);
 };
+
+

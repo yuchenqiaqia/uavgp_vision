@@ -267,7 +267,7 @@ void RectangleDetect( Mat& lightness_img, Mat& resultImg, vector< vector<RectMar
         //非凸4边形不感兴趣
         if (!isContourConvex(approxCurve))
             continue;
-        //四个顶点排序，顺时针：0，1，2，3，左上角为0；
+        //vertex sort，clock wise, top left corner is 0；
         for(int m=0;m<(int)approxCurve.size();++m)
         {
             for (int n=m+1;n<(int)approxCurve.size();++n)
