@@ -15,7 +15,7 @@
 
 double shrink = 1;
 
-
+DisplayScreenProcessType display_screen_process;
 basicOCR* KNNocr;
 int cameraNo = 0;
 int imageProcessedNo = 0;
@@ -32,9 +32,6 @@ bool g_rectResultImgUpdated = false;
 //矩形长宽比例阈值
 float maxSideLengthRatioAllowed = 2.5f;
 float rectClassifyThres = 0.5f;
-//识别信息
-extern float g_PrecisionRatio;
-extern int g_AccuracyAmount;
 
 class MultiThreadListener
 {
@@ -72,10 +69,6 @@ vector<RectMark> rectPossible;
 vector< vector<RectMark> > rectCategory;
 //透视变换后的矩形图像
 vector<Mat> rectCandidateImg;
-//存储的透视变换后图像
-//vector<Mat> vecPerspectiveImg;
-//透视变换后的二值化roi图像
-//vector<Mat> vecPossibleDigitBinaryImg;
 
 void DisplayScreenProcess(Mat& rawCameraImg);
 void PrintBoardProcess(Mat& rawCameraImg);

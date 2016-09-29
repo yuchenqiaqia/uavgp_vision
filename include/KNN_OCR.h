@@ -19,12 +19,28 @@
 //#include <opencv2/ml/ml.hpp>
 using namespace cv;
 
+class KNNResult
+{
+  public:
+    KNNResult()
+    {
+        classResult = -1;
+        precisionRatio = -1;
+        accuracyAmount = -1;
+    }
+    float classResult;
+    float precisionRatio;
+    int accuracyAmount;
+};
+
 class basicOCR
 {
 	public:
 		float classify(IplImage* img,int showResult);
         basicOCR (char*);
-		void test();	
+        void test();
+        KNNResult knn_result;
+
 	private:
 		char file_path[255];
 		int train_samples;
@@ -39,7 +55,6 @@ class basicOCR
 
         //CvKNearest *knn;
         Ptr<ml::KNearest>  knn;
-
 		void getData();
 		void train();
 };

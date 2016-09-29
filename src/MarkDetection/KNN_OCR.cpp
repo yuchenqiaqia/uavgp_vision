@@ -20,11 +20,6 @@
 #include "KNN_OCR.h"
 using namespace cv::ml;
 
-float g_ClassResult = -1;
-float g_PrecisionRatio = -1;
-int g_AccuracyAmount = -1;
-int g_KNo;
-
 void basicOCR::getData()
 {
 	IplImage* src_image;
@@ -125,8 +120,9 @@ float basicOCR::classify(IplImage* img, int showResult)
 		//printf("|\t%.0f\t| \t%.2f%%  \t| \t%d of %d \t| \n",result,pre,accuracy,K);
 	}
 
-	g_PrecisionRatio = pre;
-	g_AccuracyAmount = accuracy;
+    knn_result.classResult = result;
+    knn_result.precisionRatio = pre;
+    knn_result.accuracyAmount = accuracy;
 
     cvReleaseImage(&img32);
     cvReleaseImageHeader(&img32);

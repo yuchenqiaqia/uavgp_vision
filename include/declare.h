@@ -4,7 +4,8 @@
  * @time	: 2016/09/12
  */
 
-#include "KNN_OCR.h"
+//#include "KNN_OCR.h"
+#include "DisplayScreenProcess.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -27,9 +28,9 @@
 //#include <linux/videodev2.h>
 
 #define  OPENCV_VIDEOCAPTURE    0
-#define  MVMODE                              1
-#define  POINTGRAYCAMERA            2
-#define  OFFLINEDATA                       3
+#define  MVMODE                 1
+#define  POINTGRAYCAMERA        2
+#define  OFFLINEDATA            3
 
 using namespace std;
 using namespace cv; 
