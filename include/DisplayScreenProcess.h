@@ -23,6 +23,9 @@ public:
     Mat show_img;
     float rect_filter_two_side_ratio_max;
     float rect_filter_two_side_ratio_min;
+    float min_bounding_rect_height_ratio;
+    float min_precision_ratio_thres;
+    float min_knn_distance_thres;
 
 private:
     void ContoursPreFilter(vector< vector<Point> >& all_contours, vector< vector<Point> >& contours);

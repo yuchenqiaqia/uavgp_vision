@@ -4,8 +4,11 @@ DisplayScreenProcessType::DisplayScreenProcessType( )
 {
     imgNo = 0;
     shrink = 1.0;
-    rect_filter_two_side_ratio_max = 0.9;
-    rect_filter_two_side_ratio_min = 0.25;
+    rect_filter_two_side_ratio_max = 0.9;   ////0.9
+    rect_filter_two_side_ratio_min = 0.2;   ////0.2
+    min_bounding_rect_height_ratio = 0.08;  ////0.1
+    min_precision_ratio_thres = 80.0;    ////80
+    min_knn_distance_thres = 300;
     return;
 }
 
@@ -46,20 +49,21 @@ void DisplayScreenProcessType::DigitClassify(RoiAreaInfo& roiAreaInfos, Mat& raw
         IplImage ipl_img(roiAreaInfos.roi_imgs[i]);
         float classResult = KNNocr->classify(&ipl_img,1);
         float precisionRatio = KNNocr->knn_result.precisionRatio;
-        printf("digit=%d\nprecisionRatio=%0.2f\n",(int)classResult,precisionRatio*0.01);
+        float min_distance = KNNocr->knn_result.min_distance;
 
         char digit[100];
         sprintf(digit, "%s/digit_image/digit_%d_%06d__%d.pbm", baseDir, int(classResult), imgNo, int(precisionRatio));
         imwrite(digit,  roiAreaInfos.roi_imgs[i] );
 
-        if (precisionRatio >= 90)
+        if (precisionRatio >= min_precision_ratio_thres && min_distance < min_knn_distance_thres)
         {
+            printf("digit=%d; accuracy=%d%%; dist=%f\n\n",(int)classResult,(int)precisionRatio, min_distance);
             sprintf(digit,"%d",(int)classResult);
             Point showCenter = Point(roiAreaInfos.minBoundingRects[i].x + roiAreaInfos.minBoundingRects[i].width + 60, roiAreaInfos.minBoundingRects[i].y + roiAreaInfos.minBoundingRects[i].height*0.5);
             putText(rawCameraImg, digit, showCenter,CV_FONT_HERSHEY_DUPLEX,5.2*shrink,Scalar(0,0,255), int(5.5*shrink));
             rectangle( rawCameraImg, roiAreaInfos.minBoundingRects[i], Scalar(255,0,255), 4, 8);
+            imshow("digit",roiAreaInfos.roi_imgs[i]);
         }
-        imshow("digit",roiAreaInfos.roi_imgs[i]);
     }
     return;
 }
@@ -90,7 +94,7 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& median_blur_l
                 light_img.at<uchar>(i,j) = 0;
         }
     }
-    medianBlur(light_img,median_blur_light_img,7);
+    medianBlur(light_img,median_blur_light_img,5);
     Mat resized_light_img;
     resize(light_img,resized_light_img,Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
     imshow("light_img",resized_light_img);
@@ -106,7 +110,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& median_blur_light_img, Mat&
     int min_size = 70; //100, 80
     int thresh_size = (min_size/4)*2 + 1;
     adaptiveThreshold(median_blur_light_img, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
-    double s = 5*shrink;   //* (640)
+    double s = 5*shrink;
     int size = ( 1 == int(s)%2 ) ? int(s) : int(s)+1;
     if (size < 3)
         size = 3;
@@ -181,7 +185,7 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
     {
         Rect minBoundingRect = boundingRect( Mat(contours[i]) );
         rectangle( rawCameraImg, minBoundingRect, Scalar(0,255,255), 1, 8);
-        if ((minBoundingRect.height < rawCameraImg.cols*0.15) || ((minBoundingRect.width*1.0/minBoundingRect.height) > rect_filter_two_side_ratio_max) || ((minBoundingRect.width*1.0/minBoundingRect.height) < rect_filter_two_side_ratio_min))
+        if ((minBoundingRect.height < rawCameraImg.cols*min_bounding_rect_height_ratio) || ((minBoundingRect.width*1.0/minBoundingRect.height) > rect_filter_two_side_ratio_max) || ((minBoundingRect.width*1.0/minBoundingRect.height) < rect_filter_two_side_ratio_min))
             continue;
 
         int height = minBoundingRect.height*1.2;
@@ -205,6 +209,49 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
 
         roiAreaInfos.minBoundingRects.push_back(minBoundingRect);
         roiAreaInfos.roi_imgs.push_back(binary_roi_img);
+    }
+    return;
+}
+
+
+void RectErase( vector<Rect>& rectPossible, vector< vector<Rect> >& rectCategory)
+{
+    for (int i=0;i<(int)rectPossible.size();++i)
+    {
+        for (int j=i+1;j<(int)rectPossible.size();++j)
+        {
+            if (rectPossible[i].width < rectPossible[j].width)
+                swap(rectPossible[i],rectPossible[j]);
+        }
+    }
+
+    for (int i=0;i<(int)rectPossible.size();++i)
+    {
+        //rectArrayTemp can't defined before "for(int i=0;...){"!
+        vector<Rect> rectArrayTemp;
+        rectArrayTemp.push_back(rectPossible[i]);
+
+        Point2f middlePoint_i = Point2f(rectPossible[i].x+rectPossible[i].width/2,rectPossible[i].y+rectPossible[i].height/2);
+        for (int j=i+1;j<(int)rectPossible.size();++j)
+        {
+            Point2f middlePoint_j = Point2f(rectPossible[j].x+rectPossible[j].width/2,rectPossible[j].y+rectPossible[j].height/2);
+            float twoPointDistance = sqrt(pow(middlePoint_i.x-middlePoint_j.x,2)+pow(middlePoint_i.y-middlePoint_j.y,2));
+            float minSide = 0;
+            if (rectPossible[i].width < rectPossible[j].width)
+                minSide = rectPossible[i].width;
+            else
+                minSide = rectPossible[j].width;
+
+            float rectClassifyThres = 0.5f;
+            if (twoPointDistance < (minSide * rectClassifyThres))
+            {
+                rectArrayTemp.push_back(rectPossible[j]);
+                rectPossible.erase(rectPossible.begin() + j);
+                j--;
+            }
+        }
+        //同一类的放在一起
+        rectCategory.push_back(rectArrayTemp);
     }
     return;
 }

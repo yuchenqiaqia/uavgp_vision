@@ -7,11 +7,11 @@
 #include "define.h"
 #include "project_path_config.h"
 
+int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
+
 int  openCameraMode = POINTGRAYCAMERA ;  //OPENCV_VIDEOCAPTURE,  POINTGRAYCAMERA, OFFLINEDATA
-//保存视频
 bool imageSaveEnable = false;
 bool digitBinaryImgSaveEnable = true;
-//程序读写文件依赖的基本父路径
 char baseDir[200] = OCR_DIR_PATH;
 
 int main(int argc, char **argv)
@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     KNNocr = &myKNNocr;
     CreatSaveDir(baseDir, imageSaveEnable);
     CreateRosPublishThread(baseDir);
-    InitRawImgSubscriber( );
+    InitRawImgSubscriber();
     return 0;
 }
 
@@ -52,7 +52,6 @@ void AttitudeSubCallBack(const geometry_msgs::TransformStamped::ConstPtr& att_ms
 }
 
 
-int target = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
 void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
 {
     Mat rawSaveImage;
@@ -62,9 +61,9 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
     Mat rawCameraImg;
     rawSaveImage.copyTo( rawCameraImg );
 
-    if (PRINTBOARD == target)
+    if (PRINTBOARD == targetType)
         PrintBoardProcess(rawCameraImg);
-    else if (DISPLAYSCREEN == target)
+    else if (DISPLAYSCREEN == targetType)
         DisplayScreenProcess(rawCameraImg);
 
     imageProcessedNo++;
@@ -671,24 +670,27 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         IplImage ipl_img(possibleDigitBinaryImg);
         float classResult = ocr->classify(&ipl_img,1);
         float precisionRatio = ocr->knn_result.precisionRatio;
-        //printf("classify done!\n");
+        float min_distance = ocr->knn_result.min_distance;
 
-        char digit[100];
-        //存储用于识别的数字图像
+        char digit[500];
         if (true == saveDigitBinaryImg)
         {
-            sprintf(digit, "%s/digit_image/digit_%d_%06d__%d.pbm", baseDir, int(classResult), rectCategory[i][0].frameNo, int(precisionRatio));
+            sprintf(digit, "%s/digit_image/digit_%d_%06d__%d_%d.pbm", baseDir, int(classResult), rectCategory[i][0].frameNo, int(precisionRatio), int(min_distance));
             imwrite(digit,  rectCategory[i][0].possibleDigitBinaryImg );
         }
 
-        //识别再过滤, 预测率小于80%都算误识别
-        if ((rectCategory[i][0].position.z <=7.5 && (int)precisionRatio < 90) || (rectCategory[i][0].position.z <= 9.0 && rectCategory[i][0].position.z > 7.5 && (int)precisionRatio < 100) || rectCategory[i][0].position.z > 9.0)
+        //printf("digit=%d; precisionRatio=%d; dist=%f\n\n",(int)classResult,(int)precisionRatio, min_distance);
+        if (min_distance > 260)
+            continue;
+        if ((rectCategory[i][0].position.z <=9.0 && (int)precisionRatio < 90) || rectCategory[i][0].position.z > 9.0)
             continue;
 
-        //printf("Digit=%d;Precision=%0.1f%%\n",(int)classResult,precisionRatio);
-        rectCategory[i][0].digitNo = (int)classResult;
+        //static float dis_temp = 0;
+        //if (dis_temp < min_distance)
+        //    dis_temp = min_distance;
+        //printf("dis_temp=%f\n",dis_temp);
 
-        //最终检测结果存入vector
+        rectCategory[i][0].digitNo = (int)classResult;
         VisionResult result;
         result.frameNo = rectCategory[i][0].frameNo;
         result.digitNo = (int)classResult;
@@ -696,9 +698,8 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         result.cameraPos3D = rectCategory[i][0].position;
         visionResult.push_back(result);
 
-        //将用于识别的digit图像进行分窗口显示
         sprintf(digit,"%d",int(classResult));
-        imshow(digit, rectCategory[i][0].possibleDigitBinaryImg);
+        //imshow(digit, rectCategory[i][0].possibleDigitBinaryImg);
 
         int x = int((rectCategory[i][0].m_points[0].x + rectCategory[i][0].m_points[2].x)/2) - 10;
         int y = int((rectCategory[i][0].m_points[0].y + rectCategory[i][0].m_points[2].y)/2) + 10;
@@ -717,10 +718,7 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         //imshow("Classify",possibleDigitBinaryImg);
 
         sprintf(digit,"beforeClassify-%d",int(classResult));
-        imshow(digit, rectCategory[i][0].possibleRectBinaryImg);
-
-        //if ( precisionRatio<70 )
-        //    waitKey(0);
+        //imshow(digit, rectCategory[i][0].possibleRectBinaryImg);
     }
 
     //清空上一帧的检测结果

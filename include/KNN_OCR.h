@@ -27,10 +27,13 @@ class KNNResult
         classResult = -1;
         precisionRatio = -1;
         accuracyAmount = -1;
+        min_distance = 1600;
     }
     float classResult;
     float precisionRatio;
     int accuracyAmount;
+    float min_distance;
+    Mat mat_distance;
 };
 
 class basicOCR

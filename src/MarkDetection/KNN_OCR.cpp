@@ -79,7 +79,6 @@ void basicOCR::train()
     Mat temp1(trainClasses->rows, trainClasses->cols, trainClasses->type, trainClasses->data.fl);
     //temp1.copyTo(trainClasses_mat);
 
-    printf("knn train data ...\n");
     knn->train( trainData_mat, ml::ROW_SAMPLE, trainClasses_mat );
     printf("train data done!\n");
     return;
@@ -108,10 +107,15 @@ float basicOCR::classify(IplImage* img, int showResult)
     Mat dist;
     result=knn->findNearest(row1_mat,K,noArray(),nearest_mat,dist);
 
-	int accuracy=0;
+    //std::cout<< "min distance = " << dist <<std::endl;
+    //std::cout<< "nearest_mat= "<< nearest_mat <<std::endl;
+    knn_result.min_distance = dist.at<float>(0,0);  //usually, dist.at<float>(0,0) < 300;
+    knn_result.mat_distance = dist.clone();
+
+    int accuracy=0;
 	for(int i=0;i<K;i++)
 	{
-		if( nearest->data.fl[i] == result)
+        if( nearest->data.fl[i] == result )
                     accuracy++;
 	}
 	float pre=100*((float)accuracy/(float)K);
@@ -173,8 +177,8 @@ basicOCR::basicOCR(char* baseDir)
 
     sprintf(file_path , "%s/OCR/",baseDir);
 	//训练样本数量
-	train_samples = 50;
-	classes= 10;
+    train_samples = 99; //50
+    classes= 10;
 	size=40;
 
 	trainData = cvCreateMat(train_samples*classes, size*size, CV_32FC1);
