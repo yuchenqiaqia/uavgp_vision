@@ -4,7 +4,8 @@
  * @time	: 2016/09/12
  */
 
-#include "KNN_OCR.h"
+//#include "KNN_OCR.h"
+#include "DisplayScreenProcess.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -27,9 +28,9 @@
 //#include <linux/videodev2.h>
 
 #define  OPENCV_VIDEOCAPTURE    0
-#define  MVMODE                              1
-#define  POINTGRAYCAMERA            2
-#define  OFFLINEDATA                       3
+#define  MVMODE                 1
+#define  POINTGRAYCAMERA        2
+#define  OFFLINEDATA            3
 
 using namespace std;
 using namespace cv; 
@@ -47,20 +48,18 @@ public:
 	{
 		indexId = -1;
 		validFlag = false;
-		blackFrameDetectedFlag = false;
 		minSideLength = 0;	
 		maxSideLength = 0;	
 		area = 0;
         rectKind = -1;
-		//perspectiveImg.create(int(200*1.25),200,CV_8UC3);//create（行，列，类型）
-		//possibleDigitBinaryImg.create(int(200*1.25),200,CV_8UC1);
-	}
+        digitNo = -1;
+    }
     int frameNo;
     int indexId;                    //Rect编号
 	bool validFlag;					//该Rect是否有效
-	bool blackFrameDetectedFlag;
     //矩形类别，矩形检测到后的正常取值：0， 1， 2
     int rectKind;
+    int digitNo;
 
 	//contour信息
     float minSideLength;            //最小边长
@@ -138,7 +137,7 @@ int CreatSaveDir (char* dir , bool saveImgFlag);
 
 void ResizeImageByDistance( Mat& inputImg, Mat& outputImg, vector<VisionResult>& oldResult);
 //矩形（四边形）检测
-void RectangleDetect( Mat& resultImg, vector< vector<RectMark> >& rectCategory, int frameNo );
+void RectangleDetect( Mat& lightness_img, Mat& resultImg, vector< vector<RectMark> >& rectCategory, int frameNo );
 //求四边形内侧夹角
 double GetTwoSideAngle(Point2f p1,Point2f p2, Point2f p3);
 //剔除重合的四边形
@@ -177,4 +176,4 @@ void ConvertToPseudoColor( Mat& mat_xyz, Mat& img_pseudo_color );
 //
 double GetROI_AverageVal( Mat src, Point point, int channel, int radius);
 //根据累积误差检测矩形
-int RectDetectByStatisticsError(Mat& input_img, vector< vector<VisionResult> >& lastValidResult, vector<VisionResult>& incompleteRectResult);
+int RectDetectByStatisticsError(Mat& lightness_img, Mat& input_img, vector< vector<VisionResult> >& lastValidResult, vector<VisionResult>& incompleteRectResult);

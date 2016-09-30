@@ -72,6 +72,8 @@ add_executable( vision_result_publisher
 ./include/define.h
 ./include/KNN_OCR.h
 ./include/preprocessing.h
+./include/DisplayScreenProcess.h
+./src/MarkDetection/DisplayScreenProcess.cpp
 #./src/MarkDetection/MultiThreadListener.h
 )
 #OpenCV库

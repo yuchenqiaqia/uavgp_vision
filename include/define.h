@@ -10,17 +10,21 @@
 
 #define  SHRINK_LOWEST_VALUE  0.46
 #define  SHRINK_HIGHEST_VALUE 1.0
+#define  DISPLAYSCREEN 0
+#define  PRINTBOARD 1
 
 double shrink = 1;
 
+int  openCameraMode = POINTGRAYCAMERA;
+bool imageSaveEnable = false;
+bool digitBinaryImgSaveEnable = true;
+
+DisplayScreenProcessType display_screen_process;
 basicOCR* KNNocr;
 int cameraNo = 0;
 int imageProcessedNo = 0;
 double time0,time1,time2;
 Mat g_rawImage;
-Mat g_rawSaveImage;
-Mat srcImg;
-Mat rawCameraImg;
 Mat g_rectResultImg;
 
 bool copyIsRunningFlag = false;
@@ -32,9 +36,6 @@ bool g_rectResultImgUpdated = false;
 //矩形长宽比例阈值
 float maxSideLengthRatioAllowed = 2.5f;
 float rectClassifyThres = 0.5f;
-//识别信息
-extern float g_PrecisionRatio;
-extern int g_AccuracyAmount;
 
 class MultiThreadListener
 {
@@ -72,12 +73,10 @@ vector<RectMark> rectPossible;
 vector< vector<RectMark> > rectCategory;
 //透视变换后的矩形图像
 vector<Mat> rectCandidateImg;
-//存储的透视变换后图像
-//vector<Mat> vecPerspectiveImg;
-//透视变换后的二值化roi图像
-//vector<Mat> vecPossibleDigitBinaryImg;
 
-
+void DisplayScreenProcess(Mat& rawCameraImg);
+void PrintBoardProcess(Mat& rawCameraImg);
+void GetLightnessImage( Mat& input_bgr_img, Mat& output_lightness_img, vector< vector<VisionResult> >& lastValidResult);
 void InitRawImgSubscriber( );
 void CameraImageSubCallback(const sensor_msgs::ImageConstPtr& msg);
 void SaveResultImage( const sensor_msgs::ImageConstPtr& msg );

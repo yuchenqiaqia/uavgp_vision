@@ -78,8 +78,8 @@ void StereoMatchingType::StereoMatching(  )
     }
 
         Mat img1r, img2r;
-        remap(img1_raw, img1r, map11, map12, INTER_LINEAR);
-        remap(img2_raw, img2r, map21, map22, INTER_LINEAR);
+        remap(img1_raw, img1r, map11, map12, INTER_AREA);
+        remap(img2_raw, img2r, map21, map22, INTER_AREA);
         left_img_has_copied = true;
         right_img_has_copied = true;
 

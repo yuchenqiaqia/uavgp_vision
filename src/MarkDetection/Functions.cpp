@@ -120,7 +120,7 @@ void ShowTime(Mat& img, int k, float shrink)
     sprintf(frameN,"F:%d,fps:%d", k, imgFps);  //将帧数，帧率输入到frameN中
     Point2i k_center;
     k_center=Point2i(2,img.rows-3);
-    putText( img, frameN, k_center,CV_FONT_HERSHEY_PLAIN,2.5*shrink,Scalar(0,0,255),4.5*shrink);
+    putText( img, frameN, k_center,CV_FONT_HERSHEY_PLAIN,2.5*img.cols/1384,Scalar(0,0,255),4.5*img.cols/1384);
 
     if(0 == (k%n))
     {
@@ -132,8 +132,8 @@ void ShowTime(Mat& img, int k, float shrink)
                                           int ((int(time1)%60)/10),int ((int(time1)%100)%10),  //十秒位，个秒位
                                           int (int(time1*10)%10) );                            //秒小数位
     Point2i tim_center;
-    tim_center=Point2i( img.cols-int(250*shrink),int(img.rows-3*shrink) );
-    putText(img, tim, tim_center,CV_FONT_HERSHEY_PLAIN,2.5*shrink,Scalar(0,0,255),4.5*shrink);//显示时间
+    tim_center=Point2i( img.cols-int(250*img.cols/1384),int(img.rows-3) );
+    putText(img, tim, tim_center,CV_FONT_HERSHEY_PLAIN,2.5*img.cols/1384,Scalar(0,0,255),4.5*img.cols/1384);//显示时间
 }
 
 
