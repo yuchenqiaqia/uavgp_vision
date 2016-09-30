@@ -9,11 +9,6 @@
 
 int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
 
-int  openCameraMode = POINTGRAYCAMERA ;  //OPENCV_VIDEOCAPTURE,  POINTGRAYCAMERA, OFFLINEDATA
-bool imageSaveEnable = false;
-bool digitBinaryImgSaveEnable = true;
-char baseDir[200] = OCR_DIR_PATH;
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "vision_result_publisher");

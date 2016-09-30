@@ -15,6 +15,11 @@
 
 double shrink = 1;
 
+int  openCameraMode = POINTGRAYCAMERA;
+bool imageSaveEnable = false;
+bool digitBinaryImgSaveEnable = true;
+char baseDir[200] = OCR_DIR_PATH;
+
 DisplayScreenProcessType display_screen_process;
 basicOCR* KNNocr;
 int cameraNo = 0;
