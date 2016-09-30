@@ -109,7 +109,8 @@ float basicOCR::classify(IplImage* img, int showResult)
 
     //std::cout<< "min distance = " << dist <<std::endl;
     //std::cout<< "nearest_mat= "<< nearest_mat <<std::endl;
-    knn_result.min_distance = dist.at<float>(0,0);  //usually, dist.at<float>(0,0) < 300;
+    for(int i=0;i<3;++i)
+        knn_result.min_distance[i] = dist.at<float>(0,i);  //usually, dist.at<float>(0,0) < 300;
     knn_result.mat_distance = dist.clone();
 
     int accuracy=0;

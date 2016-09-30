@@ -27,12 +27,11 @@ class KNNResult
         classResult = -1;
         precisionRatio = -1;
         accuracyAmount = -1;
-        min_distance = 1600;
     }
     float classResult;
     float precisionRatio;
     int accuracyAmount;
-    float min_distance;
+    float min_distance[3];
     Mat mat_distance;
 };
 

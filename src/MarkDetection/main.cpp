@@ -670,7 +670,7 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         IplImage ipl_img(possibleDigitBinaryImg);
         float classResult = ocr->classify(&ipl_img,1);
         float precisionRatio = ocr->knn_result.precisionRatio;
-        float min_distance = ocr->knn_result.min_distance;
+        float min_distance = ocr->knn_result.min_distance[0];
 
         char digit[500];
         if (true == saveDigitBinaryImg)

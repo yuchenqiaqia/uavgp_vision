@@ -1,11 +1,23 @@
+/*
+ * @file	: main.cpp
+ * @auhtor	: xiaobin <xiaobin619@126.com>
+ * @time	: 2016/09/30
+ */
+
 #include "DisplayScreenProcess.h"
+
+//judge rect1 is inside rect2 or not
+bool Rect1IsInside(Rect rect1, Rect rect2)
+{
+    return (rect1 == (rect1&rect2));
+}
 
 DisplayScreenProcessType::DisplayScreenProcessType( )
 {
     imgNo = 0;
     shrink = 1.0;
     rect_filter_two_side_ratio_max = 0.9;   ////0.9
-    rect_filter_two_side_ratio_min = 0.2;   ////0.2
+    rect_filter_two_side_ratio_min = 0.1;   ////0.2
     min_bounding_rect_height_ratio = 0.08;  ////0.1
     min_precision_ratio_thres = 80.0;    ////80
     min_knn_distance_thres = 300;
@@ -29,8 +41,8 @@ void DisplayScreenProcessType::DisplayScreenProcess(Mat& input_img, basicOCR* KN
     vector< vector<Point> > contours;
     DisplayScreenProcessType::ContoursPreFilter(all_contours, contours);
 
-    RoiAreaInfo roiAreaInfos;
-    DisplayScreenProcessType::GetDigitRoi(contours, binary_img, roiAreaInfos);
+    vector<RoiAreaInfo> roiAreaInfos;
+    DisplayScreenProcessType::GetDigitRoi(contours, median_blur_light_img, roiAreaInfos);
     DisplayScreenProcessType::DigitClassify(roiAreaInfos, rawCameraImg, KNNocr, baseDir);
 
     resize(rawCameraImg,show_img,Size(640,480),0,0,INTER_AREA);
@@ -42,28 +54,35 @@ void DisplayScreenProcessType::DisplayScreenProcess(Mat& input_img, basicOCR* KN
 }
 
 
-void DisplayScreenProcessType::DigitClassify(RoiAreaInfo& roiAreaInfos, Mat& rawCameraImg, basicOCR* KNNocr, const char* baseDir)
+void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, Mat& rawCameraImg, basicOCR* KNNocr, const char* baseDir)
 {
-    for(int i=0;i<(int)roiAreaInfos.roi_imgs.size();++i)
+    int num = 0;
+    for(int i=0;i<(int)roiAreaInfos.size();++i)
     {
-        IplImage ipl_img(roiAreaInfos.roi_imgs[i]);
+        IplImage ipl_img(roiAreaInfos[i].roi_imgs);
         float classResult = KNNocr->classify(&ipl_img,1);
         float precisionRatio = KNNocr->knn_result.precisionRatio;
-        float min_distance = KNNocr->knn_result.min_distance;
+        float min_distance[3];
+        for(int j=0;j<3;++j)
+           min_distance[j] = KNNocr->knn_result.min_distance[j];
 
-        char digit[100];
-        sprintf(digit, "%s/digit_image/digit_%d_%06d__%d.pbm", baseDir, int(classResult), imgNo, int(precisionRatio));
-        imwrite(digit,  roiAreaInfos.roi_imgs[i] );
+        char digit[500];
+        sprintf(digit, "%s/digit_image/digit_%d_accuracy_%d_dist_%d_%d_No_%06d.pbm", baseDir, int(classResult), int(precisionRatio), int(min_distance[0]), int(min_distance[1]), imgNo);
+        imwrite(digit,  roiAreaInfos[i].roi_imgs );
 
-        if (precisionRatio >= min_precision_ratio_thres && min_distance < min_knn_distance_thres)
-        {
-            printf("digit=%d; accuracy=%d%%; dist=%f\n\n",(int)classResult,(int)precisionRatio, min_distance);
-            sprintf(digit,"%d",(int)classResult);
-            Point showCenter = Point(roiAreaInfos.minBoundingRects[i].x + roiAreaInfos.minBoundingRects[i].width + 60, roiAreaInfos.minBoundingRects[i].y + roiAreaInfos.minBoundingRects[i].height*0.5);
-            putText(rawCameraImg, digit, showCenter,CV_FONT_HERSHEY_DUPLEX,5.2*shrink,Scalar(0,0,255), int(5.5*shrink));
-            rectangle( rawCameraImg, roiAreaInfos.minBoundingRects[i], Scalar(255,0,255), 4, 8);
-            imshow("digit",roiAreaInfos.roi_imgs[i]);
-        }
+        if (min_distance[0] >= min_knn_distance_thres || min_distance[0] < 1)
+            continue;
+        if (precisionRatio <= min_precision_ratio_thres)
+            continue;
+        rectangle( rawCameraImg, roiAreaInfos[i].minBoundingRect, Scalar(0,255,255), 5, 8);
+        printf("digit=%d; accuracy=%d%%; dist=%d,%d,%d\n\n",(int)classResult,(int)precisionRatio, int(min_distance[0]), int(min_distance[1]), int(min_distance[2]));
+        sprintf(digit,"%d",(int)classResult);
+        Point showCenter = Point(roiAreaInfos[i].minBoundingRect.x + roiAreaInfos[i].minBoundingRect.width + 60, roiAreaInfos[i].minBoundingRect.y + roiAreaInfos[i].minBoundingRect.height*0.5);
+        putText(rawCameraImg, digit, showCenter,CV_FONT_HERSHEY_DUPLEX,5.2*shrink,Scalar(0,0,255), int(5.5*shrink));
+        char window_name[50];
+        sprintf(window_name,"digit_%d", num);
+        imshow(window_name,roiAreaInfos[i].roi_imgs);
+        num++;
     }
     return;
 }
@@ -94,7 +113,7 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& median_blur_l
                 light_img.at<uchar>(i,j) = 0;
         }
     }
-    medianBlur(light_img,median_blur_light_img,5);
+    medianBlur(light_img,median_blur_light_img,7);
     Mat resized_light_img;
     resize(light_img,resized_light_img,Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
     imshow("light_img",resized_light_img);
@@ -107,7 +126,11 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& median_blur_l
 
 void DisplayScreenProcessType::ThresholdProcess(Mat& median_blur_light_img, Mat& imgBinary)
 {
-    int min_size = 70; //100, 80
+    equalizeHist(median_blur_light_img,median_blur_light_img);
+    Mat resized_median_blur_light_img;
+    resize(median_blur_light_img,resized_median_blur_light_img,Size(640,480));
+    imshow("equalizeHist_median_blur_light_img",resized_median_blur_light_img);
+    int min_size = 80; //100, 80
     int thresh_size = (min_size/4)*2 + 1;
     adaptiveThreshold(median_blur_light_img, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
     double s = 5*shrink;
@@ -160,7 +183,7 @@ void DisplayScreenProcessType::ContoursPreFilter(vector< vector<Point> >& all_co
         float side1 = sqrt( pow(vertex[2].x - vertex[1].x, 2) + pow(vertex[2].y - vertex[1].y, 2));
         float area = side0 * side1;
         //printf("side0/side1=%0.3f\n",side0/side1);
-        if (area < pow(rawCameraImg.rows*0.08,2) || side0>rawCameraImg.cols*0.5 || side0/side1 > rect_filter_two_side_ratio_max || side0/side1 < rect_filter_two_side_ratio_min)
+        if (area < pow(rawCameraImg.rows*0.05,2) || side0>rawCameraImg.cols*0.5 || side0/side1 > rect_filter_two_side_ratio_max || side0/side1 < rect_filter_two_side_ratio_min)
         {
             contours.erase(contours.begin() + i);
             i--;
@@ -179,7 +202,7 @@ void DisplayScreenProcessType::ContoursPreFilter(vector< vector<Point> >& all_co
 
 
 
-void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Mat& binary_img, RoiAreaInfo& roiAreaInfos)
+void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Mat& input_img, vector<RoiAreaInfo>& roiAreaInfos)
 {
     for(int i=0;i<(int)contours.size();++i)
     {
@@ -188,7 +211,7 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         if ((minBoundingRect.height < rawCameraImg.cols*min_bounding_rect_height_ratio) || ((minBoundingRect.width*1.0/minBoundingRect.height) > rect_filter_two_side_ratio_max) || ((minBoundingRect.width*1.0/minBoundingRect.height) < rect_filter_two_side_ratio_min))
             continue;
 
-        int height = minBoundingRect.height*1.2;
+        int height = minBoundingRect.height*1.1;
         int y = int(minBoundingRect.y + minBoundingRect.height*0.5 - height*0.5);
         int width = int(minBoundingRect.height * 2.7/4 * 1.2);
         int x = int(minBoundingRect.x + minBoundingRect.width*0.5 - width*0.5);
@@ -201,57 +224,46 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         if ((y + height) >= (rawCameraImg.rows-1))
             height = rawCameraImg.rows - y;
         Rect roi = Rect(x, y, width, height);
-        binary_roi_img = binary_img(roi).clone();
-        resize(binary_roi_img,binary_roi_img,Size(128,128));
-        Mat element=getStructuringElement(MORPH_ELLIPSE, Size( 11,11 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
-        morphologyEx(binary_roi_img, binary_roi_img, MORPH_CLOSE ,element);
-        threshold(binary_roi_img, binary_roi_img, 125, 255, THRESH_BINARY_INV);
+        Mat roi_img;
+        input_img(roi).copyTo(roi_img);
 
-        roiAreaInfos.minBoundingRects.push_back(minBoundingRect);
-        roiAreaInfos.roi_imgs.push_back(binary_roi_img);
+        resize(roi_img,roi_img,Size(128,128),0,0,INTER_AREA);
+        medianBlur(roi_img,roi_img,5);
+        GaussianBlur(roi_img,roi_img,Size(7,7),0,0);
+        equalizeHist(roi_img,roi_img);
+        imshow("median_blur_light_img_roi", roi_img);
+        Mat element=getStructuringElement(MORPH_ELLIPSE, Size( 13,13 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+        morphologyEx(roi_img, roi_img, MORPH_CLOSE ,element);
+        threshold(roi_img, roi_img, 50, 255, THRESH_BINARY_INV);
+        RoiAreaInfo roiAreaInfo;
+        roiAreaInfo.minBoundingRect = minBoundingRect;
+        roiAreaInfo.roi_imgs = roi_img;
+        roiAreaInfos.push_back(roiAreaInfo);
     }
-    return;
-}
-
-
-void RectErase( vector<Rect>& rectPossible, vector< vector<Rect> >& rectCategory)
-{
-    for (int i=0;i<(int)rectPossible.size();++i)
+    //sort by area
+    for(int i=0;i<int(roiAreaInfos.size());++i)
     {
-        for (int j=i+1;j<(int)rectPossible.size();++j)
+        for(int j=i+1;j<(int)roiAreaInfos.size();++j)
         {
-            if (rectPossible[i].width < rectPossible[j].width)
-                swap(rectPossible[i],rectPossible[j]);
+            if (roiAreaInfos[i].minBoundingRect.area() < roiAreaInfos[j].minBoundingRect.area())
+                swap(roiAreaInfos[i],roiAreaInfos[j]);
         }
     }
-
-    for (int i=0;i<(int)rectPossible.size();++i)
+    //erase inside rects
+    for(int i=0;i<int(roiAreaInfos.size());++i)
     {
-        //rectArrayTemp can't defined before "for(int i=0;...){"!
-        vector<Rect> rectArrayTemp;
-        rectArrayTemp.push_back(rectPossible[i]);
-
-        Point2f middlePoint_i = Point2f(rectPossible[i].x+rectPossible[i].width/2,rectPossible[i].y+rectPossible[i].height/2);
-        for (int j=i+1;j<(int)rectPossible.size();++j)
+        for(int j=i+1;j<(int)roiAreaInfos.size();++j)
         {
-            Point2f middlePoint_j = Point2f(rectPossible[j].x+rectPossible[j].width/2,rectPossible[j].y+rectPossible[j].height/2);
-            float twoPointDistance = sqrt(pow(middlePoint_i.x-middlePoint_j.x,2)+pow(middlePoint_i.y-middlePoint_j.y,2));
-            float minSide = 0;
-            if (rectPossible[i].width < rectPossible[j].width)
-                minSide = rectPossible[i].width;
-            else
-                minSide = rectPossible[j].width;
-
-            float rectClassifyThres = 0.5f;
-            if (twoPointDistance < (minSide * rectClassifyThres))
+            bool is_inside = Rect1IsInside(roiAreaInfos[j].minBoundingRect, roiAreaInfos[i].minBoundingRect);
+            if (true == is_inside)
             {
-                rectArrayTemp.push_back(rectPossible[j]);
-                rectPossible.erase(rectPossible.begin() + j);
+                roiAreaInfos.erase(roiAreaInfos.begin()+j);
                 j--;
+                continue;
             }
         }
-        //同一类的放在一起
-        rectCategory.push_back(rectArrayTemp);
     }
+
     return;
 }
+
