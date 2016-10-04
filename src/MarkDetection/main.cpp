@@ -6,8 +6,9 @@
 
 #include "define.h"
 #include "project_path_config.h"
+#include <std_msgs/Int32.h>
 
-int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
+int targetType = PRINTBOARD; //PRINTBOARD; DISPLAYSCREEN
 char baseDir[200] = OCR_DIR_PATH;
 
 int main(int argc, char **argv)
@@ -25,6 +26,17 @@ int main(int argc, char **argv)
 
 ros::Publisher vision_digit_position_publisher;
 ros::Subscriber attSub;
+
+/* subscribe camera_switch_data from state_machine offb_simulation_test node. */
+std_msgs::Int32 camera_switch_data;
+void camera_switch_cb(const std_msgs::Int32::ConstPtr& msg)
+{
+    camera_switch_data = *msg;
+    if(camera_switch_data.data == 1)    targetType = DISPLAYSCREEN;
+    if(camera_switch_data.data == 2)    targetType = PRINTBOARD;
+    ROS_INFO("get camera_switch_data = %d",camera_switch_data.data);
+}
+
 //初始化订阅相机的节点
 void InitRawImgSubscriber( )
 {
@@ -34,6 +46,10 @@ void InitRawImgSubscriber( )
     rawImgSub = imageProcessNode_it.subscribe("vision/camera_image", 1, MainImageProcessing);
     vision_digit_position_publisher = imageProcessNode.advertise<sensor_msgs::LaserScan>("vision/digit_nws_position", 1);
     attSub = imageProcessNode.subscribe("imu/attitude", 1, AttitudeSubCallBack);
+
+    /* get camera_switch from state_machine(offb_simulation_test node). */
+    camera_switch_data.data = 0;
+    ros::Subscriber camera_switch_sub = imageProcessNode.subscribe("camera_switch", 1, camera_switch_cb);
 
     ros::spin();
 }
