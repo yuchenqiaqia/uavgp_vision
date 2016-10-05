@@ -224,7 +224,7 @@ void GetLightnessImage( Mat& input_bgr_img, Mat& output_lightness_img, vector< v
     cvtColor(output_lightness_img,output_lightness_img,CV_GRAY2BGR);
     Mat equalize_img;
     resize(output_lightness_img,equalize_img,Size(640,480));
-    imshow("hsv_v", equalize_img);
+    //imshow("hsv_v", equalize_img);
     imgNo++;
 }
 
@@ -710,7 +710,7 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         }
 
         //printf("digit=%d; precisionRatio=%d; dist=%f\n\n",(int)classResult,(int)precisionRatio, min_distance);
-        if (min_distance > 260)
+        if (min_distance > 250)
             continue;
         if ((rectCategory[i][0].position.z <=9.0 && (int)precisionRatio < 90) || rectCategory[i][0].position.z > 9.0)
             continue;
