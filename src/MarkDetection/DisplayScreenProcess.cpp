@@ -24,7 +24,7 @@ DisplayScreenProcessType::DisplayScreenProcessType( )
     return;
 }
 
-void DisplayScreenProcessType::DisplayScreenProcess(Mat& input_img, basicOCR* KNNocr, const char* baseDir)
+int DisplayScreenProcessType::DisplayScreenProcess(Mat& input_img, basicOCR* KNNocr, const char* baseDir)
 {
     rawCameraImg = input_img.clone();
 
@@ -44,15 +44,39 @@ void DisplayScreenProcessType::DisplayScreenProcess(Mat& input_img, basicOCR* KN
     vector<RoiAreaInfo> roiAreaInfos;
     DisplayScreenProcessType::GetDigitRoi(contours, median_blur_light_img, roiAreaInfos);
     DisplayScreenProcessType::DigitClassify(roiAreaInfos, rawCameraImg, KNNocr, baseDir);
+    DisplayScreenProcessType::DigitSort(rawCameraImg, roiAreaInfos);
 
     resize(rawCameraImg,show_img,Size(640,480),0,0,INTER_AREA);
-    imshow("show_img", show_img);
+    imshow("Display screen", show_img);
     waitKey(1);
-
     imgNo++;
-    return;
+
+    if (roiAreaInfos.size() >= 1)
+        return roiAreaInfos[0].digitNo;
+    else
+        return -1;
 }
 
+void DisplayScreenProcessType::DigitSort(Mat& input_img, vector<RoiAreaInfo>& roiAreaInfos)
+{
+    for(int i=0;i<(int)roiAreaInfos.size();++i)
+    {
+        for(int j=i+1;j<(int)roiAreaInfos.size();++j)
+        {
+            int x_i = roiAreaInfos[i].minBoundingRect.x + roiAreaInfos[i].minBoundingRect.width/2;
+            int y_i = roiAreaInfos[i].minBoundingRect.y + roiAreaInfos[i].minBoundingRect.height/2;
+            int x_j = roiAreaInfos[j].minBoundingRect.x + roiAreaInfos[j].minBoundingRect.width/2;
+            int y_j = roiAreaInfos[j].minBoundingRect.y + roiAreaInfos[j].minBoundingRect.height/2;
+            float dis_c_i = sqrt(pow(x_i - input_img.cols/2,2) + pow(y_i - input_img.rows/2,2));
+            float dis_c_j = sqrt(pow(x_j - input_img.cols/2,2) + pow(y_j - input_img.rows/2,2));
+            if (dis_c_i > dis_c_j)
+            {
+                swap(roiAreaInfos[i],roiAreaInfos[j]);
+            }
+        }
+    }
+    return;
+}
 
 void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, Mat& rawCameraImg, basicOCR* KNNocr, const char* baseDir)
 {
@@ -71,9 +95,17 @@ void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, 
         imwrite(digit,  roiAreaInfos[i].roi_imgs );
 
         if (min_distance[0] >= min_knn_distance_thres || min_distance[0] < 1)
+        {
+            roiAreaInfos.erase(roiAreaInfos.begin() + i);
+            i--;
             continue;
+        }
         if (precisionRatio <= min_precision_ratio_thres)
+        {
+            roiAreaInfos.erase(roiAreaInfos.begin() + i);
+            i--;
             continue;
+        }
         rectangle( rawCameraImg, roiAreaInfos[i].minBoundingRect, Scalar(0,255,255), 5, 8);
         printf("digit=%d; accuracy=%d%%; dist=%d,%d,%d\n\n",(int)classResult,(int)precisionRatio, int(min_distance[0]), int(min_distance[1]), int(min_distance[2]));
         sprintf(digit,"%d",(int)classResult);
@@ -82,6 +114,7 @@ void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, 
         char window_name[50];
         sprintf(window_name,"digit_%d", num);
         imshow(window_name,roiAreaInfos[i].roi_imgs);
+        roiAreaInfos[i].digitNo = (int)classResult;
         num++;
     }
     return;
@@ -116,9 +149,9 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& median_blur_l
     medianBlur(light_img,median_blur_light_img,7);
     Mat resized_light_img;
     resize(light_img,resized_light_img,Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
-    imshow("light_img",resized_light_img);
+    //imshow("light_img",resized_light_img);
     Mat resized_median_blur_light_img;
-    resize(median_blur_light_img,resized_median_blur_light_img,Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
+    resize(median_blur_light_img,resized_median_blur_light_img,Size(1384*0.3,1032*0.3),0,0,INTER_AREA);
     imshow("median blur light img",resized_median_blur_light_img);
     return;
 }
@@ -129,7 +162,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& median_blur_light_img, Mat&
     equalizeHist(median_blur_light_img,median_blur_light_img);
     Mat resized_median_blur_light_img;
     resize(median_blur_light_img,resized_median_blur_light_img,Size(640,480));
-    imshow("equalizeHist_median_blur_light_img",resized_median_blur_light_img);
+    //imshow("equalizeHist_median_blur_light_img",resized_median_blur_light_img);
     int min_size = 80; //100, 80
     int thresh_size = (min_size/4)*2 + 1;
     adaptiveThreshold(median_blur_light_img, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
@@ -142,7 +175,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& median_blur_light_img, Mat&
     morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
     Mat imgBinaryShow;
     resize(imgBinary, imgBinaryShow, Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
-    imshow("adaptiveThresholdImg",imgBinaryShow);
+    //imshow("adaptiveThresholdImg",imgBinaryShow);
     return;
 }
 
@@ -231,7 +264,7 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         medianBlur(roi_img,roi_img,5);
         GaussianBlur(roi_img,roi_img,Size(7,7),0,0);
         equalizeHist(roi_img,roi_img);
-        imshow("median_blur_light_img_roi", roi_img);
+        //imshow("median_blur_light_img_roi", roi_img);
         Mat element=getStructuringElement(MORPH_ELLIPSE, Size( 13,13 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
         morphologyEx(roi_img, roi_img, MORPH_CLOSE ,element);
         threshold(roi_img, roi_img, 50, 255, THRESH_BINARY_INV);

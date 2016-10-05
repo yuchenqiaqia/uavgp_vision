@@ -28,7 +28,7 @@ class DisplayScreenProcessType
 {
 public:
     DisplayScreenProcessType();
-    void DisplayScreenProcess(Mat& input_img, basicOCR* KNNocr, const char* baseDir);
+    int DisplayScreenProcess(Mat& input_img, basicOCR* KNNocr, const char* baseDir);
 
     int imgNo;
     float shrink;
@@ -36,6 +36,7 @@ public:
     Mat show_img;
 
 private:
+    void DigitSort(Mat& input_img, vector<RoiAreaInfo>& roiAreaInfos);
     void ContoursPreFilter(vector< vector<Point> >& all_contours, vector< vector<Point> >& contours);
     void GetDigitRoi(vector< vector<Point> >& contours, Mat& binary_img, vector<RoiAreaInfo>& roiAreaInfos);
     void ColorFilter(Mat& rawCameraImg, Mat& median_blur_light_img);
