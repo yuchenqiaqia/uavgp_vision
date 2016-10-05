@@ -8,7 +8,7 @@
 #include "project_path_config.h"
 #include <std_msgs/Int32.h>
 
-int targetType = PRINTBOARD; //PRINTBOARD; DISPLAYSCREEN
+int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
 char baseDir[200] = OCR_DIR_PATH;
 
 int main(int argc, char **argv)
@@ -24,6 +24,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
+ros::Publisher display_screen_digit_publisher;
 ros::Publisher vision_digit_position_publisher;
 ros::Subscriber attSub;
 
@@ -32,18 +33,21 @@ std_msgs::Int32 camera_switch_data;
 void camera_switch_cb(const std_msgs::Int32::ConstPtr& msg)
 {
     camera_switch_data = *msg;
-    if(camera_switch_data.data == 1)    targetType = DISPLAYSCREEN;
-    if(camera_switch_data.data == 2)    targetType = PRINTBOARD;
+    if(camera_switch_data.data == 1)
+        targetType = DISPLAYSCREEN;
+    if(camera_switch_data.data == 2)
+        targetType = PRINTBOARD;
     ROS_INFO("get camera_switch_data = %d",camera_switch_data.data);
 }
 
-//初始化订阅相机的节点
+
 void InitRawImgSubscriber( )
 {
     ros::NodeHandle imageProcessNode;
     image_transport::Subscriber rawImgSub;
     image_transport::ImageTransport imageProcessNode_it(imageProcessNode);
     rawImgSub = imageProcessNode_it.subscribe("vision/camera_image", 1, MainImageProcessing);
+    display_screen_digit_publisher = imageProcessNode.advertise<sensor_msgs::LaserScan>("vision/digit_nws_position", 1);
     vision_digit_position_publisher = imageProcessNode.advertise<sensor_msgs::LaserScan>("vision/digit_nws_position", 1);
     attSub = imageProcessNode.subscribe("imu/attitude", 1, AttitudeSubCallBack);
 
@@ -76,18 +80,32 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
     if (PRINTBOARD == targetType)
         PrintBoardProcess(rawCameraImg);
     else if (DISPLAYSCREEN == targetType)
-        DisplayScreenProcess(rawCameraImg);
+    {
+        int digitNo = DisplayScreenProcess(rawCameraImg);
+
+        sensor_msgs::LaserScan digits_position;
+        digits_position.ranges.resize(4);
+        digits_position.header.frame_id = "display_screen_digit";
+        digits_position.header.stamp    = ros::Time::now();
+        int i = 0;
+        digits_position.ranges[i*4] = float(digitNo);
+        digits_position.ranges[i*4 + 1] = float(1000);
+        digits_position.ranges[i*4 + 2] = float(1000);
+        digits_position.ranges[i*4 + 3] = float(1000);
+        display_screen_digit_publisher.publish(digits_position);
+        ROS_INFO("\ndisplay screen digit = %d", digitNo);
+    }
 
     imageProcessedNo++;
     return;
 }
 
-void DisplayScreenProcess(Mat& rawCameraImg)
+int DisplayScreenProcess(Mat& rawCameraImg)
 {
-    display_screen_process.DisplayScreenProcess(rawCameraImg, KNNocr, baseDir);
+    int digitNo = display_screen_process.DisplayScreenProcess(rawCameraImg, KNNocr, baseDir);
     (display_screen_process.show_img).copyTo(g_rectResultImg);
     g_rectResultImgUpdated = true;
-    return;
+    return digitNo;
 }
 
 void PrintBoardProcess(Mat& rawCameraImg)
@@ -149,7 +167,7 @@ void PrintBoardProcess(Mat& rawCameraImg)
                 );
     }
 
-    imshow("ImageProcessing",rectResultImg);
+    imshow("Print board",rectResultImg);
 
     if (false == g_visionResult.empty())
         vector<VisionResult>().swap(g_visionResult);
@@ -240,7 +258,7 @@ void RectangleDetect( Mat& lightness_img, Mat& resultImg, vector< vector<RectMar
 
     Mat imgBinaryShow;
     resize(imgBinary, imgBinaryShow, Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
-    imshow("adaptiveThresholdImg",imgBinaryShow);
+    //imshow("adaptiveThresholdImg",imgBinaryShow);
     //printf("imshow imgBinaryShow done!\n");
 
     vector<Vec4i> hierarchy;
