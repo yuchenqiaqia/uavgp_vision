@@ -5,6 +5,48 @@
  */
 
 #include "DisplayScreenProcess.h"
+static void ShowTime(Mat& img, int k, float shrink);
+
+static float GetAverageValue(Mat& input_img, bool non_zero_pixel, float thres = 0)
+{
+    float sum = 0;
+    int count_num = 0;
+    for(int i=0;i<(int)input_img.rows;++i)
+    {
+        for(int j=0;j<(int)input_img.cols;++j)
+        {
+            int value = input_img.at<uchar>(i,j);
+            if (true == non_zero_pixel)
+            {
+                if (value > thres)
+                {
+                        sum += input_img.at<uchar>(i,j);
+                        count_num++;
+                }
+            }
+            else
+            {
+                sum += input_img.at<uchar>(i,j);
+                count_num++;
+            }
+        }
+    }
+    if (0 == count_num)
+        return 0;
+    else
+        return int(sum/count_num);
+}
+
+static void StrongContrast(Mat& gray_img, float contrast_ratio)
+{
+    for(int i=0;i<gray_img.rows;++i)
+    {
+        for(int j=0;j<gray_img.cols;++j)
+        {
+            gray_img.at<uchar>(i,j) = saturate_cast<uchar>(float(gray_img.at<uchar>(i,j))*contrast_ratio * float(gray_img.at<uchar>(i,j)));
+        }
+    }
+}
 
 //judge rect1 is inside rect2 or not
 bool Rect1IsInside(Rect rect1, Rect rect2)
@@ -15,7 +57,7 @@ bool Rect1IsInside(Rect rect1, Rect rect2)
 DisplayScreenProcessType::DisplayScreenProcessType( )
 {
     imgNo = 0;
-    shrink = 1.0;
+    shrink = 0.8;
     rect_filter_two_side_ratio_max = 0.9;   ////0.9
     rect_filter_two_side_ratio_min = 0.1;   ////0.2
     min_bounding_rect_height_ratio = 0.06;  ////0.1
@@ -27,6 +69,7 @@ DisplayScreenProcessType::DisplayScreenProcessType( )
 int DisplayScreenProcessType::DisplayScreenProcess(Mat& input_img, basicOCR* KNNocr, const char* baseDir)
 {
     rawCameraImg = input_img.clone();
+    resize(rawCameraImg,rawCameraImg,Size(rawCameraImg.cols*shrink,rawCameraImg.rows*shrink),0,0,INTER_AREA);
 
     Mat median_blur_light_img;
     DisplayScreenProcessType::ColorFilter(rawCameraImg, median_blur_light_img);
@@ -47,6 +90,7 @@ int DisplayScreenProcessType::DisplayScreenProcess(Mat& input_img, basicOCR* KNN
     DisplayScreenProcessType::DigitSort(rawCameraImg, roiAreaInfos);
 
     resize(rawCameraImg,show_img,Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
+    ShowTime(show_img, imgNo, 0.5);
     imshow("Display screen", show_img);
     waitKey(1);
     imgNo++;
@@ -140,18 +184,18 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& median_blur_l
         {
             int color = color_img.at<uchar>(i,j);
             int saturation = saturation_img.at<uchar>(i,j);
-            //if(saturation < 100)
-            //    light_img.at<uchar>(i,j) = 0;
-            if(saturation < 120 || (color>30 && color<220)) //red: 0~15, 221~255;
+            if(saturation < 120)
+                light_img.at<uchar>(i,j) = 0;
+            if( color>60 && color<220 ) //red: 0~15, 221~255;
                 light_img.at<uchar>(i,j) = 0;
         }
     }
-    medianBlur(light_img,median_blur_light_img,7);
+    medianBlur(light_img,median_blur_light_img,5);
     Mat resized_light_img;
     resize(light_img,resized_light_img,Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
     imshow("light_img",resized_light_img);
     Mat resized_median_blur_light_img;
-    resize(median_blur_light_img,resized_median_blur_light_img,Size(1384*0.3,1032*0.3),0,0,INTER_AREA);
+    resize(median_blur_light_img,resized_median_blur_light_img,Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
     imshow("median blur light img",resized_median_blur_light_img);
     return;
 }
@@ -159,14 +203,25 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& median_blur_l
 
 void DisplayScreenProcessType::ThresholdProcess(Mat& median_blur_light_img, Mat& imgBinary)
 {
-    equalizeHist(median_blur_light_img,median_blur_light_img);
+    float contrast_ratio = 0.005;
+    //StrongContrast(median_blur_light_img, contrast_ratio);
+    Rect roi = Rect(0+median_blur_light_img.cols*0.2, 0+median_blur_light_img.rows*0.1, median_blur_light_img.cols*0.6, median_blur_light_img.rows*0.89);
+    Mat img = median_blur_light_img(roi);
+    float cal_thres = 80;
+    float value = GetAverageValue( img,true,80 );
+
+    contrast_ratio = 0.025 * 20/value;
+    StrongContrast(median_blur_light_img, contrast_ratio);
+    if (value <= cal_thres*2)
+        equalizeHist(median_blur_light_img,median_blur_light_img);
+
     Mat resized_median_blur_light_img;
     resize(median_blur_light_img,resized_median_blur_light_img,Size(1384*0.5,1032*0.5));
-    imshow("equalizeHist_median_blur_light_img",resized_median_blur_light_img);
-    int min_size = 80; //100, 80
+    imshow("Strong Contrast median_blur_light_img",resized_median_blur_light_img);
+    int min_size = 70; //100, 80
     int thresh_size = (min_size/4)*2 + 1;
     adaptiveThreshold(median_blur_light_img, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
-    double s = 5*shrink;
+    double s = 11*shrink;
     int size = ( 1 == int(s)%2 ) ? int(s) : int(s)+1;
     if (size < 3)
         size = 3;
@@ -262,13 +317,34 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
 
         resize(roi_img,roi_img,Size(128,128),0,0,INTER_AREA);
         medianBlur(roi_img,roi_img,5);
+        imshow("before GaussianBlur", roi_img);
         GaussianBlur(roi_img,roi_img,Size(5,5),0,0);
+
         //equalizeHist(roi_img,roi_img);
-        StrongContrast(roi_img);
-        imshow("median_blur_light_img_roi", roi_img);
-        Mat element=getStructuringElement(MORPH_ELLIPSE, Size( 13,13 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
-        morphologyEx(roi_img, roi_img, MORPH_CLOSE ,element);
-        threshold(roi_img, roi_img, 100, 255, THRESH_BINARY_INV);
+        Rect roi_img_roi = Rect(0+roi_img.cols*0.1, 0+roi_img.rows*0.1, roi_img.cols*0.89, roi_img.rows*0.89);
+        Mat img = roi_img(roi_img_roi);
+        float value = GetAverageValue( img,true );
+        float contrast_ratio = 0.025 * 20/value;
+        StrongContrast(roi_img, contrast_ratio);
+        imshow("GaussianBlur_light_img_roi", roi_img);
+
+        float average_value = GetAverageValue( roi_img,false );
+        printf("average_value=%d\n",int(average_value));
+
+        if (average_value < 50)
+        {
+            Mat element=getStructuringElement(MORPH_ELLIPSE, Size( 13,13 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+            int morphology_option = MORPH_CLOSE;
+            morphologyEx(roi_img, roi_img, morphology_option ,element);
+        }
+        else
+        {
+            Mat element=getStructuringElement(MORPH_ELLIPSE, Size( 5,5 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+            erode(roi_img,roi_img,element);
+        }
+
+        double min_filter_thres = 255*pow(average_value,2)/(255*255)*3;
+        threshold(roi_img, roi_img, min_filter_thres, 255, THRESH_BINARY_INV);   //120
         imshow("wait classify roi", roi_img);
         RoiAreaInfo roiAreaInfo;
         roiAreaInfo.minBoundingRect = minBoundingRect;
@@ -302,14 +378,37 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
     return;
 }
 
-void StrongContrast(Mat& gray_img)
+
+
+
+extern double time0,time1,time2;
+//显示时间、帧率
+static void ShowTime(Mat& img, int k, float shrink)
 {
-    float ref_value = 120;
-    for(int i=0;i<gray_img.rows;++i)
+    //每n帧更新一次时间显示
+    int n = 2;
+    static int imgFps = 0;
+    if(0 == (k%n))
     {
-        for(int j=0;j<gray_img.cols;++j)
-        {
-            gray_img.at<uchar>(i,j) = saturate_cast<uchar>(float(gray_img.at<uchar>(i,j))/ref_value * float(gray_img.at<uchar>(i,j)));
-        }
+        time2=((double)getTickCount()-time0)/getTickFrequency();
+        imgFps = int( n/(time2-time1) );
     }
+    char frameN[50];
+    sprintf(frameN,"F:%d,fps:%d", k, imgFps);  //将帧数，帧率输入到frameN中
+    Point2i k_center;
+    k_center=Point2i(2,img.rows-3);
+    putText( img, frameN, k_center,CV_FONT_HERSHEY_PLAIN,2.5*img.cols/1384,Scalar(0,0,255),4.5*img.cols/1384);
+
+    if(0 == (k%n))
+    {
+        time1=time2;
+    }
+
+    char tim[50];
+    sprintf(tim,"Tim:%d%1d:%1d%1d:%1d", int (time1/60/10),int (int(time1/60)%10),             //十分位，个分位
+                                          int ((int(time1)%60)/10),int ((int(time1)%100)%10),  //十秒位，个秒位
+                                          int (int(time1*10)%10) );                            //秒小数位
+    Point2i tim_center;
+    tim_center=Point2i( img.cols-int(250*img.cols/1384),int(img.rows-3) );
+    putText(img, tim, tim_center,CV_FONT_HERSHEY_PLAIN,2.5*img.cols/1384,Scalar(0,0,255),4.5*img.cols/1384);//显示时间
 }

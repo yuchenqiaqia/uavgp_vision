@@ -185,7 +185,7 @@ basicOCR::basicOCR(char* baseDir)
 	trainData = cvCreateMat(train_samples*classes, size*size, CV_32FC1);
 	trainClasses = cvCreateMat(train_samples*classes, 1, CV_32FC1);
 
-    printf("knn get data ...\n");
+    printf("get sample data ...\n");
 	getData();
 	
 	train();
