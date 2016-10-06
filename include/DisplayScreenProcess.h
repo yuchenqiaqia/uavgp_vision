@@ -51,4 +51,3 @@ private:
     float min_knn_distance_thres;
 };
 
-void StrongContrast(Mat& gray_img);
