@@ -93,7 +93,7 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         digits_position.ranges[i*4 + 2] = float(1000);
         digits_position.ranges[i*4 + 3] = float(1000);
         display_screen_digit_publisher.publish(digits_position);
-        ROS_INFO("\ndisplay screen digit = %d", digitNo);
+        ROS_INFO("\nsend digit = %d", digitNo);
     }
 
     imageProcessedNo++;

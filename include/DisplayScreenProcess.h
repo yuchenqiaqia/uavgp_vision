@@ -36,11 +36,12 @@ public:
     Mat show_img;
 
 private:
+    void GetPossibleRois(Mat& color_filtered_img, vector<Rect>& preprocess_rois);
     void DigitSort(Mat& input_img, vector<RoiAreaInfo>& roiAreaInfos);
     void ContoursPreFilter(vector< vector<Point> >& all_contours, vector< vector<Point> >& contours);
     void GetDigitRoi(vector< vector<Point> >& contours, Mat& binary_img, vector<RoiAreaInfo>& roiAreaInfos);
-    void ColorFilter(Mat& rawCameraImg, Mat& median_blur_light_img);
-    void ThresholdProcess(Mat& median_blur_light_img, Mat& imgBinary);
+    void ColorFilter(Mat& rawCameraImg, Mat& color_filtered_img);
+    void ThresholdProcess(Mat& color_filtered_img, vector<Rect>& preprocess_rois, Mat& median_blur_light_img, Mat& imgBinary);
     void DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, Mat& rawCameraImg, basicOCR* KNNocr, const char* baseDir);
 
     Mat rawCameraImg;
