@@ -36,6 +36,23 @@ static float GetAverageValue(Mat& input_img, bool non_zero_pixel, float thres = 
     else
         return int(sum/count_num);
 }
+static int GetMaxValue(Mat& input_img)
+{
+    int max = 0;
+    for(int i=0;i<(int)input_img.rows;++i)
+    {
+        for(int j=0;j<(int)input_img.cols;++j)
+        {
+            int value = input_img.at<uchar>(i,j);
+            if (value > max)
+            {
+                max = value;
+            }
+        }
+    }
+
+    return max;
+}
 
 static void StrongContrast(Mat& gray_img, float contrast_ratio)
 {
@@ -60,7 +77,7 @@ DisplayScreenProcessType::DisplayScreenProcessType( )
     shrink = 0.8;
     rect_filter_two_side_ratio_max = 0.9;   ////0.9
     rect_filter_two_side_ratio_min = 0.1;   ////0.2
-    min_bounding_rect_height_ratio = 0.06;  ////0.1
+    min_bounding_rect_height_ratio = 0.05;  ////0.1
     min_precision_ratio_thres = 80.0;    ////80
     min_knn_distance_thres = 260;
     return;
@@ -71,15 +88,20 @@ int DisplayScreenProcessType::DisplayScreenProcess(Mat& input_img, basicOCR* KNN
     rawCameraImg = input_img.clone();
     resize(rawCameraImg,rawCameraImg,Size(rawCameraImg.cols*shrink,rawCameraImg.rows*shrink),0,0,INTER_AREA);
 
-    Mat median_blur_light_img;
-    DisplayScreenProcessType::ColorFilter(rawCameraImg, median_blur_light_img);
+    Mat color_filtered_img;
+    DisplayScreenProcessType::ColorFilter(rawCameraImg, color_filtered_img);
 
+    vector<Rect> preprocess_rois;
+    DisplayScreenProcessType::GetPossibleRois(color_filtered_img, preprocess_rois);
+    if (preprocess_rois.size() < 1)
+        return -1;
+
+    Mat median_blur_light_img;
     Mat imgBinary;
-    DisplayScreenProcessType::ThresholdProcess(median_blur_light_img, imgBinary);
-    Mat binary_img = imgBinary.clone();
+    DisplayScreenProcessType::ThresholdProcess(color_filtered_img, preprocess_rois, median_blur_light_img, imgBinary);
 
     vector< vector<Point> > all_contours;
-    findContours( imgBinary, all_contours, RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
+    findContours( imgBinary, all_contours, CV_RETR_EXTERNAL, CHAIN_APPROX_NONE );//RETR_LIST; CV_RETR_CCOMP ; CV_RETR_EXTERNAL
 
     vector< vector<Point> > contours;
     DisplayScreenProcessType::ContoursPreFilter(all_contours, contours);
@@ -165,9 +187,8 @@ void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, 
 }
 
 
-void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& median_blur_light_img)
+void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& color_filtered_img)
 {
-    // color filter
     Mat hsv_img;
     cvtColor(rawCameraImg,hsv_img,CV_BGR2HSV_FULL);
     vector<Mat> channels;
@@ -190,30 +211,38 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& median_blur_l
                 light_img.at<uchar>(i,j) = 0;
         }
     }
-    medianBlur(light_img,median_blur_light_img,5);
+    light_img.copyTo(color_filtered_img);
     Mat resized_light_img;
-    resize(light_img,resized_light_img,Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
+    resize(light_img,resized_light_img,Size(1384*0.4,1032*0.4),0,0,INTER_AREA);
     imshow("light_img",resized_light_img);
-    Mat resized_median_blur_light_img;
-    resize(median_blur_light_img,resized_median_blur_light_img,Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
-    imshow("median blur light img",resized_median_blur_light_img);
     return;
 }
 
 
-void DisplayScreenProcessType::ThresholdProcess(Mat& median_blur_light_img, Mat& imgBinary)
+void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<Rect>& preprocess_rois, Mat& median_blur_light_img, Mat& imgBinary)
 {
-    float contrast_ratio = 0.005;
-    //StrongContrast(median_blur_light_img, contrast_ratio);
-    Rect roi = Rect(0+median_blur_light_img.cols*0.2, 0+median_blur_light_img.rows*0.1, median_blur_light_img.cols*0.6, median_blur_light_img.rows*0.89);
-    Mat img = median_blur_light_img(roi);
-    float cal_thres = 80;
-    float value = GetAverageValue( img,true,80 );
+    Mat input_img = color_filtered_img.clone();
+    median_blur_light_img = Mat::zeros(color_filtered_img.rows,color_filtered_img.cols,CV_8UC1);
+    for(int i=0;i<(int)preprocess_rois.size();++i)
+    {
+        Mat roi_img = input_img(preprocess_rois[i]);
+        medianBlur(roi_img,roi_img,7);
 
-    contrast_ratio = 0.025 * 20/value;
-    StrongContrast(median_blur_light_img, contrast_ratio);
-    if (value <= cal_thres*2)
-        equalizeHist(median_blur_light_img,median_blur_light_img);
+        float cal_thres = 60;
+        float value = GetAverageValue( roi_img,true,80 );
+        float contrast_ratio = 0.025 * 20/value;
+        StrongContrast(roi_img, contrast_ratio);
+
+        if (value <= cal_thres*2)
+            equalizeHist(roi_img,roi_img);
+
+        char window_name[50];
+        sprintf(window_name,"possible roi img %d", i);
+        imshow(window_name,roi_img);
+        Mat median_blur_light_img_roi = median_blur_light_img(preprocess_rois[i]);
+        roi_img.copyTo(median_blur_light_img_roi,roi_img);
+    }
+
 
     Mat resized_median_blur_light_img;
     resize(median_blur_light_img,resized_median_blur_light_img,Size(1384*0.5,1032*0.5));
@@ -221,7 +250,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& median_blur_light_img, Mat&
     int min_size = 70; //100, 80
     int thresh_size = (min_size/4)*2 + 1;
     adaptiveThreshold(median_blur_light_img, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
-    double s = 11*shrink;
+    double s = 15*shrink;
     int size = ( 1 == int(s)%2 ) ? int(s) : int(s)+1;
     if (size < 3)
         size = 3;
@@ -230,7 +259,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& median_blur_light_img, Mat&
     morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
     Mat imgBinaryShow;
     resize(imgBinary, imgBinaryShow, Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
-    imshow("adaptiveThresholdImg",imgBinaryShow);
+    imshow("adaptive Threshold Img",imgBinaryShow);
     return;
 }
 
@@ -317,21 +346,21 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
 
         resize(roi_img,roi_img,Size(128,128),0,0,INTER_AREA);
         medianBlur(roi_img,roi_img,5);
-        imshow("before GaussianBlur", roi_img);
+        //imshow("before GaussianBlur", roi_img);
         GaussianBlur(roi_img,roi_img,Size(5,5),0,0);
 
         //equalizeHist(roi_img,roi_img);
         Rect roi_img_roi = Rect(0+roi_img.cols*0.1, 0+roi_img.rows*0.1, roi_img.cols*0.89, roi_img.rows*0.89);
         Mat img = roi_img(roi_img_roi);
         float value = GetAverageValue( img,true );
-        float contrast_ratio = 0.025 * 20/value;
+        float contrast_ratio = 0.025 * 20/value; //// 0.025*20/value;
         StrongContrast(roi_img, contrast_ratio);
-        imshow("GaussianBlur_light_img_roi", roi_img);
+        imshow("StrongContrast_light_img_roi", roi_img);
 
         float average_value = GetAverageValue( roi_img,false );
         printf("average_value=%d\n",int(average_value));
 
-        if (average_value < 50)
+        if (average_value < 40)
         {
             Mat element=getStructuringElement(MORPH_ELLIPSE, Size( 13,13 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
             int morphology_option = MORPH_CLOSE;
@@ -339,11 +368,16 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         }
         else
         {
-            Mat element=getStructuringElement(MORPH_ELLIPSE, Size( 5,5 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
-            erode(roi_img,roi_img,element);
+            Mat element=getStructuringElement(MORPH_ELLIPSE, Size( 11,11 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+            int morphology_option = MORPH_OPEN;
+            morphologyEx(roi_img, roi_img, morphology_option ,element);
+            //erode(roi_img,roi_img,element);
         }
 
-        double min_filter_thres = 255*pow(average_value,2)/(255*255)*3;
+        double min_filter_thres = 150*pow(average_value,3)/pow(150,3)*20;
+        int roi_pixel_max_value = GetMaxValue(roi_img);
+        if (min_filter_thres >= roi_pixel_max_value)
+            min_filter_thres = roi_pixel_max_value - 5;
         threshold(roi_img, roi_img, min_filter_thres, 255, THRESH_BINARY_INV);   //120
         imshow("wait classify roi", roi_img);
         RoiAreaInfo roiAreaInfo;
@@ -378,11 +412,76 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
     return;
 }
 
+void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<Rect>& preprocess_rois)
+{
+    Mat img = color_filtered_img.clone();
+    //equalizeHist(color_filtered_img, img);
+    Mat imgBinary;
+    int min_size = 40; //100, 80
+    int thresh_size = (min_size/4)*2 + 1;
+    adaptiveThreshold(img, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
+    double s = 15*shrink;
+    int size = ( 1 == int(s)%2 ) ? int(s) : int(s)+1;
+    if (size < 3)
+        size = 3;
+    Mat element;
+    element=getStructuringElement(MORPH_ELLIPSE, Size( size,size ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+    morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
+    //dilate(imgBinary, imgBinary ,element);
+    Mat show_binary;
+    resize(imgBinary,show_binary,Size(1384*0.35,1032*0.35));
+    imshow("Possible Rois adaptive Threshold", show_binary);
 
+    vector< vector<Point> > contours;
+    findContours( imgBinary, contours, RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
+
+    for(int i=0;i<(int)contours.size();++i)
+    {
+        if (contours[i].size() < color_filtered_img.rows*0.05)
+            continue;
+        Rect minBoundingRect = boundingRect( Mat(contours[i]) );
+        if (minBoundingRect.area() < pow(color_filtered_img.rows*0.05, 2))
+            continue;
+
+        for(int j=0;j<(int)preprocess_rois.size();++j)
+        {
+            Rect rect = minBoundingRect & preprocess_rois[j];
+            if (rect.area() > (minBoundingRect.area() > preprocess_rois[i].area() ? preprocess_rois[j].area() : minBoundingRect.area())*0.05)
+            {
+                minBoundingRect = minBoundingRect | preprocess_rois[j];
+            }
+        }
+        preprocess_rois.push_back(minBoundingRect);
+    }
+
+    //rois filter
+    for(int i=0;i<(int)preprocess_rois.size();++i)
+    {
+        for(int j=i+1;j<(int)preprocess_rois.size();++j)
+        {
+            if (preprocess_rois[i].area() < preprocess_rois[j].area())
+                swap(preprocess_rois[i],preprocess_rois[j]);
+        }
+    }
+    for(int i=0;i<(int)preprocess_rois.size();++i)
+    {
+        for(int j=i+1;j<(int)preprocess_rois.size();++j)
+        {
+            bool is_inside = Rect1IsInside(preprocess_rois[j], preprocess_rois[i]);
+            if (true == is_inside)
+            {
+                preprocess_rois.erase(preprocess_rois.begin()+j);
+                j--;
+                continue;
+            }
+        }
+    }
+    printf("Possible roi num=%d;\n", (int)preprocess_rois.size());
+    return;
+}
 
 
 extern double time0,time1,time2;
-//显示时间、帧率
 static void ShowTime(Mat& img, int k, float shrink)
 {
     //每n帧更新一次时间显示
@@ -411,4 +510,6 @@ static void ShowTime(Mat& img, int k, float shrink)
     Point2i tim_center;
     tim_center=Point2i( img.cols-int(250*img.cols/1384),int(img.rows-3) );
     putText(img, tim, tim_center,CV_FONT_HERSHEY_PLAIN,2.5*img.cols/1384,Scalar(0,0,255),4.5*img.cols/1384);//显示时间
+    return;
 }
+
