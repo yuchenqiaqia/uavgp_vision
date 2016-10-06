@@ -179,7 +179,7 @@ void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, 
         putText(rawCameraImg, digit, showCenter,CV_FONT_HERSHEY_DUPLEX,5.2*shrink,Scalar(0,0,255), int(5.5*shrink));
         char window_name[50];
         sprintf(window_name,"digit_%d", num);
-        imshow(window_name,roiAreaInfos[i].roi_imgs);
+        //imshow(window_name,roiAreaInfos[i].roi_imgs);
         roiAreaInfos[i].digitNo = (int)classResult;
         num++;
     }
@@ -214,7 +214,7 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& color_filtere
     light_img.copyTo(color_filtered_img);
     Mat resized_light_img;
     resize(light_img,resized_light_img,Size(1384*0.4,1032*0.4),0,0,INTER_AREA);
-    imshow("light_img",resized_light_img);
+    //imshow("light_img",resized_light_img);
     return;
 }
 
@@ -228,24 +228,25 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
         Mat roi_img = input_img(preprocess_rois[i]);
         medianBlur(roi_img,roi_img,7);
 
-        float cal_thres = 60;
-        float value = GetAverageValue( roi_img,true,80 );
+        float cal_thres = 80;
+        float value = GetAverageValue( roi_img,true,cal_thres );
+        //printf("AverageValue = %0.2f\n", value);
         float contrast_ratio = 0.025 * 20/value;
         StrongContrast(roi_img, contrast_ratio);
 
-        if (value <= cal_thres*2)
+        if (value <= cal_thres*1.75)
             equalizeHist(roi_img,roi_img);
 
         char window_name[50];
         sprintf(window_name,"possible roi img %d", i);
-        imshow(window_name,roi_img);
+        //imshow(window_name,roi_img);
         Mat median_blur_light_img_roi = median_blur_light_img(preprocess_rois[i]);
         roi_img.copyTo(median_blur_light_img_roi,roi_img);
     }
 
 
     Mat resized_median_blur_light_img;
-    resize(median_blur_light_img,resized_median_blur_light_img,Size(1384*0.5,1032*0.5));
+    resize(median_blur_light_img,resized_median_blur_light_img,Size(1384*0.3,1032*0.3));
     imshow("Strong Contrast median_blur_light_img",resized_median_blur_light_img);
     int min_size = 70; //100, 80
     int thresh_size = (min_size/4)*2 + 1;
@@ -259,7 +260,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
     morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
     Mat imgBinaryShow;
     resize(imgBinary, imgBinaryShow, Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
-    imshow("adaptive Threshold Img",imgBinaryShow);
+    //imshow("adaptive Threshold Img",imgBinaryShow);
     return;
 }
 
@@ -355,10 +356,10 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         float value = GetAverageValue( img,true );
         float contrast_ratio = 0.025 * 20/value; //// 0.025*20/value;
         StrongContrast(roi_img, contrast_ratio);
-        imshow("StrongContrast_light_img_roi", roi_img);
+        //imshow("StrongContrast_light_img_roi", roi_img);
 
         float average_value = GetAverageValue( roi_img,false );
-        printf("average_value=%d\n",int(average_value));
+        //printf("average_value=%d\n",int(average_value));
 
         if (average_value < 40)
         {
@@ -374,10 +375,10 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
             //erode(roi_img,roi_img,element);
         }
 
-        double min_filter_thres = 150*pow(average_value,3)/pow(150,3)*20;
+        double min_filter_thres = 150*pow(average_value,3)/pow(150,3)*18.5;
         int roi_pixel_max_value = GetMaxValue(roi_img);
-        if (min_filter_thres >= roi_pixel_max_value)
-            min_filter_thres = roi_pixel_max_value - 5;
+        if (min_filter_thres >= roi_pixel_max_value-15)
+            min_filter_thres = roi_pixel_max_value - 15;
         threshold(roi_img, roi_img, min_filter_thres, 255, THRESH_BINARY_INV);   //120
         imshow("wait classify roi", roi_img);
         RoiAreaInfo roiAreaInfo;
@@ -430,7 +431,7 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
     //dilate(imgBinary, imgBinary ,element);
     Mat show_binary;
     resize(imgBinary,show_binary,Size(1384*0.35,1032*0.35));
-    imshow("Possible Rois adaptive Threshold", show_binary);
+    //imshow("Possible Rois adaptive Threshold", show_binary);
 
     vector< vector<Point> > contours;
     findContours( imgBinary, contours, RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
@@ -476,7 +477,7 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
             }
         }
     }
-    printf("Possible roi num=%d;\n", (int)preprocess_rois.size());
+    //printf("Possible roi num=%d;\n", (int)preprocess_rois.size());
     return;
 }
 
