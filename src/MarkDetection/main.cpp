@@ -93,7 +93,7 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         digits_position.ranges[i*4 + 2] = float(1000);
         digits_position.ranges[i*4 + 3] = float(1000);
         display_screen_digit_publisher.publish(digits_position);
-        ROS_INFO("\nsend digit = %d", digitNo);
+        ROS_INFO("send digit = %d\n", digitNo);
     }
 
     imageProcessedNo++;
@@ -700,25 +700,31 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         IplImage ipl_img(possibleDigitBinaryImg);
         float classResult = ocr->classify(&ipl_img,1);
         float precisionRatio = ocr->knn_result.precisionRatio;
-        float min_distance = ocr->knn_result.min_distance[0];
+        //float min_distance = ocr->knn_result.min_distance[0];
+
+        float min_distance[10] = {1000};
+        int count = 0;
+        for(int j=0;j<10;++j)
+        {
+            if (int(classResult) == int(ocr->knn_result.nearest_label[j]))
+            {
+                min_distance[count] = ocr->knn_result.min_distance[j];
+                count++;
+            }
+        }
 
         char digit[500];
         if (true == saveDigitBinaryImg)
         {
-            sprintf(digit, "%s/digit_image/digit_%d_%06d__%d_%d.pbm", baseDir, int(classResult), rectCategory[i][0].frameNo, int(precisionRatio), int(min_distance));
+            sprintf(digit, "%s/digit_image/digit_%d_%06d__%d_%d.pbm", baseDir, int(classResult), rectCategory[i][0].frameNo, int(precisionRatio), int(min_distance[0]));
             imwrite(digit,  rectCategory[i][0].possibleDigitBinaryImg );
         }
 
-        //printf("digit=%d; precisionRatio=%d; dist=%f\n\n",(int)classResult,(int)precisionRatio, min_distance);
-        if (min_distance > 250)
+        //printf("digit=%d; precisionRatio=%d; dist=%f\n\n",(int)classResult,(int)precisionRatio, min_distance[0]);
+        if (min_distance[0] > 250)
             continue;
         if ((rectCategory[i][0].position.z <=9.0 && (int)precisionRatio < 90) || rectCategory[i][0].position.z > 9.0)
             continue;
-
-        //static float dis_temp = 0;
-        //if (dis_temp < min_distance)
-        //    dis_temp = min_distance;
-        //printf("dis_temp=%f\n",dis_temp);
 
         rectCategory[i][0].digitNo = (int)classResult;
         VisionResult result;
