@@ -18,7 +18,7 @@ public:
         acccuracy = -1;
     }
     Rect minBoundingRect;
-    Mat  roi_imgs;
+    Mat  roi_img;
     int digitNo;
     float acccuracy;
     float distance[3];
