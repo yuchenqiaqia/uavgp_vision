@@ -5,7 +5,8 @@
  */
 
 #include "DisplayScreenProcess.h"
-static void ShowTime(Mat& img, int k, float shrink);
+void ShowTime(Mat& img, int k, float shrink);
+int EraseImpossibleResult(RoiAreaInfo& roiAreaInfo);
 
 static float GetAverageValue(Mat& input_img, bool non_zero_pixel, float thres = 0)
 {
@@ -116,74 +117,12 @@ int DisplayScreenProcessType::DisplayScreenProcess(Mat& input_img, basicOCR* KNN
     imshow("Display screen", show_img);
     waitKey(1);
     imgNo++;
+    cout<<endl;
 
     if (roiAreaInfos.size() >= 1)
         return roiAreaInfos[0].digitNo;
     else
         return -1;
-}
-
-void DisplayScreenProcessType::DigitSort(Mat& input_img, vector<RoiAreaInfo>& roiAreaInfos)
-{
-    for(int i=0;i<(int)roiAreaInfos.size();++i)
-    {
-        for(int j=i+1;j<(int)roiAreaInfos.size();++j)
-        {
-            int x_i = roiAreaInfos[i].minBoundingRect.x + roiAreaInfos[i].minBoundingRect.width/2;
-            int y_i = roiAreaInfos[i].minBoundingRect.y + roiAreaInfos[i].minBoundingRect.height/2;
-            int x_j = roiAreaInfos[j].minBoundingRect.x + roiAreaInfos[j].minBoundingRect.width/2;
-            int y_j = roiAreaInfos[j].minBoundingRect.y + roiAreaInfos[j].minBoundingRect.height/2;
-            float dis_c_i = sqrt(pow(x_i - input_img.cols/2,2) + pow(y_i - input_img.rows/2,2));
-            float dis_c_j = sqrt(pow(x_j - input_img.cols/2,2) + pow(y_j - input_img.rows/2,2));
-            if (dis_c_i > dis_c_j)
-            {
-                swap(roiAreaInfos[i],roiAreaInfos[j]);
-            }
-        }
-    }
-    return;
-}
-
-void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, Mat& rawCameraImg, basicOCR* KNNocr, const char* baseDir)
-{
-    int num = 0;
-    for(int i=0;i<(int)roiAreaInfos.size();++i)
-    {
-        IplImage ipl_img(roiAreaInfos[i].roi_imgs);
-        float classResult = KNNocr->classify(&ipl_img,1);
-        float precisionRatio = KNNocr->knn_result.precisionRatio;
-        float min_distance[3];
-        for(int j=0;j<3;++j)
-           min_distance[j] = KNNocr->knn_result.min_distance[j];
-
-        char digit[500];
-        sprintf(digit, "%s/digit_image/digit_%d_accuracy_%d_dist_%d_%d_No_%06d.pbm", baseDir, int(classResult), int(precisionRatio), int(min_distance[0]), int(min_distance[1]), imgNo);
-        imwrite(digit,  roiAreaInfos[i].roi_imgs );
-
-        if (min_distance[0] >= min_knn_distance_thres || min_distance[0] < 1)
-        {
-            roiAreaInfos.erase(roiAreaInfos.begin() + i);
-            i--;
-            continue;
-        }
-        if (precisionRatio <= min_precision_ratio_thres)
-        {
-            roiAreaInfos.erase(roiAreaInfos.begin() + i);
-            i--;
-            continue;
-        }
-        rectangle( rawCameraImg, roiAreaInfos[i].minBoundingRect, Scalar(0,255,255), 5, 8);
-        printf("digit=%d; accuracy=%d%%; dist=%d,%d,%d\n\n",(int)classResult,(int)precisionRatio, int(min_distance[0]), int(min_distance[1]), int(min_distance[2]));
-        sprintf(digit,"%d",(int)classResult);
-        Point showCenter = Point(roiAreaInfos[i].minBoundingRect.x + roiAreaInfos[i].minBoundingRect.width + 60, roiAreaInfos[i].minBoundingRect.y + roiAreaInfos[i].minBoundingRect.height*0.5);
-        putText(rawCameraImg, digit, showCenter,CV_FONT_HERSHEY_DUPLEX,5.2*shrink,Scalar(0,0,255), int(5.5*shrink));
-        char window_name[50];
-        sprintf(window_name,"digit_%d", num);
-        //imshow(window_name,roiAreaInfos[i].roi_imgs);
-        roiAreaInfos[i].digitNo = (int)classResult;
-        num++;
-    }
-    return;
 }
 
 
@@ -207,14 +146,14 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& color_filtere
             int saturation = saturation_img.at<uchar>(i,j);
             if(saturation < 120)
                 light_img.at<uchar>(i,j) = 0;
-            if( color>60 && color<220 ) //red: 0~15, 221~255;
+            if( color>60 && color<220 ) //red: 0~15, 221~255; yellow: 16~48;
                 light_img.at<uchar>(i,j) = 0;
         }
     }
     light_img.copyTo(color_filtered_img);
     Mat resized_light_img;
     resize(light_img,resized_light_img,Size(1384*0.4,1032*0.4),0,0,INTER_AREA);
-    //imshow("light_img",resized_light_img);
+    imshow("color filtered img",resized_light_img);
     return;
 }
 
@@ -359,7 +298,7 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         //imshow("StrongContrast_light_img_roi", roi_img);
 
         float average_value = GetAverageValue( roi_img,false );
-        //printf("average_value=%d\n",int(average_value));
+        printf("average_value=%d\n",int(average_value));
 
         if (average_value < 40)
         {
@@ -383,7 +322,7 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         imshow("wait classify roi", roi_img);
         RoiAreaInfo roiAreaInfo;
         roiAreaInfo.minBoundingRect = minBoundingRect;
-        roiAreaInfo.roi_imgs = roi_img;
+        roiAreaInfo.roi_img = roi_img;
         roiAreaInfos.push_back(roiAreaInfo);
     }
     //sort by area
@@ -409,7 +348,6 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
             }
         }
     }
-
     return;
 }
 
@@ -447,7 +385,7 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
         for(int j=0;j<(int)preprocess_rois.size();++j)
         {
             Rect rect = minBoundingRect & preprocess_rois[j];
-            if (rect.area() > (minBoundingRect.area() > preprocess_rois[i].area() ? preprocess_rois[j].area() : minBoundingRect.area())*0.05)
+            if (rect.area() > (minBoundingRect.area() > preprocess_rois[i].area() ? preprocess_rois[j].area() : minBoundingRect.area())*0.005)
             {
                 minBoundingRect = minBoundingRect | preprocess_rois[j];
             }
@@ -482,35 +420,116 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
 }
 
 
-extern double time0,time1,time2;
-static void ShowTime(Mat& img, int k, float shrink)
+void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, Mat& rawCameraImg, basicOCR* KNNocr, const char* baseDir)
 {
-    //每n帧更新一次时间显示
-    int n = 2;
-    static int imgFps = 0;
-    if(0 == (k%n))
+    int num = 0;
+    for(int i=0;i<(int)roiAreaInfos.size();++i)
     {
-        time2=((double)getTickCount()-time0)/getTickFrequency();
-        imgFps = int( n/(time2-time1) );
-    }
-    char frameN[50];
-    sprintf(frameN,"F:%d,fps:%d", k, imgFps);  //将帧数，帧率输入到frameN中
-    Point2i k_center;
-    k_center=Point2i(2,img.rows-3);
-    putText( img, frameN, k_center,CV_FONT_HERSHEY_PLAIN,2.5*img.cols/1384,Scalar(0,0,255),4.5*img.cols/1384);
+        IplImage ipl_img(roiAreaInfos[i].roi_img);
+        float classResult = KNNocr->classify(&ipl_img,1);
+        float precisionRatio = KNNocr->knn_result.precisionRatio;
+        float min_distance[3];
+        for(int j=0;j<3;++j)
+        {
+           min_distance[j] = KNNocr->knn_result.min_distance[j];
+        }
+        roiAreaInfos[i].digitNo = (int)classResult;
 
-    if(0 == (k%n))
-    {
-        time1=time2;
-    }
+        char digit[500];
+        sprintf(digit, "%s/digit_image/digit_%d_accuracy_%d_dist_%d_%d_No_%06d.pbm", baseDir, int(classResult), int(precisionRatio), int(min_distance[0]), int(min_distance[1]), imgNo);
+        imwrite(digit,  roiAreaInfos[i].roi_img );
 
-    char tim[50];
-    sprintf(tim,"Tim:%d%1d:%1d%1d:%1d", int (time1/60/10),int (int(time1/60)%10),             //十分位，个分位
-                                          int ((int(time1)%60)/10),int ((int(time1)%100)%10),  //十秒位，个秒位
-                                          int (int(time1*10)%10) );                            //秒小数位
-    Point2i tim_center;
-    tim_center=Point2i( img.cols-int(250*img.cols/1384),int(img.rows-3) );
-    putText(img, tim, tim_center,CV_FONT_HERSHEY_PLAIN,2.5*img.cols/1384,Scalar(0,0,255),4.5*img.cols/1384);//显示时间
+        if (min_distance[0] >= min_knn_distance_thres || min_distance[0] < 1)
+        {
+            roiAreaInfos.erase(roiAreaInfos.begin() + i);
+            i--;
+            continue;
+        }
+        if (precisionRatio <= min_precision_ratio_thres)
+        {
+            roiAreaInfos.erase(roiAreaInfos.begin() + i);
+            i--;
+            continue;
+        }
+        if (0 == EraseImpossibleResult(roiAreaInfos[i]))
+        {
+            roiAreaInfos.erase(roiAreaInfos.begin() + i);
+            i--;
+            continue;
+        }
+        rectangle( rawCameraImg, roiAreaInfos[i].minBoundingRect, Scalar(0,255,255), 5, 8);
+        printf("digit=%d; accuracy=%d%%; dist=%d,%d,%d\n",(int)classResult,(int)precisionRatio, int(min_distance[0]), int(min_distance[1]), int(min_distance[2]));
+        sprintf(digit,"%d",(int)classResult);
+        Point showCenter = Point(roiAreaInfos[i].minBoundingRect.x + roiAreaInfos[i].minBoundingRect.width + 60, roiAreaInfos[i].minBoundingRect.y + roiAreaInfos[i].minBoundingRect.height*0.5);
+        putText(rawCameraImg, digit, showCenter,CV_FONT_HERSHEY_DUPLEX,5.2*shrink,Scalar(0,0,255), int(5.5*shrink));
+        char window_name[50];
+        sprintf(window_name,"digit_%d", num);
+        //imshow(window_name,roiAreaInfos[i].roi_img);
+        num++;
+    }
     return;
 }
 
+int EraseImpossibleResult(RoiAreaInfo& roiAreaInfo)
+{
+    Mat img = roiAreaInfo.roi_img.clone();
+    GaussianBlur(img,img,Size(3,3),0,0);
+    Canny(img,img,120,30);
+    Mat img_find_contours = img.clone();
+    vector< vector<Point> > contours;
+    findContours(img_find_contours,contours,CV_RETR_EXTERNAL, CHAIN_APPROX_NONE );// RETR_LIST
+    vector<Rect> rects;
+    float img_area = img.cols*img.rows;
+    for(int j=0;j<(int)contours.size();++j)
+    {
+        Rect minBoundingRect = boundingRect( Mat(contours[j]) );
+        float area_thres = 0.3;
+        float height_thres = 0.5;
+        float width_thres = 0.4;
+        if (1 == roiAreaInfo.digitNo)
+        {
+            area_thres = 0.1;
+            height_thres = 0.6;
+        }
+        if (minBoundingRect.area() < img_area*area_thres)
+            continue;
+        if (minBoundingRect.height < img.rows*height_thres)
+            continue;
+        Point rect_center = Point(minBoundingRect.x+minBoundingRect.width*0.5, minBoundingRect.y+minBoundingRect.height*0.5);
+        Point img_center = Point(img.cols*0.5,img.rows*0.5);
+        float dis = sqrt(pow(rect_center.x-img_center.x,2)+pow(rect_center.y-img_center.y,2));
+        float thres = img.rows*0.5*0.6;
+        printf("dis_center = %0.1f\n", dis);
+        if (dis > thres)
+            continue;
+
+        rects.push_back(minBoundingRect);
+        printf("rect.area = %0.2f, rect.height = %0.2f, rect.width = %0.2f\n", rects[0].area()/img_area, (float)rects[0].height/img.rows, (float)rects[0].width/img.cols);
+    }
+    if (rects.size() < 1)
+        return 0;
+    else
+        return 1;
+}
+
+
+void DisplayScreenProcessType::DigitSort(Mat& input_img, vector<RoiAreaInfo>& roiAreaInfos)
+{
+    for(int i=0;i<(int)roiAreaInfos.size();++i)
+    {
+        for(int j=i+1;j<(int)roiAreaInfos.size();++j)
+        {
+            int x_i = roiAreaInfos[i].minBoundingRect.x + roiAreaInfos[i].minBoundingRect.width/2;
+            int y_i = roiAreaInfos[i].minBoundingRect.y + roiAreaInfos[i].minBoundingRect.height/2;
+            int x_j = roiAreaInfos[j].minBoundingRect.x + roiAreaInfos[j].minBoundingRect.width/2;
+            int y_j = roiAreaInfos[j].minBoundingRect.y + roiAreaInfos[j].minBoundingRect.height/2;
+            float dis_c_i = sqrt(pow(x_i - input_img.cols/2,2) + pow(y_i - input_img.rows/2,2));
+            float dis_c_j = sqrt(pow(x_j - input_img.cols/2,2) + pow(y_j - input_img.rows/2,2));
+            if (dis_c_i > dis_c_j)
+            {
+                swap(roiAreaInfos[i],roiAreaInfos[j]);
+            }
+        }
+    }
+    return;
+}
