@@ -144,6 +144,10 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& color_filtere
         {
             int color = color_img.at<uchar>(i,j);
             int saturation = saturation_img.at<uchar>(i,j);
+            int lightness = light_img.at<uchar>(i,j);
+
+            if(lightness < 50)
+                light_img.at<uchar>(i,j) = 0;
             if(saturation < 120)
                 light_img.at<uchar>(i,j) = 0;
             if( color>60 && color<220 ) //red: 0~15, 221~255; yellow: 16~48;
@@ -162,6 +166,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
 {
     Mat input_img = color_filtered_img.clone();
     median_blur_light_img = Mat::zeros(color_filtered_img.rows,color_filtered_img.cols,CV_8UC1);
+
     for(int i=0;i<(int)preprocess_rois.size();++i)
     {
         Mat roi_img = input_img(preprocess_rois[i]);
@@ -385,7 +390,7 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
         for(int j=0;j<(int)preprocess_rois.size();++j)
         {
             Rect rect = minBoundingRect & preprocess_rois[j];
-            if (rect.area() > (minBoundingRect.area() > preprocess_rois[i].area() ? preprocess_rois[j].area() : minBoundingRect.area())*0.005)
+            if (rect.area() > 1)     //(minBoundingRect.area() > preprocess_rois[i].area() ? preprocess_rois[j].area() : minBoundingRect.area())*0.005
             {
                 minBoundingRect = minBoundingRect | preprocess_rois[j];
             }
@@ -428,10 +433,15 @@ void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, 
         IplImage ipl_img(roiAreaInfos[i].roi_img);
         float classResult = KNNocr->classify(&ipl_img,1);
         float precisionRatio = KNNocr->knn_result.precisionRatio;
-        float min_distance[3];
-        for(int j=0;j<3;++j)
+        float min_distance[10] = {1000};
+        int count = 0;
+        for(int j=0;j<10;++j)
         {
-           min_distance[j] = KNNocr->knn_result.min_distance[j];
+            if (int(classResult) == int(KNNocr->knn_result.nearest_label[j]))
+            {
+                min_distance[count] = KNNocr->knn_result.min_distance[j];
+                count++;
+            }
         }
         roiAreaInfos[i].digitNo = (int)classResult;
 
@@ -439,7 +449,7 @@ void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, 
         sprintf(digit, "%s/digit_image/digit_%d_accuracy_%d_dist_%d_%d_No_%06d.pbm", baseDir, int(classResult), int(precisionRatio), int(min_distance[0]), int(min_distance[1]), imgNo);
         imwrite(digit,  roiAreaInfos[i].roi_img );
 
-        if (min_distance[0] >= min_knn_distance_thres || min_distance[0] < 1)
+        if (min_distance[0] >= min_knn_distance_thres || min_distance[0] <= 1)
         {
             roiAreaInfos.erase(roiAreaInfos.begin() + i);
             i--;
@@ -485,7 +495,7 @@ int EraseImpossibleResult(RoiAreaInfo& roiAreaInfo)
         Rect minBoundingRect = boundingRect( Mat(contours[j]) );
         float area_thres = 0.3;
         float height_thres = 0.5;
-        float width_thres = 0.4;
+        //float width_thres = 0.4;
         if (1 == roiAreaInfo.digitNo)
         {
             area_thres = 0.1;
@@ -498,7 +508,7 @@ int EraseImpossibleResult(RoiAreaInfo& roiAreaInfo)
         Point rect_center = Point(minBoundingRect.x+minBoundingRect.width*0.5, minBoundingRect.y+minBoundingRect.height*0.5);
         Point img_center = Point(img.cols*0.5,img.rows*0.5);
         float dis = sqrt(pow(rect_center.x-img_center.x,2)+pow(rect_center.y-img_center.y,2));
-        float thres = img.rows*0.5*0.6;
+        float thres = img.rows*0.5*0.5;
         printf("dis_center = %0.1f\n", dis);
         if (dis > thres)
             continue;
