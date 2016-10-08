@@ -357,7 +357,7 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         if ((y + height) >= (rawCameraImg.rows-1))
             height = rawCameraImg.rows - y;
         Rect roi = Rect(x, y, width, height);
-        if (roi.size() < 10)
+        if ((int)roi.area() < 10)
             continue;
 
         Mat roi_img;
