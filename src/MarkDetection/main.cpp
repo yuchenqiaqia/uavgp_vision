@@ -146,7 +146,7 @@ void PrintBoardProcess(Mat& rawCameraImg)
     //show time and fps
     ShowTime(rectResultImg, imageProcessedNo, shrink);
     //show result image
-    resize(rectResultImg, rectResultImg, Size(640,480), 0, 0, INTER_AREA);
+    resize(rectResultImg, rectResultImg, Size(1384*0.5,1032*0.5), 0, 0, INTER_AREA);
 
     rectResultImg.copyTo(g_rectResultImg);
     g_rectResultImgUpdated = true;
