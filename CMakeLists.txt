@@ -74,7 +74,6 @@ add_executable( vision_result_publisher
 ./include/preprocessing.h
 ./include/DisplayScreenProcess.h
 ./src/MarkDetection/DisplayScreenProcess.cpp
-#./src/MarkDetection/MultiThreadListener.h
 )
 #OpenCV库
 target_link_libraries(vision_result_publisher  ${OpenCV_LIBRARIES} )
@@ -96,11 +95,23 @@ add_executable( camera_publisher
 #添加point gray相机动态链接库
 target_link_libraries(camera_publisher  flycapture)
 #OpenCV库
-target_link_libraries( camera_publisher  ${OpenCV_LIBS} )
+target_link_libraries( camera_publisher  ${OpenCV_LIBRARIES} )
 #添加多线程第三方库
 target_link_libraries(camera_publisher -lpthread)
 #catkin需要的库
 target_link_libraries(camera_publisher ${catkin_LIBRARIES})
+
+
+#--------------------------------------------------------------------
+# raw data save
+add_executable( save_raw_data
+./src/RawDataSave/RawDataSave.cpp
+
+)
+#OpenCV库
+target_link_libraries( save_raw_data  ${OpenCV_LIBRARIES} )
+#catkin需要的库
+target_link_libraries(save_raw_data ${catkin_LIBRARIES})
 
 
 #--------------------------------------------------------------------

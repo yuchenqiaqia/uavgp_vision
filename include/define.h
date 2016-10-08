@@ -89,3 +89,28 @@ void ShowGuidanceImage(Mat& gray_image_left, Mat& gray_image_right, Mat& depth8,
 void DigitResultPublish( vector<VisionResult> & visionResult );
 //相机坐标系到NEG坐标系；
 void CameraCoordinate2NegCoordinate( vector<VisionResult>& vision_results, const Attitude3D& attitude3d);
+
+//
+void ResizeImageByDistance( Mat& inputImg, Mat& outputImg, vector<VisionResult>& oldResult);
+//矩形（四边形）检测
+void RectangleDetect( Mat& lightness_img, Mat& resultImg, vector< vector<RectMark> >& rectCategory, int frameNo );
+//剔除重合的四边形
+void RectErase( vector<RectMark>& rectPossible );
+//四边形分类
+void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& rectCategory);
+//四边形按面积排序
+void RectSortByArea( vector< vector<RectMark> >& rectCategory );
+//不同类的四边形按坐标排序
+void RectSortByPositionX( vector< vector<RectMark> >& rectCategory );
+//画出各四边形
+void DrawAllRect(Mat& resultImg, vector< vector<RectMark> >& rectCategory);
+//黑框检测
+void BlackFrameDetect(vector< vector<RectMark> >& rectCategory);
+//计算包围黑框的像素平均值
+int GetBoxFramePixelAverageValue(const Mat& img);
+//单目位置估计
+void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory);
+//透视变换
+void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vector< vector<RectMark> >& rectCategory);
+//数字识别
+void DigitDetector(Mat& rectResultImg, basicOCR* ocr, vector< vector<RectMark> >& rectCategory, bool saveDigitBinaryImg);
