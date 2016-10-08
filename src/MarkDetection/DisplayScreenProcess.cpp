@@ -162,6 +162,77 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& color_filtere
 }
 
 
+void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<Rect>& preprocess_rois)
+{
+    Mat img = color_filtered_img.clone();
+    //equalizeHist(color_filtered_img, img);
+    Mat imgBinary;
+    int min_size = 40; //100, 80
+    int thresh_size = (min_size/4)*2 + 1;
+    adaptiveThreshold(img, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
+    double s = 15*shrink;
+    int size = ( 1 == int(s)%2 ) ? int(s) : int(s)+1;
+    if (size < 3)
+        size = 3;
+    Mat element;
+    element=getStructuringElement(MORPH_ELLIPSE, Size( size,size ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+    morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
+    //dilate(imgBinary, imgBinary ,element);
+    Mat show_binary;
+    resize(imgBinary,show_binary,Size(1384*0.35,1032*0.35));
+    //imshow("Possible Rois adaptive Threshold", show_binary);
+
+    vector< vector<Point> > contours;
+    findContours( imgBinary, contours, RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
+
+    if (contours.size() < 1)
+        return;
+
+    for(int i=0;i<(int)contours.size();++i)
+    {
+        if (contours[i].size() < color_filtered_img.rows*0.05)
+            continue;
+        Rect minBoundingRect = boundingRect( Mat(contours[i]) );
+        if (minBoundingRect.area() < pow(color_filtered_img.rows*0.05, 2))
+            continue;
+
+        for(int j=0;j<(int)preprocess_rois.size();++j)
+        {
+            Rect rect = minBoundingRect & preprocess_rois[j];
+            if (rect.area() > 1)     //(minBoundingRect.area() > preprocess_rois[i].area() ? preprocess_rois[j].area() : minBoundingRect.area())*0.005
+            {
+                minBoundingRect = minBoundingRect | preprocess_rois[j];
+            }
+        }
+        preprocess_rois.push_back(minBoundingRect);
+    }
+
+    //rois filter
+    for(int i=0;i<(int)preprocess_rois.size();++i)
+    {
+        for(int j=i+1;j<(int)preprocess_rois.size();++j)
+        {
+            if (preprocess_rois[i].area() < preprocess_rois[j].area())
+                swap(preprocess_rois[i],preprocess_rois[j]);
+        }
+    }
+    for(int i=0;i<(int)preprocess_rois.size();++i)
+    {
+        for(int j=i+1;j<(int)preprocess_rois.size();++j)
+        {
+            bool is_inside = Rect1IsInside(preprocess_rois[j], preprocess_rois[i]);
+            if (true == is_inside)
+            {
+                preprocess_rois.erase(preprocess_rois.begin()+j);
+                j--;
+                continue;
+            }
+        }
+    }
+    //printf("Possible roi num=%d;\n", (int)preprocess_rois.size());
+    return;
+}
+
 void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<Rect>& preprocess_rois, Mat& median_blur_light_img, Mat& imgBinary)
 {
     Mat input_img = color_filtered_img.clone();
@@ -355,75 +426,6 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
     }
     return;
 }
-
-void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<Rect>& preprocess_rois)
-{
-    Mat img = color_filtered_img.clone();
-    //equalizeHist(color_filtered_img, img);
-    Mat imgBinary;
-    int min_size = 40; //100, 80
-    int thresh_size = (min_size/4)*2 + 1;
-    adaptiveThreshold(img, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
-    double s = 15*shrink;
-    int size = ( 1 == int(s)%2 ) ? int(s) : int(s)+1;
-    if (size < 3)
-        size = 3;
-    Mat element;
-    element=getStructuringElement(MORPH_ELLIPSE, Size( size,size ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
-    morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
-    //dilate(imgBinary, imgBinary ,element);
-    Mat show_binary;
-    resize(imgBinary,show_binary,Size(1384*0.35,1032*0.35));
-    //imshow("Possible Rois adaptive Threshold", show_binary);
-
-    vector< vector<Point> > contours;
-    findContours( imgBinary, contours, RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
-
-    for(int i=0;i<(int)contours.size();++i)
-    {
-        if (contours[i].size() < color_filtered_img.rows*0.05)
-            continue;
-        Rect minBoundingRect = boundingRect( Mat(contours[i]) );
-        if (minBoundingRect.area() < pow(color_filtered_img.rows*0.05, 2))
-            continue;
-
-        for(int j=0;j<(int)preprocess_rois.size();++j)
-        {
-            Rect rect = minBoundingRect & preprocess_rois[j];
-            if (rect.area() > 1)     //(minBoundingRect.area() > preprocess_rois[i].area() ? preprocess_rois[j].area() : minBoundingRect.area())*0.005
-            {
-                minBoundingRect = minBoundingRect | preprocess_rois[j];
-            }
-        }
-        preprocess_rois.push_back(minBoundingRect);
-    }
-
-    //rois filter
-    for(int i=0;i<(int)preprocess_rois.size();++i)
-    {
-        for(int j=i+1;j<(int)preprocess_rois.size();++j)
-        {
-            if (preprocess_rois[i].area() < preprocess_rois[j].area())
-                swap(preprocess_rois[i],preprocess_rois[j]);
-        }
-    }
-    for(int i=0;i<(int)preprocess_rois.size();++i)
-    {
-        for(int j=i+1;j<(int)preprocess_rois.size();++j)
-        {
-            bool is_inside = Rect1IsInside(preprocess_rois[j], preprocess_rois[i]);
-            if (true == is_inside)
-            {
-                preprocess_rois.erase(preprocess_rois.begin()+j);
-                j--;
-                continue;
-            }
-        }
-    }
-    //printf("Possible roi num=%d;\n", (int)preprocess_rois.size());
-    return;
-}
-
 
 void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, Mat& rawCameraImg, basicOCR* KNNocr, const char* baseDir)
 {
