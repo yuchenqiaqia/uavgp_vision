@@ -117,7 +117,7 @@ int DisplayScreenProcess(Mat& rawCameraImg)
     char att_string[100];
     sprintf(att_string,"att:[%0.3f,%0.3f,%0.3f]", attitude3d.roll*180/3.14,attitude3d.pitch*180/3.14,attitude3d.yaw*180/3.14);
     Point2i center;
-    center=Point2i( 3,30 );
+    center=Point2i( 3,20 );
     putText(img, att_string, center,CV_FONT_HERSHEY_PLAIN,1.25,Scalar(0,0,255),2);
 
     img.copyTo(g_rectResultImg);
@@ -168,7 +168,7 @@ void PrintBoardProcess(Mat& rawCameraImg)
     char att_string[100];
     sprintf(att_string,"att:[%0.3f,%0.3f,%0.3f]", attitude3d.roll*180/3.14,attitude3d.pitch*180/3.14,attitude3d.yaw*180/3.14);
     Point2i center;
-    center=Point2i( 3,30 );
+    center=Point2i( 3,20 );
     putText(rectResultImg, att_string, center,CV_FONT_HERSHEY_PLAIN,1.25,Scalar(0,0,255),2);
 
     rectResultImg.copyTo(g_rectResultImg);
