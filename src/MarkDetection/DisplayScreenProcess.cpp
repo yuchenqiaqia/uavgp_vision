@@ -75,8 +75,8 @@ bool Rect1IsInside(Rect rect1, Rect rect2)
 DisplayScreenProcessType::DisplayScreenProcessType( )
 {
     imgNo = 0;
-    shrink = 0.8;
-    rect_filter_two_side_ratio_max = 0.9;   ////0.9
+    shrink = 1.0;
+    rect_filter_two_side_ratio_max = 1.1;   ////0.9
     rect_filter_two_side_ratio_min = 0.1;   ////0.2
     min_bounding_rect_height_ratio = 0.05;  ////0.1
     min_precision_ratio_thres = 80.0;    ////80
@@ -160,7 +160,7 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& color_filtere
     light_img.copyTo(color_filtered_img);
     Mat resized_light_img;
     resize(light_img,resized_light_img,Size(1384*0.4,1032*0.4),0,0,INTER_AREA);
-    imshow("color filtered img",resized_light_img);
+    //imshow("color filtered img",resized_light_img);
     return;
 }
 
@@ -170,7 +170,7 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
     Mat img = color_filtered_img.clone();
     //equalizeHist(color_filtered_img, img);
     Mat imgBinary;
-    int min_size = 40; //100, 80
+    int min_size = 100; //100, 80
     int thresh_size = (min_size/4)*2 + 1;
     adaptiveThreshold(img, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
     double s = 15*shrink;
@@ -182,7 +182,7 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
     morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
     //dilate(imgBinary, imgBinary ,element);
     Mat show_binary;
-    resize(imgBinary,show_binary,Size(1384*0.35,1032*0.35));
+    resize(imgBinary,show_binary,Size(1384*0.5,1032*0.5));
     //imshow("Possible Rois adaptive Threshold", show_binary);
 
     vector< vector<Point> > contours;
@@ -232,7 +232,7 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
             }
         }
     }
-    //printf("Possible roi num=%d;\n", (int)preprocess_rois.size());
+    printf("Possible roi num=%d;\n", (int)preprocess_rois.size());
     return;
 }
 
@@ -264,9 +264,9 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
 
 
     Mat resized_median_blur_light_img;
-    resize(median_blur_light_img,resized_median_blur_light_img,Size(1384*0.3,1032*0.3));
-    //imshow("strengthen Contrast median_blur_light_img",resized_median_blur_light_img);
-    int min_size = 70; //100, 80
+    resize(median_blur_light_img,resized_median_blur_light_img,Size(1384*0.45,1032*0.45));
+    imshow("strengthen Contrast median_blur_light_img",resized_median_blur_light_img);
+    int min_size = 80; //100, 80
     int thresh_size = (min_size/4)*2 + 1;
     adaptiveThreshold(median_blur_light_img, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
     double s = 15*shrink;
@@ -396,12 +396,12 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
             //erode(roi_img,roi_img,element);
         }
 
-        double min_filter_thres = 150*pow(average_value,3)/pow(150,3)*18.5;
+        double min_filter_thres = 150*pow(average_value,3)/pow(150,3)*19;
         int roi_pixel_max_value = GetMaxValue(roi_img);
         if (min_filter_thres >= roi_pixel_max_value-15)
             min_filter_thres = roi_pixel_max_value - 15;
         threshold(roi_img, roi_img, min_filter_thres, 255, THRESH_BINARY_INV);   //120
-        imshow("wait classify roi", roi_img);
+        //imshow("wait classify roi", roi_img);
         RoiAreaInfo roiAreaInfo;
         roiAreaInfo.minBoundingRect = minBoundingRect;
         roiAreaInfo.roi_img = roi_img;
@@ -482,7 +482,7 @@ void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, 
         putText(rawCameraImg, digit, showCenter,CV_FONT_HERSHEY_DUPLEX,5.2*shrink,Scalar(0,0,255), int(5.5*shrink));
         char window_name[50];
         sprintf(window_name,"digit_%d", num);
-        //imshow(window_name,roiAreaInfos[i].roi_img);
+        imshow(window_name,roiAreaInfos[i].roi_img);
         num++;
     }
     return;
