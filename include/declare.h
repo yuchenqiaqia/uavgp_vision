@@ -4,7 +4,6 @@
  * @time	: 2016/09/12
  */
 
-//#include "KNN_OCR.h"
 #include "DisplayScreenProcess.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -132,40 +131,12 @@ void*  RosImagePublishThread(void*);
 int CreateDir(char* saveDir);
 //Save
 int CreatSaveDir (char* dir , bool saveImgFlag);
-//SDK方式初始化相机
-//int MindvisionCaptureInit(void);
-
-void ResizeImageByDistance( Mat& inputImg, Mat& outputImg, vector<VisionResult>& oldResult);
-//矩形（四边形）检测
-void RectangleDetect( Mat& lightness_img, Mat& resultImg, vector< vector<RectMark> >& rectCategory, int frameNo );
-//求四边形内侧夹角
-double GetTwoSideAngle(Point2f p1,Point2f p2, Point2f p3);
-//剔除重合的四边形
-void RectErase( vector<RectMark>& rectPossible );
-//四边形分类
-void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& rectCategory);
-//四边形按面积排序
-void RectSortByArea( vector< vector<RectMark> >& rectCategory );
-//不同类的四边形按坐标排序
-void RectSortByPositionX( vector< vector<RectMark> >& rectCategory );
-//画出各四边形
-void DrawAllRect(Mat& resultImg, vector< vector<RectMark> >& rectCategory);
 //对透视变换后的图像做处理，判断出检测到的矩形的类别
 void GetRectKinds( vector< vector<RectMark> >&  rectCategory );
-//黑框检测
-void BlackFrameDetect(vector< vector<RectMark> >& rectCategory);
-//计算包围黑框的像素平均值
-int GetBoxFramePixelAverageValue(const Mat& img);
-//单目位置估计
-void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory);
-//透视变换
-void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vector< vector<RectMark> >& rectCategory);
-//数字识别
-void DigitDetector(Mat& rectResultImg, basicOCR* ocr, vector< vector<RectMark> >& rectCategory, bool saveDigitBinaryImg);
+//求四边形内侧夹角
+double GetTwoSideAngle(Point2f p1,Point2f p2, Point2f p3);
 //显示时间、帧率
 void ShowTime(Mat& inputImg, int frameNo, float shrink);
-//判断待识别图像的有效性
-int FindValidContours(Mat& src);
 //
 double GetAllPixelAverageValue(Mat& img);
 //视觉检测结果保存为txt

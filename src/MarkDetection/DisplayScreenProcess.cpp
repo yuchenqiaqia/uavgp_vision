@@ -55,7 +55,7 @@ static int GetMaxValue(Mat& input_img)
     return max;
 }
 
-static void StrongContrast(Mat& gray_img, float contrast_ratio)
+static void strengthenContrast(Mat& gray_img, float contrast_ratio)
 {
     for(int i=0;i<gray_img.rows;++i)
     {
@@ -252,7 +252,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
         float value = GetAverageValue( roi_img,true,cal_thres );
         //printf("AverageValue = %0.2f\n", value);
         float contrast_ratio = 0.025 * 20/value;
-        StrongContrast(roi_img, contrast_ratio);
+        strengthenContrast(roi_img, contrast_ratio);
 
         if (value <= cal_thres*1.75)
             equalizeHist(roi_img,roi_img);
@@ -267,7 +267,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
 
     Mat resized_median_blur_light_img;
     resize(median_blur_light_img,resized_median_blur_light_img,Size(1384*0.3,1032*0.3));
-    imshow("Strong Contrast median_blur_light_img",resized_median_blur_light_img);
+    imshow("strengthen Contrast median_blur_light_img",resized_median_blur_light_img);
     int min_size = 70; //100, 80
     int thresh_size = (min_size/4)*2 + 1;
     adaptiveThreshold(median_blur_light_img, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
@@ -378,8 +378,8 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         Mat img = roi_img(roi_img_roi);
         float value = GetAverageValue( img,true );
         float contrast_ratio = 0.025 * 20/value; //// 0.025*20/value;
-        StrongContrast(roi_img, contrast_ratio);
-        //imshow("StrongContrast_light_img_roi", roi_img);
+        strengthenContrast(roi_img, contrast_ratio);
+        //imshow("strengthenContrast_light_img_roi", roi_img);
 
         float average_value = GetAverageValue( roi_img,false );
         printf("average_value=%d\n",int(average_value));
@@ -456,7 +456,7 @@ void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, 
         roiAreaInfos[i].digitNo = (int)classResult;
 
         char digit[500];
-        sprintf(digit, "%s/digit_image/digit_%d_accuracy_%d_dist_%d_%d_No_%06d.pbm", baseDir, int(classResult), int(precisionRatio), int(min_distance[0]), int(min_distance[1]), imgNo);
+        sprintf(digit, "%s/digit_image/displayscreen_%d_accuracy_%d_dist_%d_%d_No_%06d.pbm", baseDir, int(classResult), int(precisionRatio), int(min_distance[0]), int(min_distance[1]), imgNo);
         imwrite(digit,  roiAreaInfos[i].roi_img );
 
         if (min_distance[0] >= min_knn_distance_thres || min_distance[0] <= 1)

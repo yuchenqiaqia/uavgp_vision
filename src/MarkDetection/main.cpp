@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "vision_result_publisher");
     time0=static_cast<double>(getTickCount());
-    //初始化分类器, 分类器初始化要放在文件夹创建之前
+
     basicOCR myKNNocr(baseDir);
     KNNocr = &myKNNocr;
     CreatSaveDir(baseDir, imageSaveEnable);
@@ -78,7 +78,9 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
     rawSaveImage.copyTo( rawCameraImg );
 
     if (PRINTBOARD == targetType)
+    {
         PrintBoardProcess(rawCameraImg);
+    }
     else if (DISPLAYSCREEN == targetType)
     {
         int digitNo = DisplayScreenProcess(rawCameraImg);
@@ -96,10 +98,17 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         ROS_INFO("send digit = %d\n", digitNo);
     }
 
+    //press ‘q’ to exit
+    int waitValue = 1;
+    int c = waitKey(waitValue);
+    if ( 113 == c )  //'q'=113; 'Q'=131153
+        exit(0);
+
     imageProcessedNo++;
     return;
 }
 
+//Display screen
 int DisplayScreenProcess(Mat& rawCameraImg)
 {
     int digitNo = display_screen_process.DisplayScreenProcess(rawCameraImg, KNNocr, baseDir);
@@ -108,10 +117,10 @@ int DisplayScreenProcess(Mat& rawCameraImg)
     return digitNo;
 }
 
+//Print board
 void PrintBoardProcess(Mat& rawCameraImg)
 {
     Mat srcImg;
-    //resize image
     ResizeImageByDistance(rawCameraImg, srcImg, lastFrameResult);
     Mat lightness_img_8UC3;
     GetLightnessImage( srcImg, lightness_img_8UC3, lastValidResult);
@@ -128,7 +137,7 @@ void PrintBoardProcess(Mat& rawCameraImg)
     RectangleDetect( lightness_img_8UC3, rectResultImg, rectCategory, imageProcessedNo );
 
     PerspectiveTransformation(lightness_img_8UC3, rectCandidateImg, rectCategory);
-    //Jugde rect kind
+
     GetRectKinds( rectCategory );
 
     EstimatePosition(rectResultImg, rectCategory);
@@ -186,11 +195,6 @@ void PrintBoardProcess(Mat& rawCameraImg)
     if (false == incompleteRectResult.empty())
         vector<VisionResult>().swap(incompleteRectResult);
 
-    int waitValue = 1;
-    int c = waitKey(waitValue);
-    //press ‘q’ to exit
-    if ( 113 == c )  //'q'=113; 'Q'=131153
-        exit(0);
     return;
 }
 
@@ -716,7 +720,7 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         char digit[500];
         if (true == saveDigitBinaryImg)
         {
-            sprintf(digit, "%s/digit_image/digit_%d_%06d__%d_%d.pbm", baseDir, int(classResult), rectCategory[i][0].frameNo, int(precisionRatio), int(min_distance[0]));
+            sprintf(digit, "%s/digit_image/printboard_%d_%06d__%d_%d.pbm", baseDir, int(classResult), rectCategory[i][0].frameNo, int(precisionRatio), int(min_distance[0]));
             imwrite(digit,  rectCategory[i][0].possibleDigitBinaryImg );
         }
 
