@@ -99,7 +99,7 @@ void RawDataSaveType::SaveResultImage( Mat& input_image )
     {
         char result_video_name[500];
         sprintf(result_video_name,"%s/raw-%06d.avi",baseDir,resultVideoNo);
-        resultVideo.open( result_video_name, CV_FOURCC('D', 'I', 'V', 'X'), 10.0, Size(input_image.cols, input_image.rows),true );
+        resultVideo.open( result_video_name, CV_FOURCC('M', 'P', '4', '2'), 10.0, Size(input_image.cols, input_image.rows),true );
         resultVideoNo++;
     }
     resultVideo<<input_image;

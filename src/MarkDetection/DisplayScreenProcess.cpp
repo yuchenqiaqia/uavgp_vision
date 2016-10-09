@@ -265,7 +265,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
 
     Mat resized_median_blur_light_img;
     resize(median_blur_light_img,resized_median_blur_light_img,Size(1384*0.3,1032*0.3));
-    imshow("strengthen Contrast median_blur_light_img",resized_median_blur_light_img);
+    //imshow("strengthen Contrast median_blur_light_img",resized_median_blur_light_img);
     int min_size = 70; //100, 80
     int thresh_size = (min_size/4)*2 + 1;
     adaptiveThreshold(median_blur_light_img, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
