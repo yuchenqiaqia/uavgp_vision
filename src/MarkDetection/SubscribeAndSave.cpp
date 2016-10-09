@@ -12,7 +12,7 @@
 #define FRAME_AMOUNT_OF_VIDEO  (18*60*15)
 #define SUBSCRIBE_RATE  30
 
-static char baseDir[200] = {0};
+static char baseDir[1000] = {0};
 static VideoWriter resultVideo;
 static VideoWriter rawVideo;
 static unsigned int rawVideoNo = 0;
@@ -36,7 +36,7 @@ static void RawDataSubThreadCallback(const sensor_msgs::ImageConstPtr& msg)
 
     if( 1 == ( (rawImageNo+1)%FRAME_AMOUNT_OF_VIDEO) )
     {
-        char raw_video_name[200];
+        char raw_video_name[1000];
         sprintf(raw_video_name,"%s/raw/raw-%06d.avi",baseDir,rawVideoNo);
         rawVideo.open( raw_video_name, CV_FOURCC('D', 'I', 'V', 'X'), 18.0, Size(pointgray_raw_image.cols, pointgray_raw_image.rows),true );  // CV_FOURCC('M', 'P', '4', '2') ;  CV_FOURCC('D', 'I', 'V', 'X')
         rawVideoNo++;
@@ -80,7 +80,7 @@ static void ResultDataSubThreadCallback(const sensor_msgs::ImageConstPtr& msg)
 
     if( 1 == ( (resultImageNo+1)%FRAME_AMOUNT_OF_VIDEO) )
     {
-        char result_video_name[200];
+        char result_video_name[1000];
         sprintf(result_video_name,"%s/result/result-%06d.avi",baseDir,resultVideoNo);
         resultVideo.open( result_video_name, CV_FOURCC('D', 'I', 'V', 'X'), 10.0, Size(subscribed_image.cols, subscribed_image.rows),true );
         resultVideoNo++;

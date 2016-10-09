@@ -12,7 +12,7 @@ extern Attitude3D attitude3d;
 int k;
 extern Mat g_rectResultImg;
 extern bool g_rectResultImgUpdated;
-static char baseDir[200];
+static char baseDir[1000];
 static VideoWriter resultVideo;
 
 void SaveResultImage( Mat& input_image )
@@ -22,7 +22,7 @@ void SaveResultImage( Mat& input_image )
 
     if( 1 == ( (resultImageNo+1)%FRAME_AMOUNT_OF_VIDEO) )
     {
-        char result_video_name[200];
+        char result_video_name[1000];
         sprintf(result_video_name,"%s/result/result-%06d.avi",baseDir,resultVideoNo);
         resultVideo.open( result_video_name, CV_FOURCC('D', 'I', 'V', 'X'), 10.0, Size(input_image.cols, input_image.rows),true );
         resultVideoNo++;
@@ -122,7 +122,7 @@ void* RosImagePublishThread_2(void*)
         SaveResultImage( img );
 
         FILE* fp;
-        char txtName[200];
+        char txtName[1000];
         sprintf(txtName, "%s/txt/all_result.txt", baseDir);
         fp = fopen(txtName,"a+");
         if (NULL == fp)

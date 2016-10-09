@@ -105,7 +105,7 @@ void RawDataSaveType::SaveResultImage( Mat& input_image )
     resultVideo<<input_image;
 
     FILE* fp;
-    char txtName[200];
+    char txtName[1000];
     sprintf(txtName, "%s/attitude.txt", baseDir);
     fp = fopen(txtName,"a+");
     if (NULL == fp)
@@ -125,6 +125,22 @@ void RawDataSaveType::SaveResultImage( Mat& input_image )
     }
     fprintf(fp,"%d %d\n", resultImageNo, targetType);
     fclose(fp);
+
+    Mat resized_img;
+    resize(input_image,resized_img,Size(1384*0.4,1032*0.4));
+
+    char imgNo_string[100];
+    sprintf(imgNo_string,"att:[%0.3f,%0.3f,%0.3f]", attitude3d.roll*180/3.14,attitude3d.pitch*180/3.14,attitude3d.yaw*180/3.14);
+    Point2i center;
+    center=Point2i( 3,30 );
+    putText(resized_img, imgNo_string, center,CV_FONT_HERSHEY_PLAIN,1.25,Scalar(0,0,255),2);
+
+    imshow("saved image",resized_img);
+    //press ‘q’ to exit
+    int waitValue = 1;
+    int c = waitKey(waitValue);
+    if ( 113 == c )  //'q'=113; 'Q'=131153
+        exit(0);
 
     //printf("sub_result=%d\n", resultImageNo);
     resultImageNo++;

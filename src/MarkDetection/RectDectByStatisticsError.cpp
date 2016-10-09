@@ -167,7 +167,7 @@ void GetPossibleRectVertexes(vector< vector<Point> >& contours, ContoursInfo& co
         {
             line(show_img, contour_vertexes.contour_vertex[j], contour_vertexes.contour_vertex[(j+1)%4], Scalar(255,255,0), 3, 8);
             circle(show_img,contour_vertexes.contour_vertex[j],4,Scalar(0,255,0),-1);
-            char strNumber[200];
+            char strNumber[100];
             sprintf( strNumber,"%d",j);
             putText(show_img,strNumber,contour_vertexes.contour_vertex[j],CV_FONT_HERSHEY_COMPLEX_SMALL,1.0,Scalar(0,255,0),1);
         }

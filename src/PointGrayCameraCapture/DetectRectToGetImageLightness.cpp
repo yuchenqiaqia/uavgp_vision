@@ -348,7 +348,7 @@ void DetectRectToGetImageLightness::DrawAllRect( )
                 for (int j=0;j<4;j++)
                 {
                     circle(resultImg,rectCategory[k][i].m_points[j],4,Scalar(0,255,0),-1);
-                    char strNumber[200];
+                    char strNumber[1000];
                     sprintf( strNumber,"%d",j);
                     putText(resultImg,strNumber,rectCategory[k][i].m_points[j],CV_FONT_HERSHEY_COMPLEX_SMALL,1.0,Scalar(0,255,0),1);
                 }
@@ -433,7 +433,7 @@ void DetectRectToGetImageLightness::EstimatePosition()
         for (int j=0;j<4;j++)
         {
              circle(resultImg,rectCategory[i][0].m_points[j],4,Scalar(0,0,255),-1);
-             char strNumber[200];
+             char strNumber[1000];
              sprintf( strNumber,"%d",j);
              putText(resultImg,strNumber,rectCategory[i][0].m_points[j],CV_FONT_HERSHEY_COMPLEX_SMALL,1.0,Scalar(0,0,255),1);
         }

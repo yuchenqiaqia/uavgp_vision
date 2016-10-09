@@ -10,7 +10,7 @@
 #include <geometry_msgs/TransformStamped.h>  //IMU
 #include <geometry_msgs/Vector3Stamped.h>       //velocity
 #define SUBSCRIBE_RATE  80
-static char baseDir[200] = "/home/sia/guidance";
+static char baseDir[1000] = "/home/sia/guidance";
 
 int MyImageSegmentation( Mat& input_xyz_img, Mat& input_gray_img );
 void MystereoShow( StereoMatchingType& stereo_cam );
@@ -57,7 +57,7 @@ int ShowImages(Mat& gray_image_left, Mat& gray_image_right, Mat& depth8, Mat& ps
 
     //if ( c>0 )
     //{
-            char imgName[200];
+            char imgName[1000];
             sprintf(imgName, "%s/depth_1_%06d.png", baseDir, showImgNo);
             //imwrite(imgName, guidance_depth_image);
             sprintf(imgName, "%s/gray_left_1_%06d.png", baseDir, showImgNo);
