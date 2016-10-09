@@ -113,6 +113,15 @@ target_link_libraries( save_raw_data  ${OpenCV_LIBRARIES} )
 #catkin需要的库
 target_link_libraries(save_raw_data ${catkin_LIBRARIES})
 
+#--------------------------------------------------------------------
+# read offline data and publish
+add_executable( read_offline_data
+./src/ReadOfflineData/ReadOfflineData.cpp
+)
+#OpenCV库
+target_link_libraries( read_offline_data  ${OpenCV_LIBRARIES} )
+#catkin需要的库
+target_link_libraries(read_offline_data ${catkin_LIBRARIES})
 
 #--------------------------------------------------------------------
 # DJI guidance capture
