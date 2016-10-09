@@ -38,7 +38,7 @@ static void RawDataSubThreadCallback(const sensor_msgs::ImageConstPtr& msg)
     {
         char raw_video_name[1000];
         sprintf(raw_video_name,"%s/raw/raw-%06d.avi",baseDir,rawVideoNo);
-        rawVideo.open( raw_video_name, CV_FOURCC('D', 'I', 'V', 'X'), 18.0, Size(pointgray_raw_image.cols, pointgray_raw_image.rows),true );  // CV_FOURCC('M', 'P', '4', '2') ;  CV_FOURCC('D', 'I', 'V', 'X')
+        rawVideo.open( raw_video_name, CV_FOURCC('M', 'P', '4', '2'), 18.0, Size(pointgray_raw_image.cols, pointgray_raw_image.rows),true );  // CV_FOURCC('M', 'P', '4', '2') ;  CV_FOURCC('D', 'I', 'V', 'X')
         rawVideoNo++;
     }
     rawVideo<<pointgray_raw_image;
@@ -82,7 +82,7 @@ static void ResultDataSubThreadCallback(const sensor_msgs::ImageConstPtr& msg)
     {
         char result_video_name[1000];
         sprintf(result_video_name,"%s/result/result-%06d.avi",baseDir,resultVideoNo);
-        resultVideo.open( result_video_name, CV_FOURCC('D', 'I', 'V', 'X'), 10.0, Size(subscribed_image.cols, subscribed_image.rows),true );
+        resultVideo.open( result_video_name, CV_FOURCC('M', 'P', '4', '2'), 10.0, Size(subscribed_image.cols, subscribed_image.rows),true );
         resultVideoNo++;
     }
     resultVideo<<subscribed_image;
