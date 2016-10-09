@@ -492,7 +492,10 @@ int RunSingleCamera( PGRGuid guid )
         int c = waitKey(1);
         if (113 == c)
             break;
-        printf("GrabNo = %d\n",  imageCnt);
+        if (imageCnt < 10)
+        {
+            printf("GrabNo = %d\n",  imageCnt);
+        }
         imageCnt++;
 	}
 
