@@ -43,7 +43,7 @@ double HSVCenterROI( Mat& srct );
 void SaveExposureTimeValueToTxt(char* baseDir, bool isOutdoor, float brightness, float exposureTimeValue)
 {
     FILE* fp;
-    char txtName[200];
+    char txtName[1000];
     sprintf(txtName, "%s/ExposureTimeValueInfo.txt", baseDir);
     fp = fopen(txtName,"a+");
     if (NULL == fp)
@@ -61,7 +61,7 @@ void SaveExposureTimeValueToTxt(char* baseDir, bool isOutdoor, float brightness,
     struct tm* timenow;
     time(&now);
     timenow = localtime(&now);
-    char time_name[200];
+    char time_name[1000];
     sprintf(time_name,"%04d%02d%02d_%02d%02d_%02d",timenow->tm_year+1900,timenow->tm_mon+1,timenow->tm_mday,timenow->tm_hour,timenow->tm_min,timenow->tm_sec);    
 
     fprintf(fp,"%s %s %f %f\n", time_name, outdoor_name, brightness, exposureTimeValue);

@@ -10,7 +10,7 @@
 int CreateDir(char* baseDir)
 {
     int status = 0;
-    char dir_name[200];
+    char dir_name[1000];
 
     sprintf(dir_name,"%s/output",baseDir);
     status = mkdir(dir_name, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -191,7 +191,7 @@ void SaveResultToTxt(char* baseDir,  float shrink, vector<VisionResult>& result 
 {
     static int num[10] = {0};
     FILE* fp;
-    char txtName[200];
+    char txtName[1000];
     for(int i=0;i<(int)result.size();++i)
     {
         sprintf(txtName, "%s/txt/result_%d.txt", baseDir, result[i].digitNo);

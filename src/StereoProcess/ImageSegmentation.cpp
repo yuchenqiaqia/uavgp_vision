@@ -112,7 +112,7 @@ int MyImageSegmentation( Mat& input_xyz_img, Mat& input_gray_img )
         putText(gray_img, dis, center,  CV_FONT_HERSHEY_PLAIN, 1.5, Scalar(0,0,255), 2);
     }
 
-    char imgName[200];
+    char imgName[1000];
     sprintf(imgName, "/home/sia/dji_guidance/1/gray_%06d.png", imgNo);
     imwrite(imgName, gray_img);
     sprintf(imgName, "/home/sia/dji_guidance/1/color_%06d.png", imgNo);

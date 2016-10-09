@@ -330,7 +330,7 @@ void DisplayScreenProcessType::ContoursPreFilter(vector< vector<Point> >& all_co
         for(int j=0; j<4;++j)
         {
             line(rawCameraImg, vertex[j], vertex[(j+1)%4], Scalar(0,255,0), 1, 8);
-            char strNumber[200];
+            char strNumber[100];
             sprintf( strNumber,"%d",j);
             //putText(rawCameraImg,strNumber,vertex[j],CV_FONT_HERSHEY_COMPLEX_SMALL,1.5,Scalar(0,0,255),2);
         }
@@ -382,7 +382,7 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         //imshow("strengthenContrast_light_img_roi", roi_img);
 
         float average_value = GetAverageValue( roi_img,false );
-        printf("average_value=%d\n",int(average_value));
+        //printf("average_value=%d\n",int(average_value));
 
         if (average_value < 40)
         {
@@ -519,12 +519,12 @@ int EraseImpossibleResult(RoiAreaInfo& roiAreaInfo)
         Point img_center = Point(img.cols*0.5,img.rows*0.5);
         float dis = sqrt(pow(rect_center.x-img_center.x,2)+pow(rect_center.y-img_center.y,2));
         float thres = img.rows*0.5*0.5;
-        printf("dis_center = %0.1f\n", dis);
+        //printf("dis_center = %0.1f\n", dis);
         if (dis > thres)
             continue;
 
         rects.push_back(minBoundingRect);
-        printf("rect.area = %0.2f, rect.height = %0.2f, rect.width = %0.2f\n", rects[0].area()/img_area, (float)rects[0].height/img.rows, (float)rects[0].width/img.cols);
+        //printf("rect.area = %0.2f, rect.height = %0.2f, rect.width = %0.2f\n", rects[0].area()/img_area, (float)rects[0].height/img.rows, (float)rects[0].width/img.cols);
     }
     if (rects.size() < 1)
         return 0;

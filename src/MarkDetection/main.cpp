@@ -9,7 +9,7 @@
 #include <std_msgs/Int32.h>
 
 int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
-char baseDir[200] = OCR_DIR_PATH;
+char baseDir[1000] = OCR_DIR_PATH;
 
 int main(int argc, char **argv)
 {
@@ -112,7 +112,15 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
 int DisplayScreenProcess(Mat& rawCameraImg)
 {
     int digitNo = display_screen_process.DisplayScreenProcess(rawCameraImg, KNNocr, baseDir);
-    (display_screen_process.show_img).copyTo(g_rectResultImg);
+    Mat img = display_screen_process.show_img;
+
+    char att_string[100];
+    sprintf(att_string,"att:[%0.3f,%0.3f,%0.3f]", attitude3d.roll*180/3.14,attitude3d.pitch*180/3.14,attitude3d.yaw*180/3.14);
+    Point2i center;
+    center=Point2i( 3,30 );
+    putText(img, att_string, center,CV_FONT_HERSHEY_PLAIN,1.25,Scalar(0,0,255),2);
+
+    img.copyTo(g_rectResultImg);
     g_rectResultImgUpdated = true;
     return digitNo;
 }
@@ -156,6 +164,12 @@ void PrintBoardProcess(Mat& rawCameraImg)
     ShowTime(rectResultImg, imageProcessedNo, shrink);
     //show result image
     resize(rectResultImg, rectResultImg, Size(1384*0.5,1032*0.5), 0, 0, INTER_AREA);
+
+    char att_string[100];
+    sprintf(att_string,"att:[%0.3f,%0.3f,%0.3f]", attitude3d.roll*180/3.14,attitude3d.pitch*180/3.14,attitude3d.yaw*180/3.14);
+    Point2i center;
+    center=Point2i( 3,30 );
+    putText(rectResultImg, att_string, center,CV_FONT_HERSHEY_PLAIN,1.25,Scalar(0,0,255),2);
 
     rectResultImg.copyTo(g_rectResultImg);
     g_rectResultImgUpdated = true;
@@ -547,7 +561,7 @@ void DrawAllRect(Mat& resultImg, vector< vector<RectMark> >& rectCategory)
                 for (int j=0;j<4;j++)
                 {
                     circle(resultImg,rectCategory[k][i].m_points[j],4,Scalar(0,255,0),-1);
-                    char strNumber[200];
+                    char strNumber[1000];
                     sprintf( strNumber,"%d",j);
                     putText(resultImg,strNumber,rectCategory[k][i].m_points[j],CV_FONT_HERSHEY_COMPLEX_SMALL,1.0,Scalar(0,255,0),1);
                 }

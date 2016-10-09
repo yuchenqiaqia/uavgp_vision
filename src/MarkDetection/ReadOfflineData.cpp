@@ -10,9 +10,9 @@ extern bool copyIsRunningFlag;
 extern bool rawImgHasCopiedOut;
 extern Mat g_rawImage;
 static VideoCapture capture;
-static char baseDir[200] = "/home/sia/vision_input/20160722_1540_14";
-//static char baseDir[200] = "/home/xiaobin/vision_input/20160722_1546_43";
-//static char baseDir[200] = "/home/xiaobin/vision_input/20160722_1551_03";
+static char baseDir[1000] = "/home/sia/vision_input/20160722_1540_14";
+//static char baseDir[1000] = "/home/xiaobin/vision_input/20160722_1546_43";
+//static char baseDir[1000] = "/home/xiaobin/vision_input/20160722_1551_03";
 
 
 void* OfflineDataCapture(void*)
@@ -26,7 +26,7 @@ void* OfflineDataCapture(void*)
     {
         if( 1 == ( (captureNo+1)%n) )
         {
-            char read_video_name[200];
+            char read_video_name[1000];
             sprintf(read_video_name,"%s/raw/raw-%06d.avi",baseDir,readVideoNo);
             capture.release();
             capture.open( read_video_name );
