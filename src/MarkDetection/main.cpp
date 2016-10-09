@@ -119,6 +119,7 @@ int DisplayScreenProcess(Mat& rawCameraImg)
     Point2i center;
     center=Point2i( 3,20 );
     putText(img, att_string, center,CV_FONT_HERSHEY_PLAIN,1.25,Scalar(0,0,255),2);
+    imshow("Display screen", img);
 
     img.copyTo(g_rectResultImg);
     g_rectResultImgUpdated = true;

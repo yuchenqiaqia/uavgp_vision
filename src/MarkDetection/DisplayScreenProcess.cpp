@@ -120,8 +120,6 @@ int DisplayScreenProcessType::DisplayScreenProcess(Mat& input_img, basicOCR* KNN
 
     resize(rawCameraImg,show_img,Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
     ShowTime(show_img, imgNo, 0.5);
-    imshow("Display screen", show_img);
-    waitKey(1);
     imgNo++;
 
     if (roiAreaInfos.size() >= 1)
