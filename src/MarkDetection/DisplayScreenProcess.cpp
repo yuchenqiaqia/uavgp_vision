@@ -157,6 +157,9 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& color_filtere
                 light_img.at<uchar>(i,j) = 0;
         }
     }
+    Mat element;
+    element=getStructuringElement(MORPH_RECT, Size( 3,1 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+    //erode(light_img,light_img,element);
 
     light_img.copyTo(color_filtered_img);
     Mat resized_light_img;
@@ -184,7 +187,7 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
     //dilate(imgBinary, imgBinary ,element);
     Mat show_binary;
     resize(imgBinary,show_binary,Size(1384*0.5,1032*0.5));
-    imshow("Possible Rois adaptive Threshold", show_binary);
+    //imshow("Possible Rois adaptive Threshold", show_binary);
 
     vector< vector<Point> > contours;
     findContours( imgBinary, contours, RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
@@ -233,7 +236,7 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
             }
         }
     }
-    printf("Possible roi num=%d;\n", (int)preprocess_rois.size());
+    //printf("Possible roi num=%d;\n", (int)preprocess_rois.size());
     return;
 }
 
@@ -279,7 +282,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
     morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);//MORPH_CLOSE, MORPH_GRADIENT
     Mat imgBinaryShow;
     resize(imgBinary, imgBinaryShow, Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
-    imshow("adaptive Threshold Img",imgBinaryShow);
+    //imshow("adaptive Threshold Img",imgBinaryShow);
     return;
 }
 
@@ -346,6 +349,11 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         Rect minBoundingRect = boundingRect( Mat(contours[i]) );
         if ((minBoundingRect.height < rawCameraImg.cols*min_bounding_rect_height_ratio) || ((minBoundingRect.width*1.0/minBoundingRect.height) > rect_filter_two_side_ratio_max) || ((minBoundingRect.width*1.0/minBoundingRect.height) < rect_filter_two_side_ratio_min))
             continue;
+        if (minBoundingRect.x+minBoundingRect.width/2 > rawCameraImg.cols*0.7 || minBoundingRect.x+minBoundingRect.width/2 < rawCameraImg.cols*0.2)
+            continue;
+        if (minBoundingRect.y+minBoundingRect.height/2 < rawCameraImg.rows*0.25)
+            continue;
+
         rectangle( rawCameraImg, minBoundingRect, Scalar(0,255,255), 1, 8);
 
         int height = minBoundingRect.height*1.1;

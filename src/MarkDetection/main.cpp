@@ -750,6 +750,13 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         //printf("digit=%d; precisionRatio=%d; dist=%f\n\n",(int)classResult,(int)precisionRatio, min_distance[0]);
         if (min_distance[0] > 250)
             continue;
+        if (1 == (int)classResult)
+        {
+            if (min_distance[0] >= 180)
+            {
+                continue;
+            }
+        }
         if (rectCategory[i][0].position.z > 9.0)
             continue;
         else if (rectCategory[i][0].position.z >8.0 && rectCategory[i][0].position.z <=9.0 )
