@@ -173,7 +173,6 @@ void basicOCR::test()
 		}
 	}
 	float totalerror=100*(float)error/(float)testCount;
-    printf("System Error: %.2f%%\n", totalerror);
 }
 
 
@@ -184,7 +183,7 @@ basicOCR::basicOCR(char* baseDir)
     knn->setAlgorithmType(KNearest::BRUTE_FORCE);
 
     sprintf(file_path , "%s/OCR/",baseDir);
-	//训练样本数量
+    //sample number
     train_samples = 99; //50
     classes= 10;
 	size=40;
@@ -192,7 +191,7 @@ basicOCR::basicOCR(char* baseDir)
 	trainData = cvCreateMat(train_samples*classes, size*size, CV_32FC1);
 	trainClasses = cvCreateMat(train_samples*classes, 1, CV_32FC1);
 
-    printf("get sample data ...\n");
+    printf("get data ...\n");
 	getData();
 	
 	train();

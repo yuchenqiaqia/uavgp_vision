@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <sensor_msgs/LaserScan.h>
 #include "DetectRectToGetImageLightness.h"
 #include "../include/FlyCapture2.h"
 #include "project_path_config.h"
@@ -299,8 +300,8 @@ int RunSingleCamera( PGRGuid guid )
     image_transport::Publisher pub;
     pub = it.advertise("vision/camera_image",  1 );
 
-    ros::Publisher camera_status_pub;
-    camera_status_pub = rawImgPubNode.advertise<std_msgs::Float32>("vision/camera_image_lightness", 1);
+    ros::Publisher camera_info_pub;
+    camera_info_pub = rawImgPubNode.advertise<sensor_msgs::LaserScan>("vision/camera_info", 1);
 
     FlyCapture2::Error error;
     Camera cam;
@@ -487,6 +488,20 @@ int RunSingleCamera( PGRGuid guid )
         sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
         pub.publish(msg);
 
+        FlyCapture2::Error error;
+        Property prop;
+        prop.type = SHUTTER;
+        error = cam.GetProperty( &prop );
+        float shutter_time = prop.absValue;
+
+        sensor_msgs::LaserScan cam_info;
+        cam_info.ranges.resize(1);
+        cam_info.header.frame_id = "cam_info";
+        cam_info.header.stamp    = ros::Time::now();
+        cam_info.ranges[0] = shutter_time;
+        camera_info_pub.publish(cam_info);
+        printf("shutter time: %f\n", shutter_time);
+
         resize(img, img, Size(640,480));
         imshow("CameraCapture",img);
         int c = waitKey(1);
@@ -559,20 +574,3 @@ int main(int argc, char **argv)
     //return 0;
 }
 
-
-/*
-////创建pg相机采集线程
-int OpenPointGrayCamera( )
-{
-    pthread_t captureThread;
-    int ret=pthread_create(&captureThread,NULL,PG_main,NULL);
-    if(ret!=0)
-    {
-        //线程创建失败
-        printf ("Create camera capture thread error!..\n");
-        return -1;
-    }
-
-    return 0;
-}
-*/

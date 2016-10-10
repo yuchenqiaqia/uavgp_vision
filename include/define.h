@@ -21,6 +21,7 @@ bool digitBinaryImgSaveEnable = true;
 
 DisplayScreenProcessType display_screen_process;
 basicOCR* KNNocr;
+float shutter_time = -1;
 int cameraNo = 0;
 int imageProcessedNo = 0;
 double time0,time1,time2;
@@ -82,7 +83,7 @@ void CameraImageSubCallback(const sensor_msgs::ImageConstPtr& msg);
 void SaveResultImage( const sensor_msgs::ImageConstPtr& msg );
 void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg );
 void AttitudeSubCallBack(const geometry_msgs::TransformStamped::ConstPtr& att_msg);
-void* AttitudeSubThread(void*);
+void CameraInfoSubCallBack( const sensor_msgs::LaserScan& msg);
 
 void ShowGuidanceImage(Mat& gray_image_left, Mat& gray_image_right, Mat& depth8, Mat& pseudo_color_img);
 //发布数字识别结果
