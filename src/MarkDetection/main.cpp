@@ -37,7 +37,7 @@ void camera_switch_cb(const std_msgs::Int32::ConstPtr& msg)
         targetType = DISPLAYSCREEN;
     if(camera_switch_data.data == 2)
         targetType = PRINTBOARD;
-    ROS_INFO("get camera_switch_data = %d",camera_switch_data.data);
+    //ROS_INFO("get camera_switch_data = %d",camera_switch_data.data);
 }
 
 
@@ -54,6 +54,7 @@ void InitRawImgSubscriber( )
     /* get camera_switch from state_machine(offb_simulation_test node). */
     camera_switch_data.data = 0;
     ros::Subscriber camera_switch_sub = imageProcessNode.subscribe("camera_switch", 1, camera_switch_cb);
+    ros::Subscriber camera_info_pub = imageProcessNode.subscribe("vision/camera_info", 1, CameraInfoSubCallBack);
 
     ros::spin();
 }
@@ -67,6 +68,11 @@ void AttitudeSubCallBack(const geometry_msgs::TransformStamped::ConstPtr& att_ms
     return;
 }
 
+void CameraInfoSubCallBack( const sensor_msgs::LaserScan& msg)
+{
+    shutter_time = msg.ranges[0];
+    return;
+}
 
 void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
 {
@@ -95,7 +101,7 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         digits_position.ranges[i*4 + 2] = float(1000);
         digits_position.ranges[i*4 + 3] = float(1000);
         display_screen_digit_publisher.publish(digits_position);
-        ROS_INFO("send digit = %d\n", digitNo);
+        printf("send digit = %d\n", digitNo);
     }
 
     //press ‘q’ to exit
@@ -180,6 +186,7 @@ void PrintBoardProcess(Mat& rawCameraImg)
     //publish digit result
     DigitResultPublish( visionResult );
 
+    /*
     for(int k=0;k<(int)visionResult.size();++k)
     {
         ROS_INFO("\nimgNo=%d;\ndigit=%d;\nx=%.2f;y=%.2f;z=%.2f; \nroll=%.2f;pit=%.2f;yaw=%.2f; \nE=%.2f;N=%.2f;U=%.2f;\n",
@@ -190,6 +197,7 @@ void PrintBoardProcess(Mat& rawCameraImg)
                 visionResult[k].negPos3D.y, visionResult[k].negPos3D.x, -visionResult[k].negPos3D.z
                 );
     }
+    */
 
     imshow("Print board",rectResultImg);
 
@@ -681,7 +689,7 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         tvec_z=tvec.at<double>(2,0);
         rectCategory[i][0].position = Point3d( tvec_x,tvec_y,tvec_z );
         //剔除过远或过近的
-        if(tvec_z>10.5 || tvec_z<0.3)
+        if(tvec_z>10.5 || tvec_z<0.5)
         {
             rectCategory.erase(rectCategory.begin()+i);
             i--;
@@ -735,15 +743,42 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         char digit[500];
         if (true == saveDigitBinaryImg)
         {
-            sprintf(digit, "%s/digit_image/printboard_%d_%06d__%d_%d.pbm", baseDir, int(classResult), rectCategory[i][0].frameNo, int(precisionRatio), int(min_distance[0]));
+            sprintf(digit, "%s/digit_image/printboard_%d_accuracy_%d_dist_%d_%d_No_%06d.pbm", baseDir, int(classResult), int(precisionRatio), int(min_distance[0]), int(min_distance[1]), rectCategory[i][0].frameNo);
             imwrite(digit,  rectCategory[i][0].possibleDigitBinaryImg );
         }
 
         //printf("digit=%d; precisionRatio=%d; dist=%f\n\n",(int)classResult,(int)precisionRatio, min_distance[0]);
         if (min_distance[0] > 250)
             continue;
-        if ((rectCategory[i][0].position.z <=9.0 && (int)precisionRatio < 90) || rectCategory[i][0].position.z > 9.0)
+        if (1 == (int)classResult)
+        {
+            if (min_distance[0] >= 180)
+            {
+                continue;
+            }
+        }
+        if (rectCategory[i][0].position.z > 9.0)
             continue;
+        else if (rectCategory[i][0].position.z >8.0 && rectCategory[i][0].position.z <=9.0 )
+        {
+            if( (int)precisionRatio < 100 )
+                continue;
+        }
+        else if (rectCategory[i][0].position.z >6.0 && rectCategory[i][0].position.z <=8.0 )
+        {
+            if( (int)precisionRatio < 90 )
+                continue;
+        }
+        else if (rectCategory[i][0].position.z <=6.0 )
+        {
+            if( (int)precisionRatio < 90 )
+                continue;
+        }
+        else
+        {
+            if( (int)precisionRatio < 90 )
+                continue;
+        }
 
         rectCategory[i][0].digitNo = (int)classResult;
         VisionResult result;
