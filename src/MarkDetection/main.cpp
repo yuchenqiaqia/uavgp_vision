@@ -33,9 +33,9 @@ std_msgs::Int32 camera_switch_data;
 void camera_switch_cb(const std_msgs::Int32::ConstPtr& msg)
 {
     camera_switch_data = *msg;
-    if(camera_switch_data.data == 1)
+    if(1 == camera_switch_data.data)
         targetType = DISPLAYSCREEN;
-    if(camera_switch_data.data == 2)
+    if(2 == camera_switch_data.data)
         targetType = PRINTBOARD;
     //ROS_INFO("get camera_switch_data = %d",camera_switch_data.data);
 }

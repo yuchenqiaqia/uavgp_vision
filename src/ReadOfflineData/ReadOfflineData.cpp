@@ -12,8 +12,9 @@
 using namespace std;
 using namespace cv;
 
-char baseDir[1000] = "/home/sia/Documents/output/Save/20161009_1646_40";
-int imgNo = 0;
+char baseDir[1000] = "/home/sia/Documents/20161011_1616_35/image";
+unsigned int imgNo = 2500;
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "vision_raw_data_save");
@@ -23,11 +24,11 @@ int main(int argc, char **argv)
     image_transport::Publisher pub;
     pub = it.advertise("vision/camera_image",  1 );
 
-    int rate = 18;
+    int rate = 4;
     ros::Rate loop_rate( rate );
-    unsigned int imgNo = 0;
     char video_name[1000];
     sprintf(video_name,"%s/raw-000000.avi", baseDir);
+/*
     VideoCapture video_capture(video_name);
 
     FILE* fp;
@@ -39,15 +40,16 @@ int main(int argc, char **argv)
           printf("Open txt failed ...\n");
           exit(-2);
     }
+*/
     ros::Publisher switch_pub;
 
     while( rawPubNode.ok() )
     {
         Mat raw_image;
-        video_capture >> raw_image;
+        //video_capture >> raw_image;
         char raw_img_name[1000];
-        sprintf(raw_img_name,"%s/image/image-%06d.jpg",baseDir,imgNo);
-        //raw_image = imread(raw_img_name);
+        sprintf(raw_img_name,"%s/image-%06d.jpg",baseDir,imgNo);
+        raw_image = imread(raw_img_name);
         if (!raw_image.data)
         {
             cout<<"open image failed!"<<endl;
@@ -61,10 +63,10 @@ int main(int argc, char **argv)
 
         int num;
         std_msgs::Int32 camera_switch_data;
-        if (EOF == fscanf(fp, "%d%d", &num,&camera_switch_data.data))
-            break;
+        //if (EOF == fscanf(fp, "%d%d", &num,&camera_switch_data.data))
+        //    break;
 
-        if (imgNo < 4.5*60*0)
+        if (imgNo < 0)   //10*60*7.0
         {
             imgNo++;
             continue;
@@ -75,9 +77,9 @@ int main(int argc, char **argv)
         pub.publish(msg);
 
         char img_name[1000];
-        static int save_image_num = 0;
+        static int save_image_num = 400;
         sprintf(img_name,"%s/image/image-%06d.jpg",baseDir,save_image_num);
-        imwrite(img_name, raw_image);
+        //imwrite(img_name, raw_image);
         save_image_num++;
 
         loop_rate.sleep();
