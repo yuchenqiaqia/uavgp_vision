@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     image_transport::Publisher pub;
     pub = it.advertise("vision/camera_image",  1 );
 
-    int rate = 4;
+    int rate = 2;
     ros::Rate loop_rate( rate );
     char video_name[1000];
     sprintf(video_name,"%s/raw-000000.avi", baseDir);
