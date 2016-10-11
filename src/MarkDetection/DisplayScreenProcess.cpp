@@ -77,8 +77,8 @@ DisplayScreenProcessType::DisplayScreenProcessType( )
     imgNo = 0;
     shrink = 0.8;
     rect_filter_two_side_ratio_max = 1.1;   ////0.9
-    rect_filter_two_side_ratio_min = 0.15;   ////0.2
-    min_bounding_rect_height_ratio = 0.06;  ////0.1
+    rect_filter_two_side_ratio_min = 0.2;   ////0.2
+    min_bounding_rect_height_ratio = 0.05;  ////0.1
     min_precision_ratio_thres = 80.0;    ////80
     min_knn_distance_thres = 250;
     return;
@@ -164,7 +164,7 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& color_filtere
     light_img.copyTo(color_filtered_img);
     Mat resized_light_img;
     resize(light_img,resized_light_img,Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
-    imshow("color filtered img",resized_light_img);
+    //imshow("color filtered img",resized_light_img);
     return;
 }
 
@@ -184,9 +184,9 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
     Mat element;
     element=getStructuringElement(MORPH_ELLIPSE, Size( size,size ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
     morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
-    //dilate(imgBinary, imgBinary ,element);
+
     Mat show_binary;
-    resize(imgBinary,show_binary,Size(1384*0.5,1032*0.5));
+    resize(imgBinary,show_binary,Size(1384*0.4,1032*0.4));
     //imshow("Possible Rois adaptive Threshold", show_binary);
 
     vector< vector<Point> > contours;
@@ -250,14 +250,28 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
         Mat roi_img = input_img(preprocess_rois[i]);
         medianBlur(roi_img,roi_img,7);
 
-        float cal_thres = 80;
-        float value = GetAverageValue( roi_img,true,cal_thres );
-        //printf("AverageValue = %0.2f\n", value);
-        float contrast_ratio = 0.025 * 20/value;
-        strengthenContrast(roi_img, contrast_ratio);
+        //float cal_thres = 80;
+        //float value = GetAverageValue( roi_img,true,cal_thres );
+        float cal_thres = 50;
+        float value = GetAverageValue( roi_img,false,cal_thres );
+        printf("AverageValue = %0.2f\n", value);
 
-        if (value <= cal_thres*1.75)
+        //float contrast_ratio = 0.025 * 20/value;
+        float contrast_ratio = 0.005 * 10/value;
+        strengthenContrast(roi_img, contrast_ratio);
+        //imshow("before THRESH_OTSU",roi_img);
+
+        threshold(roi_img,roi_img,100,255,THRESH_OTSU);
+        //if (value <= cal_thres*1.75)
+            //equalizeHist(roi_img,roi_img);
+        if (value <= cal_thres*0.4)
             equalizeHist(roi_img,roi_img);
+
+        Mat element;
+        element=getStructuringElement(MORPH_ELLIPSE, Size( 1,3 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+        dilate(roi_img, roi_img, element);//MORPH_CLOSE, MORPH_GRADIENT
+        element=getStructuringElement(MORPH_ELLIPSE, Size( 3,1 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+        erode(roi_img, roi_img, element);//MORPH_CLOSE, MORPH_GRADIENT
 
         char window_name[50];
         sprintf(window_name,"possible roi img %d", i);
@@ -273,7 +287,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
     int min_size = 80; //100, 80
     int thresh_size = (min_size/4)*2 + 1;
     adaptiveThreshold(median_blur_light_img, imgBinary, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, thresh_size, thresh_size/3); //THRESH_BINARY_INV
-    double s = 15*shrink;
+    double s = 11*shrink;
     int size = ( 1 == int(s)%2 ) ? int(s) : int(s)+1;
     if (size < 3)
         size = 3;
@@ -349,9 +363,9 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         Rect minBoundingRect = boundingRect( Mat(contours[i]) );
         if ((minBoundingRect.height < rawCameraImg.cols*min_bounding_rect_height_ratio) || ((minBoundingRect.width*1.0/minBoundingRect.height) > rect_filter_two_side_ratio_max) || ((minBoundingRect.width*1.0/minBoundingRect.height) < rect_filter_two_side_ratio_min))
             continue;
-        if (minBoundingRect.x+minBoundingRect.width/2 > rawCameraImg.cols*0.7 || minBoundingRect.x+minBoundingRect.width/2 < rawCameraImg.cols*0.2)
+        if (minBoundingRect.x+minBoundingRect.width/2 > rawCameraImg.cols*2.0/3.0 || minBoundingRect.x+minBoundingRect.width/2 < rawCameraImg.cols*0.2)
             continue;
-        if (minBoundingRect.y+minBoundingRect.height/2 < rawCameraImg.rows*0.25)
+        if (minBoundingRect.y+minBoundingRect.height/2 < rawCameraImg.rows*1.0/3.0)
             continue;
 
         rectangle( rawCameraImg, minBoundingRect, Scalar(0,255,255), 1, 8);
@@ -399,7 +413,7 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         }
         else
         {
-            Mat element=getStructuringElement(MORPH_ELLIPSE, Size( 11,11 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+            Mat element=getStructuringElement(MORPH_ELLIPSE, Size( 5,5 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
             int morphology_option = MORPH_OPEN;
             morphologyEx(roi_img, roi_img, morphology_option ,element);
             //erode(roi_img,roi_img,element);
@@ -407,8 +421,8 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
 
         double min_filter_thres = 150*pow(average_value,3)/pow(150,3)*19;
         int roi_pixel_max_value = GetMaxValue(roi_img);
-        if (min_filter_thres >= roi_pixel_max_value-15)
-            min_filter_thres = roi_pixel_max_value - 15;
+        if (min_filter_thres >= roi_pixel_max_value-10)
+            min_filter_thres = roi_pixel_max_value - 10;
         threshold(roi_img, roi_img, min_filter_thres, 255, THRESH_BINARY_INV);   //120
         //imshow("wait classify roi", roi_img);
         RoiAreaInfo roiAreaInfo;
@@ -560,8 +574,8 @@ void DisplayScreenProcessType::DigitSort(Mat& input_img, vector<RoiAreaInfo>& ro
             int y_i = roiAreaInfos[i].minBoundingRect.y + roiAreaInfos[i].minBoundingRect.height/2;
             int x_j = roiAreaInfos[j].minBoundingRect.x + roiAreaInfos[j].minBoundingRect.width/2;
             int y_j = roiAreaInfos[j].minBoundingRect.y + roiAreaInfos[j].minBoundingRect.height/2;
-            float dis_c_i = sqrt(pow(x_i - input_img.cols/2,2) + pow(y_i - input_img.rows/2,2));
-            float dis_c_j = sqrt(pow(x_j - input_img.cols/2,2) + pow(y_j - input_img.rows/2,2));
+            float dis_c_i = sqrt(pow(x_i - input_img.cols/2,2) + pow(y_i - input_img.rows*3.0/5.0,2));
+            float dis_c_j = sqrt(pow(x_j - input_img.cols/2,2) + pow(y_j - input_img.rows*3.0/5.0,2));
             if (dis_c_i > dis_c_j)
             {
                 swap(roiAreaInfos[i],roiAreaInfos[j]);
