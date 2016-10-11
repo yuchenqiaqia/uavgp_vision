@@ -164,7 +164,7 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& color_filtere
     light_img.copyTo(color_filtered_img);
     Mat resized_light_img;
     resize(light_img,resized_light_img,Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
-    //imshow("color filtered img",resized_light_img);
+    imshow("color filtered img",resized_light_img);
     return;
 }
 
@@ -202,11 +202,15 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
         Rect minBoundingRect = boundingRect( Mat(contours[i]) );
         if (minBoundingRect.area() < pow(color_filtered_img.rows*0.05, 2))
             continue;
+        if (float(minBoundingRect.width)/minBoundingRect.height > rect_filter_two_side_ratio_max*1.1)
+            continue;
+        if (float(minBoundingRect.width)/minBoundingRect.height < rect_filter_two_side_ratio_min)
+            continue;
 
         for(int j=0;j<(int)preprocess_rois.size();++j)
         {
             Rect rect = minBoundingRect & preprocess_rois[j];
-            if (rect.area() > 1)     //(minBoundingRect.area() > preprocess_rois[i].area() ? preprocess_rois[j].area() : minBoundingRect.area())*0.005
+            if (rect.area() > 10)     //(minBoundingRect.area() > preprocess_rois[i].area() ? preprocess_rois[j].area() : minBoundingRect.area())*0.005
             {
                 minBoundingRect = minBoundingRect | preprocess_rois[j];
             }
@@ -257,7 +261,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
         printf("AverageValue = %0.2f\n", value);
 
         //float contrast_ratio = 0.025 * 20/value;
-        float contrast_ratio = 0.005 * 10/value;
+        float contrast_ratio = 0.005 * 12/value;
         strengthenContrast(roi_img, contrast_ratio);
         //imshow("before THRESH_OTSU",roi_img);
 
@@ -358,12 +362,14 @@ void DisplayScreenProcessType::ContoursPreFilter(vector< vector<Point> >& all_co
 
 void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Mat& input_img, vector<RoiAreaInfo>& roiAreaInfos)
 {
+    //line(rawCameraImg, Point(rawCameraImg.cols*3.0/4.0,0), Point(rawCameraImg.cols*3.0/4.0,rawCameraImg.rows), Scalar(0,255,0), 1, 8);
+
     for(int i=0;i<(int)contours.size();++i)
     {
         Rect minBoundingRect = boundingRect( Mat(contours[i]) );
         if ((minBoundingRect.height < rawCameraImg.cols*min_bounding_rect_height_ratio) || ((minBoundingRect.width*1.0/minBoundingRect.height) > rect_filter_two_side_ratio_max) || ((minBoundingRect.width*1.0/minBoundingRect.height) < rect_filter_two_side_ratio_min))
             continue;
-        if (minBoundingRect.x+minBoundingRect.width/2 > rawCameraImg.cols*2.0/3.0 || minBoundingRect.x+minBoundingRect.width/2 < rawCameraImg.cols*0.2)
+        if (minBoundingRect.x+minBoundingRect.width/2 > rawCameraImg.cols*3.0/4.0 || minBoundingRect.x+minBoundingRect.width/2 < rawCameraImg.cols*0.2)
             continue;
         if (minBoundingRect.y+minBoundingRect.height/2 < rawCameraImg.rows*1.0/3.0)
             continue;
@@ -407,7 +413,7 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
 
         if (average_value < 40)
         {
-            Mat element=getStructuringElement(MORPH_ELLIPSE, Size( 13,13 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+            Mat element=getStructuringElement(MORPH_ELLIPSE, Size( 11,11 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
             int morphology_option = MORPH_CLOSE;
             morphologyEx(roi_img, roi_img, morphology_option ,element);
         }
