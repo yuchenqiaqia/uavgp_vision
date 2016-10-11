@@ -697,10 +697,10 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         }
         char transf[50];
         //sprintf_s(transf,"T%u:[%0.3fm,%0.3fm,%0.3fm]",i,tvec_y,tvec_x,tvec_z);
-        sprintf(transf,"%0.3fm",tvec_z);
+        sprintf(transf,"[%0.3f,%0.3f,%0.3f]",tvec_x,tvec_y,tvec_z);
         Point T_showCenter;
         T_showCenter=Point2d(rectCategory[i][0].m_points[1].x,(rectCategory[i][0].m_points[1].y + rectCategory[i][0].m_points[2].y)/2);
-        putText(srcColor, transf, T_showCenter,CV_FONT_HERSHEY_PLAIN,2.2*shrink,Scalar(0,0,255),int(4.5*shrink));
+        putText(srcColor, transf, T_showCenter,CV_FONT_HERSHEY_PLAIN,2.2*shrink,Scalar(0,0,255),int(1.0));
     }
     //在图像中显示平移向量（x,y,z）
     Mat imgColor;
