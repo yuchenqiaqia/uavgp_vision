@@ -77,7 +77,7 @@ DisplayScreenProcessType::DisplayScreenProcessType( )
     imgNo = 0;
     shrink = 0.8;
     rect_filter_two_side_ratio_max = 1.1;   ////0.9
-    rect_filter_two_side_ratio_min = 0.2;   ////0.2
+    rect_filter_two_side_ratio_min = 0.18;   ////0.2
     min_bounding_rect_height_ratio = 0.05;  ////0.1
     min_precision_ratio_thres = 80.0;    ////80
     min_knn_distance_thres = 250;
@@ -157,10 +157,6 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& color_filtere
                 light_img.at<uchar>(i,j) = 0;
         }
     }
-    Mat element;
-    element=getStructuringElement(MORPH_RECT, Size( 3,1 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
-    //erode(light_img,light_img,element);
-
     light_img.copyTo(color_filtered_img);
     Mat resized_light_img;
     resize(light_img,resized_light_img,Size(1384*0.5,1032*0.5),0,0,INTER_AREA);
@@ -258,7 +254,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
         //float value = GetAverageValue( roi_img,true,cal_thres );
         float cal_thres = 50;
         float value = GetAverageValue( roi_img,false,cal_thres );
-        printf("AverageValue = %0.2f\n", value);
+        //printf("AverageValue = %0.2f\n", value);
 
         //float contrast_ratio = 0.025 * 20/value;
         float contrast_ratio = 0.005 * 12/value;
@@ -268,8 +264,8 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
         threshold(roi_img,roi_img,100,255,THRESH_OTSU);
         //if (value <= cal_thres*1.75)
             //equalizeHist(roi_img,roi_img);
-        if (value <= cal_thres*0.4)
-            equalizeHist(roi_img,roi_img);
+        //if (value <= cal_thres*0.4)
+        //    equalizeHist(roi_img,roi_img);
 
         Mat element;
         element=getStructuringElement(MORPH_ELLIPSE, Size( 1,3 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
@@ -429,6 +425,7 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         int roi_pixel_max_value = GetMaxValue(roi_img);
         if (min_filter_thres >= roi_pixel_max_value-10)
             min_filter_thres = roi_pixel_max_value - 10;
+        //printf("MaxValue = %d\n",roi_pixel_max_value);
         threshold(roi_img, roi_img, min_filter_thres, 255, THRESH_BINARY_INV);   //120
         //imshow("wait classify roi", roi_img);
         RoiAreaInfo roiAreaInfo;
@@ -515,7 +512,7 @@ void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, 
         }
 
         rectangle( rawCameraImg, roiAreaInfos[i].minBoundingRect, Scalar(255,255,0), 5, 8);
-        printf("digit=%d; accuracy=%d%%; dist=%d,%d,%d\n",(int)classResult,(int)precisionRatio, int(min_distance[0]), int(min_distance[1]), int(min_distance[2]));
+        //printf("digit=%d; accuracy=%d%%; dist=%d,%d,%d\n",(int)classResult,(int)precisionRatio, int(min_distance[0]), int(min_distance[1]), int(min_distance[2]));
         sprintf(digit,"%d",(int)classResult);
         Point showCenter = Point(roiAreaInfos[i].minBoundingRect.x + roiAreaInfos[i].minBoundingRect.width + 60, roiAreaInfos[i].minBoundingRect.y + roiAreaInfos[i].minBoundingRect.height*0.5);
         putText(rawCameraImg, digit, showCenter,CV_FONT_HERSHEY_DUPLEX,5.2*shrink,Scalar(0,0,255), int(5.5*shrink));
