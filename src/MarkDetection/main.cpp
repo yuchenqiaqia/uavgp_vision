@@ -848,7 +848,7 @@ void ResizeImageByDistance( Mat& inputImg, Mat& outputImg, vector<VisionResult>&
     if (lastFrameResultDistance <= 1.0)
         shrink = SHRINK_LOWEST_VALUE;
     else if (lastFrameResultDistance <= 1.5 && lastFrameResultDistance > 1.0)
-        shrink = SHRINK_LOWEST_VALUE;
+        shrink = SHRINK_LOWEST_VALUE + 0.1;
     else if (lastFrameResultDistance <= 2 && lastFrameResultDistance > 1.5)
         shrink = SHRINK_LOWEST_VALUE + 0.1; //0.57
     else if (lastFrameResultDistance <= 2.5 && lastFrameResultDistance > 2)
