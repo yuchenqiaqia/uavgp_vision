@@ -230,7 +230,7 @@ void GetDigitRoiImg( Mat& binaryImg, vector< Rect>& minBoundingRect, int rectKin
         threshold(img, img, 125, 255, THRESH_BINARY_INV);
 
         resize(img, img, Size(128,128));
-        Mat element=getStructuringElement(MORPH_ELLIPSE, Size(7,7) );
+        Mat element=getStructuringElement(MORPH_ELLIPSE, Size(7,7));
         erode( img, img, element);
         rectCategory_i[0].possibleDigitBinaryImg = img.clone();
         rectCategory_i[0].rectKind = rectKind;

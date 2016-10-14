@@ -8,7 +8,7 @@
 #include "project_path_config.h"
 #include <std_msgs/Int32.h>
 
-int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
+int targetType = PRINTBOARD; //PRINTBOARD; DISPLAYSCREEN
 char baseDir[1000] = OCR_DIR_PATH;
 
 int main(int argc, char **argv)
@@ -101,7 +101,7 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
         digits_position.ranges[i*4 + 2] = float(1000);
         digits_position.ranges[i*4 + 3] = float(1000);
         display_screen_digit_publisher.publish(digits_position);
-        printf("send digit = %d\n", digitNo);
+        //printf("send digit = %d\n", digitNo);
     }
 
     //press ‘q’ to exit
@@ -614,7 +614,7 @@ void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vecto
             // 得到当前marker的透视变换矩阵M
             Mat M = getPerspectiveTransform(rectCategory[i][j].m_points, m_RectCorners2d);
             // 将当前的marker变换为正交投影
-            warpPerspective(srcImg, canonicalImg, M, m_RectSize);
+            warpPerspective(srcImg, canonicalImg, M, m_RectSize, INTER_AREA);
             //存储矩形区域图像
             canonicalImg.copyTo(rectCategory[i][j].perspectiveImg);
             //分窗口显示各标准矩形区域
@@ -697,13 +697,20 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         }
         char transf[50];
         //sprintf_s(transf,"T%u:[%0.3fm,%0.3fm,%0.3fm]",i,tvec_y,tvec_x,tvec_z);
-        sprintf(transf,"[%0.3f,%0.3f,%0.3f]",tvec_x,tvec_y,tvec_z);
+        if (tvec_z < 2.0)
+        {
+            sprintf(transf,"[%0.3f,%0.3f,%0.3f]",tvec_x,tvec_y,tvec_z);
+        }
+        else
+        {
+            sprintf(transf,"%0.3fm",tvec_z);
+        }
         Point T_showCenter;
         T_showCenter=Point2d(rectCategory[i][0].m_points[1].x,(rectCategory[i][0].m_points[1].y + rectCategory[i][0].m_points[2].y)/2);
-        putText(srcColor, transf, T_showCenter,CV_FONT_HERSHEY_PLAIN,2.2*shrink,Scalar(0,0,255),int(1.0));
+        putText(srcColor, transf, T_showCenter,CV_FONT_HERSHEY_PLAIN,2.5*shrink,Scalar(0,0,255),int(4.5*shrink));
     }
     //在图像中显示平移向量（x,y,z）
-    Mat imgColor;
+    //Mat imgColor;
     //resize(srcColor,imgColor,Size(640,480));
     //imshow("rect distance",imgColor);
     return;
@@ -722,6 +729,12 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         Mat possibleDigitBinaryImg = rectCategory[i][0].possibleDigitBinaryImg.clone();
         if (!possibleDigitBinaryImg.data)
             continue;
+
+        if (rectCategory[i][0].position.z < 3)
+        {
+            medianBlur(possibleDigitBinaryImg,possibleDigitBinaryImg,3);
+            //imshow("median_img", possibleDigitBinaryImg);
+        }
 
         //数字识别
         IplImage ipl_img(possibleDigitBinaryImg);

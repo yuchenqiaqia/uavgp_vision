@@ -12,8 +12,8 @@
 using namespace std;
 using namespace cv;
 
-char baseDir[1000] = "/home/sia/Documents/20161011_1616_35/image";
-unsigned int imgNo = 2500;
+char baseDir[1000] = "/home/sia/Documents/20161011_1616_35";
+unsigned int imgNo = 0;
 
 int main(int argc, char **argv)
 {
@@ -24,11 +24,11 @@ int main(int argc, char **argv)
     image_transport::Publisher pub;
     pub = it.advertise("vision/camera_image",  1 );
 
-    int rate = 2;
+    int rate = 12;
     ros::Rate loop_rate( rate );
     char video_name[1000];
     sprintf(video_name,"%s/raw-000000.avi", baseDir);
-/*
+
     VideoCapture video_capture(video_name);
 
     FILE* fp;
@@ -40,21 +40,27 @@ int main(int argc, char **argv)
           printf("Open txt failed ...\n");
           exit(-2);
     }
-*/
+
     ros::Publisher switch_pub;
 
     while( rawPubNode.ok() )
     {
         Mat raw_image;
-        //video_capture >> raw_image;
+        video_capture >> raw_image;
         char raw_img_name[1000];
         sprintf(raw_img_name,"%s/image-%06d.jpg",baseDir,imgNo);
-        raw_image = imread(raw_img_name);
+        //raw_image = imread(raw_img_name);
         if (!raw_image.data)
         {
             cout<<"open image failed!"<<endl;
             break;
         }
+        if (imgNo < 10*60*2)   //10*60*7.0
+        {
+            imgNo++;
+            continue;
+        }
+
         Mat resied_img;
         resize(raw_image,resied_img,Size(1384*0.4,1032*0.4));
         imshow("raw",resied_img);
@@ -65,12 +71,6 @@ int main(int argc, char **argv)
         std_msgs::Int32 camera_switch_data;
         //if (EOF == fscanf(fp, "%d%d", &num,&camera_switch_data.data))
         //    break;
-
-        if (imgNo < 0)   //10*60*7.0
-        {
-            imgNo++;
-            continue;
-        }
 
         switch_pub.publish(camera_switch_data);
         sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", raw_image).toImageMsg();
