@@ -462,7 +462,7 @@ int RectDetectByStatisticsError(Mat& lightness_img, Mat& input_img, vector< vect
     GaussianBlur(resized_lightness_img, gaussianImg, Size(5,5),0,0);
     //imshow("gauss",gaussianImg);
     Canny(gaussianImg,cannyImg,180,50);
-    imshow("canny",cannyImg);
+    //imshow("canny",cannyImg);
 /*
     Mat srcGray;
     cvtColor(show_img,srcGray,CV_BGR2GRAY);
@@ -496,7 +496,7 @@ int RectDetectByStatisticsError(Mat& lightness_img, Mat& input_img, vector< vect
     GetPossibleRectVertexes(contours, contoursInfo, show_img);
 
     drawContours(show_img, contours, -1, Scalar(0,0,255), 1 );
-    imshow("all_contours", show_img);
+    //imshow("all_contours", show_img);
 
     ErrorStatisticsBetweenRectAndContour(contoursInfo, show_rect);
     vector<RectInfo> rectsInfo;
@@ -514,6 +514,6 @@ int RectDetectByStatisticsError(Mat& lightness_img, Mat& input_img, vector< vect
        incomplete_rect.cameraPos3D.z = rectsInfo[0].cameraPos3D.z;
        incompleteRectResult.push_back(incomplete_rect);
     }
-    imshow("rects",show_rect);
+    //imshow("rects",show_rect);
     return 1;
 }
