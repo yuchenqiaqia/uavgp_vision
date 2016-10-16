@@ -75,7 +75,7 @@ vector< vector<RectMark> > rectCategory;
 //透视变换后的矩形图像
 vector<Mat> rectCandidateImg;
 
-int DisplayScreenProcess(Mat& rawCameraImg);
+int DisplayScreenProcess(Mat& rawCameraImg, int color_filter_value);
 void PrintBoardProcess(Mat& rawCameraImg);
 void GetLightnessImage( Mat& input_bgr_img, Mat& output_lightness_img, vector< vector<VisionResult> >& lastValidResult);
 void InitRawImgSubscriber( );

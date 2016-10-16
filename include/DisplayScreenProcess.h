@@ -28,7 +28,7 @@ class DisplayScreenProcessType
 {
 public:
     DisplayScreenProcessType();
-    int DisplayScreenProcess(Mat& input_img, basicOCR* KNNocr, const char* baseDir);
+    int DisplayScreenProcess(Mat& input_img, basicOCR* KNNocr, const char* baseDir, int color_filter_value);
 
     int imgNo;
     float shrink;
@@ -50,5 +50,6 @@ private:
     float min_bounding_rect_height_ratio;
     float min_precision_ratio_thres;
     float min_knn_distance_thres;
+    int red_filter_value;
 };
 
