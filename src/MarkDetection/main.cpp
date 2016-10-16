@@ -10,6 +10,7 @@
 
 int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
 char baseDir[1000] = OCR_DIR_PATH;
+int knn_min_distance = 280;
 
 int main(int argc, char **argv)
 {
@@ -40,9 +41,24 @@ void camera_switch_cb(const std_msgs::Int32::ConstPtr& msg)
     //ROS_INFO("get camera_switch_data = %d",camera_switch_data.data);
 }
 
+//set color filter thres
+int color_filter_slider = 150;
+int color_filter_slider_max = 220;
+int track_bar_color_filter_value = 150;
+void color_filter_on_trackbar( int, void* )
+{
+ track_bar_color_filter_value = color_filter_slider;
+ return;
+}
 
 void InitRawImgSubscriber( )
 {
+    namedWindow("color filtered img", 1);
+    char TrackbarName[50];
+    sprintf( TrackbarName, "color filter: %d", color_filter_slider_max );
+    createTrackbar( TrackbarName, "color filtered img", &color_filter_slider, color_filter_slider_max, color_filter_on_trackbar );
+    color_filter_on_trackbar( color_filter_slider, 0 );
+
     ros::NodeHandle imageProcessNode;
     image_transport::Subscriber rawImgSub;
     image_transport::ImageTransport imageProcessNode_it(imageProcessNode);
@@ -89,7 +105,7 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
     }
     else if (DISPLAYSCREEN == targetType)
     {
-        int digitNo = DisplayScreenProcess(rawCameraImg);
+        int digitNo = DisplayScreenProcess(rawCameraImg, track_bar_color_filter_value);
 
         sensor_msgs::LaserScan digits_position;
         digits_position.ranges.resize(4);
@@ -115,9 +131,9 @@ void MainImageProcessing( const sensor_msgs::ImageConstPtr& msg )
 }
 
 //Display screen
-int DisplayScreenProcess(Mat& rawCameraImg)
+int DisplayScreenProcess(Mat& rawCameraImg, int color_filter_value)
 {
-    int digitNo = display_screen_process.DisplayScreenProcess(rawCameraImg, KNNocr, baseDir);
+    int digitNo = display_screen_process.DisplayScreenProcess(rawCameraImg, KNNocr, baseDir, color_filter_value);
     Mat img = display_screen_process.show_img;
 
     char att_string[100];
@@ -761,11 +777,11 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
         }
 
         //printf("digit=%d; precisionRatio=%d; dist=%f\n\n",(int)classResult,(int)precisionRatio, min_distance[0]);
-        if (min_distance[0] > 250)
+        if (min_distance[0] > knn_min_distance)
             continue;
         if (1 == (int)classResult)
         {
-            if (min_distance[0] >= 180)
+            if (min_distance[0] >= 160)
             {
                 continue;
             }

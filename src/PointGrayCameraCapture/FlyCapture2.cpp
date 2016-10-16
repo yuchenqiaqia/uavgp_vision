@@ -7,9 +7,9 @@
 #include "../include/FlyCapture2.h"
 #include "project_path_config.h"
 #include <std_msgs/Int32.h>
+
 #define  DISPLAYSCREEN 0
 #define  PRINTBOARD 1
-
 using namespace FlyCapture2;
 using namespace std;
 using namespace cv;
@@ -17,8 +17,13 @@ using namespace cv;
 #define CameraFrameRate  19.0
 static char baseDir[100] = TXT_FILE_PATH;
 
-int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
+static int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
+float min_exposure_time = 1.0;
+float max_exposure_time = 10.0;
 
+float track_bar_shutter_time = 0;
+int shutter_slider = 0;
+int shutter_slider_max = 100;
 //是否为室外环境
 bool isOutdoor = true;
 //设定的画面亮度值
@@ -35,7 +40,6 @@ float cameraExposureTime = 5.00;
 bool autoAddExposureFlag = true;
 //曝光增益初始值
 float addExposureVal = 0.01;
-
 //自动曝光设置完成
 bool adjustShutterTimeDone = false;
 
@@ -44,7 +48,7 @@ extern char pressedKey[20];
 double CalculateExposureTime( Mat& currentImg, const double currentExposureTime,  double brightnessSet, const double rectAreaBrightness );
 void OpenGetKeyThread();
 double HSVCenterROI( Mat& srct );
-
+void on_trackbar( int, void* );
 
 void SaveExposureTimeValueToTxt(char* baseDir, bool isOutdoor, float brightness, float exposureTimeValue)
 {
@@ -293,15 +297,15 @@ void AdjustShutterTime(Camera& cam, float& shutterVal, Mat& currentImg, const do
 
 
 /* subscribe camera_switch_data from state_machine offb_simulation_test node. */
-std_msgs::Int32 camera_switch_data;
-void camera_switch_cb(const std_msgs::Int32::ConstPtr& msg)
+static std_msgs::Int32 camera_switch;
+static void camera_switch_cb(const std_msgs::Int32::ConstPtr& msg)
 {
-    camera_switch_data = *msg;
-    if(1 == camera_switch_data.data)
+    camera_switch = *msg;
+    if(1 == camera_switch.data)
         targetType = DISPLAYSCREEN;
-    if(2 == camera_switch_data.data)
+    if(2 == camera_switch.data)
         targetType = PRINTBOARD;
-    //ROS_INFO("get camera_switch_data = %d",camera_switch_data.data);
+    ROS_INFO("get camera_switch_data = %d",camera_switch.data);
 }
 
 ////相机配置与图像采集
@@ -319,9 +323,6 @@ int RunSingleCamera( PGRGuid guid )
 
     ros::Publisher camera_info_pub;
     camera_info_pub = rawImgPubNode.advertise<sensor_msgs::LaserScan>("vision/camera_info", 1);
-
-    camera_switch_data.data = DISPLAYSCREEN;
-    ros::Subscriber camera_switch_sub = rawImgPubNode.subscribe("camera_switch", 1, camera_switch_cb);
 
     FlyCapture2::Error error;
     Camera cam;
@@ -443,6 +444,13 @@ int RunSingleCamera( PGRGuid guid )
     DetectRectToGetImageLightness rectAreaLightness;
     double brightness;
 
+    namedWindow("CameraCapture", 1);
+    char TrackbarName[50];
+    sprintf( TrackbarName, "shutter: %d", shutter_slider_max );
+    createTrackbar( TrackbarName, "CameraCapture", &shutter_slider, shutter_slider_max, on_trackbar );
+    on_trackbar( shutter_slider, 0 );
+
+    float shutter_time = 0;
     while( rawImgPubNode.ok() )
 	{
 		// Retrieve an image
@@ -456,24 +464,54 @@ int RunSingleCamera( PGRGuid guid )
         Property prop;
         prop.type = SHUTTER;
         error = cam.GetProperty( &prop );
-        float shutter_time = prop.absValue;
+        shutter_time = prop.absValue;
 
         if (DISPLAYSCREEN == targetType)
         {
-            if (shutter_time <= 0.8)
+            //printf("targetType = DISPLAYSCREEN;\n");
+
+            if (track_bar_shutter_time-0 > 0.1)
             {
                 cameraAutoShutterFlag = false;
-                cameraExposureTime = 0.8;
+                cameraExposureTime = track_bar_shutter_time;
                 SetCameraExposureTime( cam, cameraAutoShutterFlag,cameraExposureTime );
             }
+            else
+            {
+                if (0 == imageCnt%10)
+                {
+                    cameraAutoShutterFlag = true;
+                    cameraExposureTime = min_exposure_time;
+                    SetCameraExposureTime( cam, cameraAutoShutterFlag,cameraExposureTime );
+                }
+
+                prop.type = SHUTTER;
+                error = cam.GetProperty( &prop );
+                shutter_time = prop.absValue;
+
+                if (shutter_time <= min_exposure_time)
+                {
+                    cameraAutoShutterFlag = false;
+                    cameraExposureTime = min_exposure_time;
+                    SetCameraExposureTime( cam, cameraAutoShutterFlag,cameraExposureTime );
+                }
+                else if (shutter_time >= max_exposure_time)
+                {
+                    cameraAutoShutterFlag = false;
+                    cameraExposureTime = max_exposure_time;
+                    SetCameraExposureTime( cam, cameraAutoShutterFlag,cameraExposureTime );
+                }
+            }
+
         }
+
         if (PRINTBOARD == targetType)
         {
+            //printf("targetType = PRINTBOARD;\n");
             cameraAutoShutterFlag = true;
             cameraExposureTime = 1.0;
             SetCameraExposureTime( cam, cameraAutoShutterFlag,cameraExposureTime );
         }
-        //usleep(10000);
 
 		// Convert the raw image
         error = rawImage.Convert( PIXEL_FORMAT_RGB8, &convertedImage );
@@ -548,7 +586,8 @@ int RunSingleCamera( PGRGuid guid )
             printf("GrabNo = %d\n",  imageCnt);
         }
         imageCnt++;
-
+        //printf("GrabNo = %d\n",  imageCnt);
+        ros::spinOnce();
 	}
 
 	// Stop capturing images
@@ -576,6 +615,9 @@ int main(int argc, char **argv)
 {
     //ros初始化
     ros::init(argc, argv, "camera_publisher");
+    ros::NodeHandle camera_capture_switch_sub_node;
+    camera_switch.data = DISPLAYSCREEN;
+    ros::Subscriber camera_capture_switch_sub = camera_capture_switch_sub_node.subscribe("camera_switch", 3, camera_switch_cb);
 
     FlyCapture2::Error error;
 	PrintBuildInfo();
@@ -611,3 +653,10 @@ int main(int argc, char **argv)
     //return 0;
 }
 
+
+
+void on_trackbar( int, void* )
+{
+ track_bar_shutter_time = shutter_slider*0.2;
+ return;
+}

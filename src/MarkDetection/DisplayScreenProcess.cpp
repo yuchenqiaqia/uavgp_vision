@@ -77,15 +77,16 @@ DisplayScreenProcessType::DisplayScreenProcessType( )
     imgNo = 0;
     shrink = 0.8;
     rect_filter_two_side_ratio_max = 1.0;   ////0.9
-    rect_filter_two_side_ratio_min = 0.18;   ////0.2
-    min_bounding_rect_height_ratio = 0.05;  ////0.1
-    min_precision_ratio_thres = 80.0;    ////80
-    min_knn_distance_thres = 250;
+    rect_filter_two_side_ratio_min = 0.2;   ////0.2
+    min_bounding_rect_height_ratio = 0.15;  ////0.1
+    min_precision_ratio_thres = 90.0;    ////80
+    min_knn_distance_thres = 290;
     return;
 }
 
-int DisplayScreenProcessType::DisplayScreenProcess(Mat& input_img, basicOCR* KNNocr, const char* baseDir)
+int DisplayScreenProcessType::DisplayScreenProcess(Mat& input_img, basicOCR* KNNocr, const char* baseDir, int color_filter_value)
 {
+    red_filter_value = color_filter_value;
     rawCameraImg = input_img.clone();
     resize(rawCameraImg,rawCameraImg,Size(rawCameraImg.cols*shrink,rawCameraImg.rows*shrink),0,0,INTER_AREA);
 
@@ -151,7 +152,7 @@ void DisplayScreenProcessType::ColorFilter(Mat& rawCameraImg, Mat& color_filtere
 
             if(lightness < 50)
                 light_img.at<uchar>(i,j) = 0;
-            if(saturation < 150) //120
+            if(saturation < red_filter_value) //120
                 light_img.at<uchar>(i,j) = 0;
             if( color>60 && color<220 ) //red: 0~15, 221~255; yellow: 16~48;
                 light_img.at<uchar>(i,j) = 0;
@@ -365,9 +366,9 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         Rect minBoundingRect = boundingRect( Mat(contours[i]) );
         if ((minBoundingRect.height < rawCameraImg.cols*min_bounding_rect_height_ratio) || ((minBoundingRect.width*1.0/minBoundingRect.height) > rect_filter_two_side_ratio_max) || ((minBoundingRect.width*1.0/minBoundingRect.height) < rect_filter_two_side_ratio_min))
             continue;
-        if (minBoundingRect.x+minBoundingRect.width/2 > rawCameraImg.cols*0.8 || minBoundingRect.x+minBoundingRect.width/2 < rawCameraImg.cols*0.2)
+        if (minBoundingRect.x+minBoundingRect.width/2 > rawCameraImg.cols*0.8 || minBoundingRect.x+minBoundingRect.width/2 < rawCameraImg.cols*0.22)
             continue;
-        if (minBoundingRect.y+minBoundingRect.height/2 < rawCameraImg.rows*1.0/5.0)
+        if (minBoundingRect.y+minBoundingRect.height/2 < rawCameraImg.rows*0.1)
             continue;
 
         rectangle( rawCameraImg, minBoundingRect, Scalar(0,255,255), 1, 8);
@@ -503,7 +504,7 @@ void DisplayScreenProcessType::DigitClassify(vector<RoiAreaInfo>& roiAreaInfos, 
         }
         if (1 == roiAreaInfos[i].digitNo)
         {
-            if (min_distance[0] >= 180)
+            if (min_distance[0] >= 160)
             {
                 roiAreaInfos.erase(roiAreaInfos.begin() + i);
                 i--;
