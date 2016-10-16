@@ -6,6 +6,9 @@
 #include "DetectRectToGetImageLightness.h"
 #include "../include/FlyCapture2.h"
 #include "project_path_config.h"
+#include <std_msgs/Int32.h>
+#define  DISPLAYSCREEN 0
+#define  PRINTBOARD 1
 
 using namespace FlyCapture2;
 using namespace std;
@@ -13,6 +16,8 @@ using namespace cv;
 //相机帧率，单位：HZ
 #define CameraFrameRate  19.0
 static char baseDir[100] = TXT_FILE_PATH;
+
+int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
 
 //是否为室外环境
 bool isOutdoor = true;
@@ -287,6 +292,18 @@ void AdjustShutterTime(Camera& cam, float& shutterVal, Mat& currentImg, const do
 }
 
 
+/* subscribe camera_switch_data from state_machine offb_simulation_test node. */
+std_msgs::Int32 camera_switch_data;
+void camera_switch_cb(const std_msgs::Int32::ConstPtr& msg)
+{
+    camera_switch_data = *msg;
+    if(1 == camera_switch_data.data)
+        targetType = DISPLAYSCREEN;
+    if(2 == camera_switch_data.data)
+        targetType = PRINTBOARD;
+    //ROS_INFO("get camera_switch_data = %d",camera_switch_data.data);
+}
+
 ////相机配置与图像采集
 int RunSingleCamera( PGRGuid guid )
 {
@@ -302,6 +319,9 @@ int RunSingleCamera( PGRGuid guid )
 
     ros::Publisher camera_info_pub;
     camera_info_pub = rawImgPubNode.advertise<sensor_msgs::LaserScan>("vision/camera_info", 1);
+
+    camera_switch_data.data = DISPLAYSCREEN;
+    ros::Subscriber camera_switch_sub = rawImgPubNode.subscribe("camera_switch", 1, camera_switch_cb);
 
     FlyCapture2::Error error;
     Camera cam;
@@ -432,22 +452,25 @@ int RunSingleCamera( PGRGuid guid )
             //PrintError( error );
 			continue;
 		}
-
-        //
-        cameraAutoShutterFlag = true;
-        cameraExposureTime = 1.0;
-        //SetCameraExposureTime( cam, cameraAutoShutterFlag,cameraExposureTime );
-
         FlyCapture2::Error error;
         Property prop;
         prop.type = SHUTTER;
         error = cam.GetProperty( &prop );
         float shutter_time = prop.absValue;
 
-        if (shutter_time <= 0.6)
+        if (DISPLAYSCREEN == targetType)
         {
-            cameraAutoShutterFlag = false;
-            cameraExposureTime = 0.6;
+            if (shutter_time <= 0.8)
+            {
+                cameraAutoShutterFlag = false;
+                cameraExposureTime = 0.8;
+                SetCameraExposureTime( cam, cameraAutoShutterFlag,cameraExposureTime );
+            }
+        }
+        if (PRINTBOARD == targetType)
+        {
+            cameraAutoShutterFlag = true;
+            cameraExposureTime = 1.0;
             SetCameraExposureTime( cam, cameraAutoShutterFlag,cameraExposureTime );
         }
         //usleep(10000);
