@@ -8,7 +8,7 @@
 #include "project_path_config.h"
 #include <std_msgs/Int32.h>
 
-int targetType = PRINTBOARD; //PRINTBOARD; DISPLAYSCREEN
+int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
 char baseDir[1000] = OCR_DIR_PATH;
 
 int main(int argc, char **argv)
