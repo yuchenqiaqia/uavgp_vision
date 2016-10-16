@@ -433,6 +433,25 @@ int RunSingleCamera( PGRGuid guid )
 			continue;
 		}
 
+        //
+        cameraAutoShutterFlag = true;
+        cameraExposureTime = 1.0;
+        //SetCameraExposureTime( cam, cameraAutoShutterFlag,cameraExposureTime );
+
+        FlyCapture2::Error error;
+        Property prop;
+        prop.type = SHUTTER;
+        error = cam.GetProperty( &prop );
+        float shutter_time = prop.absValue;
+
+        if (shutter_time <= 0.6)
+        {
+            cameraAutoShutterFlag = false;
+            cameraExposureTime = 0.6;
+            SetCameraExposureTime( cam, cameraAutoShutterFlag,cameraExposureTime );
+        }
+        //usleep(10000);
+
 		// Convert the raw image
         error = rawImage.Convert( PIXEL_FORMAT_RGB8, &convertedImage );
 		if (error != PGRERROR_OK)
@@ -488,12 +507,6 @@ int RunSingleCamera( PGRGuid guid )
         sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", img).toImageMsg();
         pub.publish(msg);
 
-        FlyCapture2::Error error;
-        Property prop;
-        prop.type = SHUTTER;
-        error = cam.GetProperty( &prop );
-        float shutter_time = prop.absValue;
-
         sensor_msgs::LaserScan cam_info;
         cam_info.ranges.resize(1);
         cam_info.header.frame_id = "cam_info";
@@ -512,6 +525,7 @@ int RunSingleCamera( PGRGuid guid )
             printf("GrabNo = %d\n",  imageCnt);
         }
         imageCnt++;
+
 	}
 
 	// Stop capturing images
