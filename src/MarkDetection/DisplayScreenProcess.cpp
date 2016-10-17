@@ -78,7 +78,7 @@ DisplayScreenProcessType::DisplayScreenProcessType( )
     shrink = 0.8;
     rect_filter_two_side_ratio_max = 1.0;   ////0.9
     rect_filter_two_side_ratio_min = 0.2;   ////0.2
-    min_bounding_rect_height_ratio = 0.08;  ////0.1
+    min_bounding_rect_height_ratio = 0.1;  ////0.1
     min_precision_ratio_thres = 90.0;    ////80
     min_knn_distance_thres = 260;
     return;
@@ -360,7 +360,7 @@ void DisplayScreenProcessType::ContoursPreFilter(vector< vector<Point> >& all_co
 
 void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Mat& input_img, vector<RoiAreaInfo>& roiAreaInfos)
 {
-    //line(rawCameraImg, Point(rawCameraImg.cols*3.0/4.0,0), Point(rawCameraImg.cols*3.0/4.0,rawCameraImg.rows), Scalar(0,255,0), 1, 8);
+    //line(rawCameraImg, Point(0,rawCameraImg.rows*0.1), Point(rawCameraImg.cols,rawCameraImg.rows*0.1), Scalar(0,255,0), 1, 8);
 
     for(int i=0;i<(int)contours.size();++i)
     {

@@ -10,7 +10,7 @@
 
 int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
 char baseDir[1000] = OCR_DIR_PATH;
-int knn_min_distance = 280;
+int knn_min_distance = 250;
 
 int main(int argc, char **argv)
 {

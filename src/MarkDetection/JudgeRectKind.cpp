@@ -35,7 +35,7 @@ void GetRectKinds( vector< vector<RectMark> >&  rectCategory )
         //morphologyEx(imgBinary, imgBinary, MORPH_CLOSE, Mat());
 
         ////根据重映射前的矩形大小来设置闭运算的windowsize
-        Mat element=getStructuringElement(MORPH_ELLIPSE, Size(11,11) ); //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+        Mat element=getStructuringElement(MORPH_ELLIPSE, Size(5,5) ); //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
         morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
         imgBinary.copyTo(rectCategory[i][0].possibleRectBinaryImg);
 
