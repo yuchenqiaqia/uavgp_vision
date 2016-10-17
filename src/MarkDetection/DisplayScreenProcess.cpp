@@ -78,9 +78,9 @@ DisplayScreenProcessType::DisplayScreenProcessType( )
     shrink = 0.8;
     rect_filter_two_side_ratio_max = 1.0;   ////0.9
     rect_filter_two_side_ratio_min = 0.2;   ////0.2
-    min_bounding_rect_height_ratio = 0.05;  ////0.1
+    min_bounding_rect_height_ratio = 0.08;  ////0.1
     min_precision_ratio_thres = 90.0;    ////80
-    min_knn_distance_thres = 290;
+    min_knn_distance_thres = 260;
     return;
 }
 
@@ -344,6 +344,7 @@ void DisplayScreenProcessType::ContoursPreFilter(vector< vector<Point> >& all_co
             i--;
             continue;
         }
+
         for(int j=0; j<4;++j)
         {
             line(rawCameraImg, vertex[j], vertex[(j+1)%4], Scalar(0,255,0), 1, 8);

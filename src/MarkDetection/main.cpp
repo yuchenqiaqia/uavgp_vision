@@ -786,9 +786,9 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
                 continue;
             }
         }
-        if (rectCategory[i][0].position.z > 9.0)
+        if (rectCategory[i][0].position.z > 8.2)
             continue;
-        else if (rectCategory[i][0].position.z >8.0 && rectCategory[i][0].position.z <=9.0 )
+        else if (rectCategory[i][0].position.z >8.0 && rectCategory[i][0].position.z <=8.2 )
         {
             if( (int)precisionRatio < 100 )
                 continue;

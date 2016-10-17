@@ -19,7 +19,7 @@ static char baseDir[100] = TXT_FILE_PATH;
 
 static int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
 float min_exposure_time = 1.0;
-float max_exposure_time = 10.0;
+float max_exposure_time = 5.0;
 
 float track_bar_shutter_time = 0;
 int shutter_slider = 0;
