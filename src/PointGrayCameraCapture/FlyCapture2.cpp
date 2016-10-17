@@ -478,11 +478,22 @@ int RunSingleCamera( PGRGuid guid )
             }
             else
             {
-                if (0 == imageCnt%90)
+                if (0 == imageCnt%54)
                 {
                     cameraAutoShutterFlag = true;
                     cameraExposureTime = min_exposure_time;
                     SetCameraExposureTime( cam, cameraAutoShutterFlag,cameraExposureTime );
+
+                    Image rawImageTemp;
+                    while(1)
+                    {
+                        // Retrieve an image
+                        error = cam.RetrieveBuffer( &rawImageTemp );
+                        if (error == PGRERROR_OK)
+                        {
+                            break;
+                        }
+                    }
                 }
 
                 prop.type = SHUTTER;

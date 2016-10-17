@@ -76,7 +76,7 @@ DisplayScreenProcessType::DisplayScreenProcessType( )
 {
     imgNo = 0;
     shrink = 0.8;
-    rect_filter_two_side_ratio_max = 1.1;   ////0.9
+    rect_filter_two_side_ratio_max = 1.0;   ////0.9
     rect_filter_two_side_ratio_min = 0.2;   ////0.2
     min_bounding_rect_height_ratio = 0.05;  ////0.1
     min_precision_ratio_thres = 90.0;    ////80
