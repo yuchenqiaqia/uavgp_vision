@@ -478,7 +478,7 @@ int RunSingleCamera( PGRGuid guid )
             }
             else
             {
-                if (0 == imageCnt%10)
+                if (0 == imageCnt%90)
                 {
                     cameraAutoShutterFlag = true;
                     cameraExposureTime = min_exposure_time;
@@ -489,7 +489,7 @@ int RunSingleCamera( PGRGuid guid )
                 error = cam.GetProperty( &prop );
                 shutter_time = prop.absValue;
 
-                if (shutter_time <= min_exposure_time)
+                if (shutter_time < min_exposure_time)
                 {
                     cameraAutoShutterFlag = false;
                     cameraExposureTime = min_exposure_time;

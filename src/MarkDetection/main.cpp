@@ -42,7 +42,7 @@ void camera_switch_cb(const std_msgs::Int32::ConstPtr& msg)
 }
 
 //set color filter thres
-int color_filter_slider = 150;
+int color_filter_slider = 180;
 int color_filter_slider_max = 220;
 int track_bar_color_filter_value = 150;
 void color_filter_on_trackbar( int, void* )

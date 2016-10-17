@@ -76,9 +76,9 @@ DisplayScreenProcessType::DisplayScreenProcessType( )
 {
     imgNo = 0;
     shrink = 0.8;
-    rect_filter_two_side_ratio_max = 1.0;   ////0.9
+    rect_filter_two_side_ratio_max = 1.1;   ////0.9
     rect_filter_two_side_ratio_min = 0.2;   ////0.2
-    min_bounding_rect_height_ratio = 0.15;  ////0.1
+    min_bounding_rect_height_ratio = 0.05;  ////0.1
     min_precision_ratio_thres = 90.0;    ////80
     min_knn_distance_thres = 290;
     return;
@@ -366,7 +366,7 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         Rect minBoundingRect = boundingRect( Mat(contours[i]) );
         if ((minBoundingRect.height < rawCameraImg.cols*min_bounding_rect_height_ratio) || ((minBoundingRect.width*1.0/minBoundingRect.height) > rect_filter_two_side_ratio_max) || ((minBoundingRect.width*1.0/minBoundingRect.height) < rect_filter_two_side_ratio_min))
             continue;
-        if (minBoundingRect.x+minBoundingRect.width/2 > rawCameraImg.cols*0.8 || minBoundingRect.x+minBoundingRect.width/2 < rawCameraImg.cols*0.22)
+        if (minBoundingRect.x+minBoundingRect.width/2 > rawCameraImg.cols*0.8 || minBoundingRect.x+minBoundingRect.width/2 < rawCameraImg.cols*0.2)
             continue;
         if (minBoundingRect.y+minBoundingRect.height/2 < rawCameraImg.rows*0.1)
             continue;
