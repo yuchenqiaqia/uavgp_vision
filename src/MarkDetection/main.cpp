@@ -11,6 +11,9 @@
 int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
 char baseDir[1000] = OCR_DIR_PATH;
 int knn_min_distance = 250;
+//set color filter thres
+int color_filter_slider = 120;
+
 
 int main(int argc, char **argv)
 {
@@ -42,7 +45,7 @@ void camera_switch_cb(const std_msgs::Int32::ConstPtr& msg)
 }
 
 //set color filter thres
-int color_filter_slider = 180;
+//int color_filter_slider = 120;
 int color_filter_slider_max = 220;
 int track_bar_color_filter_value = 150;
 void color_filter_on_trackbar( int, void* )
@@ -63,9 +66,9 @@ void InitRawImgSubscriber( )
     image_transport::Subscriber rawImgSub;
     image_transport::ImageTransport imageProcessNode_it(imageProcessNode);
     rawImgSub = imageProcessNode_it.subscribe("vision/camera_image", 1, MainImageProcessing);
-    display_screen_digit_publisher = imageProcessNode.advertise<sensor_msgs::LaserScan>("vision/digit_nws_position", 1);
-    vision_digit_position_publisher = imageProcessNode.advertise<sensor_msgs::LaserScan>("vision/digit_nws_position", 1);
-    attSub = imageProcessNode.subscribe("imu/attitude", 1, AttitudeSubCallBack);
+    display_screen_digit_publisher = imageProcessNode.advertise<sensor_msgs::LaserScan>("vision/digit_nws_position", 5);
+    vision_digit_position_publisher = imageProcessNode.advertise<sensor_msgs::LaserScan>("vision/digit_nws_position", 5);
+    attSub = imageProcessNode.subscribe("imu/attitude", 3, AttitudeSubCallBack);
 
     /* get camera_switch from state_machine(offb_simulation_test node). */
     camera_switch_data.data = 0;

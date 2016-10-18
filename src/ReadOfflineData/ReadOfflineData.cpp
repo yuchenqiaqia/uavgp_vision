@@ -12,7 +12,7 @@
 using namespace std;
 using namespace cv;
 
-char baseDir[1000] = "/home/sia/Documents/UAVGP_vision/20161017_3_显示屏数据_重要/output/Save/20161017_1907_23";
+char baseDir[1000] = "/home/sia/vision_ws/src/uavgp_vision/output/Save/20161018_1142_33";
 unsigned int imgNo = 0;
 
 int main(int argc, char **argv)
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     int rate = 12;
     ros::Rate loop_rate( rate );
     char video_name[1000];
-    sprintf(video_name,"%s/raw-000001.avi", baseDir);
+    sprintf(video_name,"%s/raw-000000.avi", baseDir);
 
     VideoCapture video_capture(video_name);
 
@@ -55,11 +55,11 @@ int main(int argc, char **argv)
             cout<<"open image failed!"<<endl;
             break;
         }
-        //if (imgNo < 10*60*2)   //10*60*7.0
-        //{
-        //    imgNo++;
-        //    continue;
-        //}
+        if (imgNo < 10*60*3)   //10*60*7.0
+        {
+            imgNo++;
+            continue;
+        }
 
         Mat resied_img;
         resize(raw_image,resied_img,Size(1384*0.4,1032*0.4));

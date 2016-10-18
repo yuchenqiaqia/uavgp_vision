@@ -79,8 +79,8 @@ DisplayScreenProcessType::DisplayScreenProcessType( )
     rect_filter_two_side_ratio_max = 1.0;   ////0.9
     rect_filter_two_side_ratio_min = 0.2;   ////0.2
     min_bounding_rect_height_ratio = 0.1;  ////0.1
-    min_precision_ratio_thres = 90.0;    ////80
-    min_knn_distance_thres = 260;
+    min_precision_ratio_thres = 80.0;    ////80
+    min_knn_distance_thres = 300;
     return;
 }
 
@@ -258,7 +258,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
         //printf("AverageValue = %0.2f\n", value);
 
         //float contrast_ratio = 0.025 * 20/value;
-        float contrast_ratio = 0.005 * 12/value;
+        float contrast_ratio = 0.005 * 20/value;
         strengthenContrast(roi_img, contrast_ratio);
         //imshow("before THRESH_OTSU",roi_img);
 
@@ -360,7 +360,7 @@ void DisplayScreenProcessType::ContoursPreFilter(vector< vector<Point> >& all_co
 
 void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Mat& input_img, vector<RoiAreaInfo>& roiAreaInfos)
 {
-    //line(rawCameraImg, Point(0,rawCameraImg.rows*0.1), Point(rawCameraImg.cols,rawCameraImg.rows*0.1), Scalar(0,255,0), 1, 8);
+    line(rawCameraImg, Point(0,rawCameraImg.rows*0.15), Point(rawCameraImg.cols,rawCameraImg.rows*0.15), Scalar(0,255,0), 1, 8);
 
     for(int i=0;i<(int)contours.size();++i)
     {
@@ -372,7 +372,7 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
         if (minBoundingRect.y+minBoundingRect.height/2 < rawCameraImg.rows*0.1)
             continue;
 
-        rectangle( rawCameraImg, minBoundingRect, Scalar(0,255,255), 1, 8);
+        rectangle( rawCameraImg, minBoundingRect, Scalar(0,255,255), 2, 8);
 
         int height = minBoundingRect.height*1.1;
         int y = int(minBoundingRect.y + minBoundingRect.height*0.5 - height*0.5);
@@ -429,6 +429,9 @@ void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Ma
             min_filter_thres = roi_pixel_max_value - 10;
         //printf("MaxValue = %d\n",roi_pixel_max_value);
         threshold(roi_img, roi_img, min_filter_thres, 255, THRESH_BINARY_INV);   //120
+        Mat element_;
+        element_=getStructuringElement(MORPH_ELLIPSE, Size( 5,5 ) );  //Size( 9,9 ) //MORPH_RECT=0, MORPH_CROSS=1, MORPH_ELLIPSE=2
+        erode(roi_img,roi_img,element_);
         //imshow("wait classify roi", roi_img);
         RoiAreaInfo roiAreaInfo;
         roiAreaInfo.minBoundingRect = minBoundingRect;
