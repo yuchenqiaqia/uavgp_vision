@@ -76,11 +76,11 @@ DisplayScreenProcessType::DisplayScreenProcessType( )
 {
     imgNo = 0;
     shrink = 0.8;
-    rect_filter_two_side_ratio_max = 1.0;   ////0.9
-    rect_filter_two_side_ratio_min = 0.2;   ////0.2
+    rect_filter_two_side_ratio_max = 0.9;   ////0.9
+    rect_filter_two_side_ratio_min = 0.25;   ////0.2
     min_bounding_rect_height_ratio = 0.1;  ////0.1
     min_precision_ratio_thres = 80.0;    ////80
-    min_knn_distance_thres = 300;
+    min_knn_distance_thres = 250;
     return;
 }
 
@@ -183,7 +183,7 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
     morphologyEx(imgBinary, imgBinary, MORPH_CLOSE ,element);
 
     Mat show_binary;
-    resize(imgBinary,show_binary,Size(1384*0.4,1032*0.4));
+    resize(imgBinary,show_binary,Size(1384*0.5,1032*0.5));
     //imshow("Possible Rois adaptive Threshold", show_binary);
 
     vector< vector<Point> > contours;
@@ -197,9 +197,9 @@ void DisplayScreenProcessType::GetPossibleRois(Mat& color_filtered_img, vector<R
         if (contours[i].size() < color_filtered_img.rows*0.05)
             continue;
         Rect minBoundingRect = boundingRect( Mat(contours[i]) );
-        if (minBoundingRect.area() < pow(color_filtered_img.rows*0.05, 2))
+        if (minBoundingRect.area() < pow(color_filtered_img.rows*0.05, 2)*2)
             continue;
-        if (float(minBoundingRect.width)/minBoundingRect.height > rect_filter_two_side_ratio_max*1.1)
+        if (float(minBoundingRect.width)/minBoundingRect.height > rect_filter_two_side_ratio_max)
             continue;
         if (float(minBoundingRect.width)/minBoundingRect.height < rect_filter_two_side_ratio_min)
             continue;
@@ -258,7 +258,7 @@ void DisplayScreenProcessType::ThresholdProcess(Mat& color_filtered_img, vector<
         //printf("AverageValue = %0.2f\n", value);
 
         //float contrast_ratio = 0.025 * 20/value;
-        float contrast_ratio = 0.005 * 20/value;
+        float contrast_ratio = 0.005 * 12/value;
         strengthenContrast(roi_img, contrast_ratio);
         //imshow("before THRESH_OTSU",roi_img);
 
@@ -306,9 +306,9 @@ void DisplayScreenProcessType::ContoursPreFilter(vector< vector<Point> >& all_co
 {
     for (int i = 0; i < (int)all_contours.size(); ++i)
     {
-        if ((int)all_contours[i].size() > rawCameraImg.rows*0.2 && (int)all_contours[i].size()<rawCameraImg.rows*2.5)
+        if ((int)all_contours[i].size() > rawCameraImg.rows*0.2 && (int)all_contours[i].size()<rawCameraImg.rows*8)
         {
-            float area = fabs( (float)contourArea(all_contours[i]) );
+            //float area = fabs( (float)contourArea(all_contours[i]) );
             //if (area > pow((float)imgBinary.rows*0.2,2))
                 contours.push_back(all_contours[i]);
         }
@@ -338,7 +338,7 @@ void DisplayScreenProcessType::ContoursPreFilter(vector< vector<Point> >& all_co
         float side1 = sqrt( pow(vertex[2].x - vertex[1].x, 2) + pow(vertex[2].y - vertex[1].y, 2));
         float area = side0 * side1;
         //printf("side0/side1=%0.3f\n",side0/side1);
-        if (area < pow(rawCameraImg.rows*0.05,2) || side0>rawCameraImg.cols*0.5 || side0/side1 > rect_filter_two_side_ratio_max || side0/side1 < rect_filter_two_side_ratio_min)
+        if (area < pow(rawCameraImg.rows*0.05,2) || side0>rawCameraImg.cols*0.8 || side0/side1 > rect_filter_two_side_ratio_max || side0/side1 < rect_filter_two_side_ratio_min)
         {
             contours.erase(contours.begin() + i);
             i--;
@@ -360,7 +360,7 @@ void DisplayScreenProcessType::ContoursPreFilter(vector< vector<Point> >& all_co
 
 void DisplayScreenProcessType::GetDigitRoi(vector< vector<Point> >& contours, Mat& input_img, vector<RoiAreaInfo>& roiAreaInfos)
 {
-    line(rawCameraImg, Point(0,rawCameraImg.rows*0.15), Point(rawCameraImg.cols,rawCameraImg.rows*0.15), Scalar(0,255,0), 1, 8);
+    //line(rawCameraImg, Point(0,rawCameraImg.rows*0.15), Point(rawCameraImg.cols,rawCameraImg.rows*0.15), Scalar(0,255,0), 1, 8);
 
     for(int i=0;i<(int)contours.size();++i)
     {
