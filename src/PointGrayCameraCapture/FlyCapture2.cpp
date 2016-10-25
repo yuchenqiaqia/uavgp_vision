@@ -18,8 +18,8 @@ using namespace cv;
 static char baseDir[100] = TXT_FILE_PATH;
 
 static int targetType = DISPLAYSCREEN; //PRINTBOARD; DISPLAYSCREEN
-float min_exposure_time = 1.0;
-float max_exposure_time = 10.0;
+float min_exposure_time = 0.8;
+float max_exposure_time = 1.2;
 
 float track_bar_shutter_time = 0;
 int shutter_slider = 0;
@@ -478,18 +478,29 @@ int RunSingleCamera( PGRGuid guid )
             }
             else
             {
-                if (0 == imageCnt%10)
+                if (0 == imageCnt%54)
                 {
                     cameraAutoShutterFlag = true;
                     cameraExposureTime = min_exposure_time;
                     SetCameraExposureTime( cam, cameraAutoShutterFlag,cameraExposureTime );
+
+                    Image rawImageTemp;
+                    while(1)
+                    {
+                        // Retrieve an image
+                        error = cam.RetrieveBuffer( &rawImageTemp );
+                        if (error == PGRERROR_OK)
+                        {
+                            break;
+                        }
+                    }
                 }
 
                 prop.type = SHUTTER;
                 error = cam.GetProperty( &prop );
                 shutter_time = prop.absValue;
 
-                if (shutter_time <= min_exposure_time)
+                if (shutter_time < min_exposure_time)
                 {
                     cameraAutoShutterFlag = false;
                     cameraExposureTime = min_exposure_time;
