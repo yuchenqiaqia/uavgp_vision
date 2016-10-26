@@ -1,8 +1,8 @@
 /*
- * @file	: main.cpp
  * @auhtor	: xiaobin <xiaobin619@126.com>
  * @time	: 2016/09/12
  */
+
 #include <opencv2/opencv.hpp>
 #include <std_msgs/Int32.h>
 #include <geometry_msgs/TransformStamped.h>

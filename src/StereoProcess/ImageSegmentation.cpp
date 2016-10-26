@@ -1,3 +1,7 @@
+/*
+ * @auhtor	: xiaobin <xiaobin619@126.com>
+ * @time	: 2016/09/12
+ */
 #include "declare.h"
 int FindObstacleArea( Mat& img_input );
 

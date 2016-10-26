@@ -1,5 +1,4 @@
 /*
- * @file	: .cpp
  * @auhtor	: xiaobin <xiaobin619@126.com>
  * @time	: 2016/09/12
  */
