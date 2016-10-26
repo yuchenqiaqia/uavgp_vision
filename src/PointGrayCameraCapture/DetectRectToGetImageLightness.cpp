@@ -1,8 +1,8 @@
 /*
- * @file	: main.cpp
  * @auhtor	: xiaobin <xiaobin619@126.com>
  * @time	: 2016/09/12
  */
+
 
 #include "DetectRectToGetImageLightness.h"
 //矩形长宽比例阈值

@@ -184,7 +184,7 @@ basicOCR::basicOCR(char* baseDir)
 
     sprintf(file_path , "%s/OCR/",baseDir);
     //sample number
-    train_samples = 99; //50
+    train_samples = 100; //50
     classes= 10;
 	size=40;
 

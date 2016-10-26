@@ -48,7 +48,6 @@ void GetRectKinds( vector< vector<RectMark> >&  rectCategory )
         vector<RotatedRect>  box;
         vector<Rect> minBoundingRect;
         minBoundingRect.push_back( Rect(0,0,img.cols,img.rows) );
-        //查找轮廓
         findContours( img_bin, contours, hierarchy ,CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
         //cout<<"轮廓总个数=" << all_contours.size() <<endl;
         for (int k = 0; k < (int)contours.size(); ++k)
@@ -67,7 +66,7 @@ void GetRectKinds( vector< vector<RectMark> >&  rectCategory )
                 //line(showImg, vertex[j], vertex[(j+1)%4], Scalar(0,255,0), 2, 8);
             //}
 
-            //最小包围的正矩形
+            //最小包围矩形
             Rect minBoundingRectTemp = boundingRect( Mat(contours[k]) );
             //用蓝色画出所有外包围矩形
             rectangle( showImg, minBoundingRectTemp, Scalar(255,0,0), 2, 8);
@@ -88,7 +87,7 @@ void GetRectKinds( vector< vector<RectMark> >&  rectCategory )
             continue;
         }
 
-        //包围矩形按面积排序
+        //按面积排序
         BoundingRectSortByAreaSize( minBoundingRect );
 
         for (int j=0;j<(int)minBoundingRect.size(); ++j)
@@ -224,9 +223,7 @@ void GetDigitRoiImg( Mat& binaryImg, vector< Rect>& minBoundingRect, int rectKin
         if ( roi.y + roi.height >= binaryImg.rows )
             roi.height = binaryImg.rows - roi.y;
 
-        //二值化翻转
         binaryImg( roi ).copyTo(img);
-        //imshow( "roi", img );
         threshold(img, img, 125, 255, THRESH_BINARY_INV);
 
         resize(img, img, Size(128,128));

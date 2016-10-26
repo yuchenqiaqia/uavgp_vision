@@ -1,8 +1,8 @@
 /*
- * @file	: main.cpp
  * @auhtor	: xiaobin <xiaobin619@126.com>
  * @time	: 2016/09/12
  */
+
 #include "declare.h"
 #include <opencv2/opencv.hpp>
 #include "project_path_config.h"

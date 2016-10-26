@@ -44,8 +44,6 @@ void camera_switch_cb(const std_msgs::Int32::ConstPtr& msg)
     //ROS_INFO("get camera_switch_data = %d",camera_switch_data.data);
 }
 
-//set color filter thres
-//int color_filter_slider = 120;
 int color_filter_slider_max = 220;
 int track_bar_color_filter_value = 150;
 void color_filter_on_trackbar( int, void* )
@@ -274,7 +272,7 @@ void GetLightnessImage( Mat& input_bgr_img, Mat& output_lightness_img, vector< v
     imgNo++;
 }
 
-//矩形（四边形）检测
+//四边形检测
 void RectangleDetect( Mat& lightness_img, Mat& resultImg, vector< vector<RectMark> >& rectCategory, int frameNo)
 {
     Mat srcGray;
@@ -307,11 +305,8 @@ void RectangleDetect( Mat& lightness_img, Mat& resultImg, vector< vector<RectMar
     //imshow("adaptiveThresholdImg",imgBinaryShow);
     //printf("imshow imgBinaryShow done!\n");
 
-    vector<Vec4i> hierarchy;
     vector< vector<Point> > all_contours;
     vector< vector<Point> > contours;
-    //查找轮廓
-    //findContours( imgBinary, all_contours, hierarchy ,RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
     findContours( imgBinary, all_contours, RETR_LIST, CHAIN_APPROX_NONE );//CV_RETR_CCOMP ; CV_RETR_EXTERNAL
     //printf("Contours number before filter: %d\n", int(all_contours.size()) );
 
@@ -389,7 +384,6 @@ void RectangleDetect( Mat& lightness_img, Mat& resultImg, vector< vector<RectMar
         double angle3 = GetTwoSideAngle(approxCurve[2],approxCurve[3], approxCurve[0]);
         double minAngleThres = 90 - 30;
         double maxAngleThres = 90 + 30;
-        //相邻两角不可同时大于90度
         if( (angle0>100 && angle1>100) || (angle1>100 && angle2>100) || (angle2>100 && angle3>100) || (angle3>100 && angle0>100) )
         {
             continue;
@@ -399,18 +393,12 @@ void RectangleDetect( Mat& lightness_img, Mat& resultImg, vector< vector<RectMar
         {
             continue;
         }
-        ////不能是竖向平行四边形
-        //double angle0_0 = GetTwoSideAngle(approxCurve[1],approxCurve[0],Point2f(approxCurve[1].x,approxCurve[0].y) );
-        //double angle1_0 = GetTwoSideAngle(approxCurve[0],approxCurve[1],Point2f(approxCurve[1].x,approxCurve[0].y) );
-        //if (angle0<80 && angle1>100 && angle0_0>20 && angle1_0>20)
-        //{
-        //	continue;
-        //}
-        //四边形最短边不可太小
+
+        //最短边不可太小
         float m_minSideLengthAllowed = float(srcGray.rows/40);
         //最长边与最短边之比不可过小
         float m_maxSideLengthRatio = maxDist/minDist;
-        //过滤并存储有效的四边形信息
+
         if (minDist > m_minSideLengthAllowed && m_maxSideLengthRatio < maxSideLengthRatioAllowed)
         {
             RectMark markTemp;
@@ -470,7 +458,6 @@ void RectErase( vector<RectMark>& rectPossible )
         {
             for (int k=0; k<4; ++k)
             {
-                //计算两个矩形对应的第k个顶点的像素距离
                 rectErr[k] = sqrt(pow((rectPossible[i].m_points[k].x - rectPossible[j].m_points[k].x),2)
                                 + pow((rectPossible[i].m_points[k].y - rectPossible[j].m_points[k].y),2));
                 if (rectErr[k] > maxErr)
@@ -517,7 +504,6 @@ void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& r
             else
                 minSide = rectPossible[j].minSideLength;
 
-            //判断两四边形是否属于为同一物理标志
             if (twoPointDistance < (minSide * rectClassifyThres))
             {
                 rectArrayTemp.push_back(rectPossible[j]);
@@ -525,18 +511,16 @@ void RectClassify( vector<RectMark>& rectPossible, vector< vector<RectMark> >& r
                 j--;
             }
         }
-        //同一类的放在一起
         rectCategory.push_back(rectArrayTemp);
     }
     return;
 }
 
-//同一类内的四边形按面积排序
+//按面积排序
 void RectSortByArea( vector< vector<RectMark> >& rectCategory )
 {
     for (int k=0;k<(int)rectCategory.size();++k)
     {
-        //同一类内排序
         for (int i=0;i<(int)rectCategory[k].size();++i)
         {
             for (int j=i+1;j<(int)rectCategory[k].size();++j)
@@ -554,7 +538,6 @@ void RectSortByArea( vector< vector<RectMark> >& rectCategory )
 //不同类的四边形按坐标排序
 void RectSortByPositionX( vector< vector<RectMark> >& rectCategory )
 {
-        //同一类内排序
         for (int i=0;i<(int)rectCategory.size();++i)
         {
             for (int j=i+1;j<(int)rectCategory.size();++j)
@@ -585,7 +568,6 @@ void DrawAllRect(Mat& resultImg, vector< vector<RectMark> >& rectCategory)
             line(resultImg, rectCategory[k][i].m_points[3], rectCategory[k][i].m_points[0], Scalar(255,255,0), 3, 8);
             if (0 == i)
             {
-                //只在最内侧四边形上标出0、1、2、3
                 for (int j=0;j<4;j++)
                 {
                     circle(resultImg,rectCategory[k][i].m_points[j],4,Scalar(0,255,0),-1);
@@ -618,9 +600,7 @@ void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vecto
             imagePoints2d[2]=Point2d(rectCategory[i][j].m_points[2].x,rectCategory[i][j].m_points[2].y);
             imagePoints2d[3]=Point2d(rectCategory[i][j].m_points[3].x,rectCategory[i][j].m_points[3].y);
 
-            // 标准Rect在2d空间为100*100的矩形
             Size m_RectSize = Size(100, int(100*1.25));
-            // 矩形 4个角点的正交投影标准值
             vector<Point2f> m_RectCorners2d;
             //vector<Point3f> m_RectCorners3d;
             m_RectCorners2d.push_back(Point2f(0, 0));
@@ -628,15 +608,11 @@ void PerspectiveTransformation(Mat& srcImg, vector<Mat>& rectCandidateImg, vecto
             m_RectCorners2d.push_back(Point2f(float(m_RectSize.width-1), float(m_RectSize.height-1)));
             m_RectCorners2d.push_back(Point2f(0, float(m_RectSize.height-1) ) );
 
-            // 投影变换,恢复2维标准视图
             Mat canonicalImg;
-            // 得到当前marker的透视变换矩阵M
+            //透视变换矩阵M
             Mat M = getPerspectiveTransform(rectCategory[i][j].m_points, m_RectCorners2d);
-            // 将当前的marker变换为正交投影
             warpPerspective(srcImg, canonicalImg, M, m_RectSize, INTER_AREA);
-            //存储矩形区域图像
             canonicalImg.copyTo(rectCategory[i][j].perspectiveImg);
-            //分窗口显示各标准矩形区域
             sprintf(windowName,"perspectiveImg-[%d][%d]",i,j);
             //imshow(windowName, rectCategory[i][j].perspectiveImg);
         }
@@ -698,7 +674,6 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         Mat t_distcoef=(Mat_<double>(1,5) << -0.05173, 0.07077, -0.00047, 0.00061,0);
         Mat t_cameraMatrix=(Mat_<double>(3,3) << t_fx,0,t_cx,0,t_fy,t_cy,0,0,1);
 
-        //计算旋转矩阵、平移矩阵
         Mat rvec,tvec;
         solvePnP(objectPoints3d,imagePoints2d,t_cameraMatrix,t_distcoef,rvec,tvec);
 
@@ -728,7 +703,7 @@ void EstimatePosition(Mat& srcColor, vector< vector<RectMark> >& rectCategory)
         T_showCenter=Point2d(rectCategory[i][0].m_points[1].x,(rectCategory[i][0].m_points[1].y + rectCategory[i][0].m_points[2].y)/2);
         putText(srcColor, transf, T_showCenter,CV_FONT_HERSHEY_PLAIN,2.5*shrink,Scalar(0,0,255),int(4.5*shrink));
     }
-    //在图像中显示平移向量（x,y,z）
+
     //Mat imgColor;
     //resize(srcColor,imgColor,Size(640,480));
     //imshow("rect distance",imgColor);
@@ -755,7 +730,6 @@ void DigitDetector(Mat& ResultImg, basicOCR* ocr, vector< vector<RectMark> >& re
             //imshow("median_img", possibleDigitBinaryImg);
         }
 
-        //数字识别
         IplImage ipl_img(possibleDigitBinaryImg);
         float classResult = ocr->classify(&ipl_img,1);
         float precisionRatio = ocr->knn_result.precisionRatio;

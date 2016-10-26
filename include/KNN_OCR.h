@@ -54,7 +54,6 @@ class basicOCR
         Mat trainData_mat;
         Mat trainClasses_mat;
 		int size;
-		//static const int K=10;
         static const int K = 10;
 
         //CvKNearest *knn;
